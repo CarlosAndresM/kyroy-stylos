@@ -18,7 +18,8 @@ import {
   X,
   ChevronRight,
   MapPin,
-  Shield
+  Shield,
+  Wallet
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -55,6 +56,12 @@ const NAV_ITEMS = [
     title: 'Trabajadores',
     href: '/dashboard/trabajadores',
     icon: Briefcase,
+    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+  },
+  {
+    title: 'Vales',
+    href: '/dashboard/vales',
+    icon: Wallet,
     roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
   },
   {
