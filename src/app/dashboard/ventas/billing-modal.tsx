@@ -658,7 +658,7 @@ export function BillingModal({
                   <div className="flex flex-col gap-4 w-full sm:w-[200px] bg-amber-50/50 p-3 border-2 border-dashed border-amber-600 animate-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-2 mb-1">
                       <Receipt className="size-3.5 text-amber-700" />
-                      <span className="text-[10px] font-black uppercase text-amber-700 italic">VALE / VOLANTE</span>
+                      <span className="text-[10px] font-black uppercase text-amber-700 italic">SERVICIO DE TRABAJADOR</span>
                     </div>
 
                     <div className="space-y-1.5">
@@ -915,7 +915,7 @@ export function BillingModal({
                           <div className={cn("w-5 h-5 border border-rose-200 flex items-center justify-center transition-all bg-white rounded-none")}>
                             {isSelected && <div className="w-2.5 h-2.5 bg-black" />}
                           </div>
-                          <span className="text-xs font-bold uppercase tracking-tight text-black">{method.MP_NOMBRE}</span>
+                          <span className="text-xs font-bold uppercase tracking-tight text-black">{method.MP_NOMBRE === 'VALE' ? 'SERVICIO DE TRABAJADOR' : method.MP_NOMBRE}</span>
                         </div>
                       )
                     })}
@@ -929,7 +929,7 @@ export function BillingModal({
                       return (
                         <div key={`${payment.MP_IDMETODO_FK}-${idx}`} className="flex flex-col gap-2 bg-white border border-rose-200 rounded-none p-3 shadow-sm">
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
-                            <span className="text-[11px] font-bold uppercase text-black">{method?.MP_NOMBRE}</span>
+                            <span className="text-[11px] font-bold uppercase text-black">{method?.MP_NOMBRE === 'VALE' ? 'SERVICIO DE TRABAJADOR' : method?.MP_NOMBRE}</span>
                             <div className="flex items-center gap-1.5 p-1 bg-slate-50 border border-rose-200 px-3 min-h-[40px] sm:min-h-0">
                               <FormField
                                 control={form.control}

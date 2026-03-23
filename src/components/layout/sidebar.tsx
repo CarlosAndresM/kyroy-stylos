@@ -76,8 +76,8 @@ const NAV_ITEMS = [
     roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
   },
   {
-    title: 'Vales',
-    href: '/dashboard/vales',
+    title: 'Servicio de Trabajador',
+    href: '/dashboard/servicio-trabajador',
     icon: Ticket,
     roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
   },
