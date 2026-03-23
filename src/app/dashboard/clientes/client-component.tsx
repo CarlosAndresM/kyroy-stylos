@@ -76,6 +76,7 @@ export function ClientClient({ initialClients }: ClientClientProps) {
       </div>
 
       <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden max-h-[75vh] overflow-y-auto shadow-sm">
+        <div className="overflow-x-auto">
         <Table className="border-collapse">
           <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-black">
             <TableRow className="hover:bg-transparent">
@@ -159,6 +160,7 @@ export function ClientClient({ initialClients }: ClientClientProps) {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
       </div>
     </LoadingGate>

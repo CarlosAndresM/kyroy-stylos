@@ -114,12 +114,12 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
   return (
     <LoadingGate>
       <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-slate-100 dark:bg-slate-900/50 p-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-white p-4 border-2 border-kyroy-border shadow-md">
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-kyroy-pink" />
           <Input
             placeholder="FILTRO RÁPIDO..."
-            className="pl-10 h-10 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-slate-950 font-bold text-xs uppercase"
+            className="pl-10 h-10 border-2 border-kyroy-border rounded-none bg-white dark:bg-slate-950 font-bold text-xs uppercase focus-visible:ring-kyroy-pink"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoComplete="off"
@@ -128,7 +128,7 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
 
         <Button
           onClick={() => handleOpenModal()}
-          className="w-full sm:w-auto bg-slate-900 hover:bg-black text-white font-black gap-2 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-10 px-6 text-sm uppercase italic"
+          className="w-full sm:w-auto bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black gap-2 rounded-none border-2 border-kyroy-orange shadow-sm h-10 px-6 text-sm uppercase italic"
         >
           <Plus className="size-4" />
           {activeTab === 'servicios' ? 'NUEVO SERVICIO' : 'NUEVO PRODUCTO'}
@@ -139,19 +139,20 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
         setActiveTab(v);
         setActiveFilters({});
       }}>
-        <TabsList className="bg-slate-50 dark:bg-slate-950 p-0 rounded-none border-2 border-black h-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <TabsTrigger value="servicios" className="rounded-none px-12 h-full data-[state=active]:bg-black data-[state=active]:text-white font-black text-xs uppercase tracking-widest border-r-2 border-black">
+        <TabsList className="bg-white p-0 rounded-none border-2 border-kyroy-border h-12 shadow-sm mb-4">
+          <TabsTrigger value="servicios" className="flex-1 rounded-none px-4 lg:px-12 h-full data-[state=active]:bg-kyroy-pink data-[state=active]:text-white font-black text-[10px] lg:text-xs uppercase tracking-widest border-r-2 border-kyroy-border">
             Servicios
           </TabsTrigger>
-          <TabsTrigger value="productos" className="rounded-none px-12 h-full data-[state=active]:bg-black data-[state=active]:text-white font-black text-xs uppercase tracking-widest">
+          <TabsTrigger value="productos" className="flex-1 rounded-none px-4 lg:px-12 h-full data-[state=active]:bg-kyroy-pink data-[state=active]:text-white font-black text-[10px] lg:text-xs uppercase tracking-widest">
             Productos
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="servicios" className="mt-6">
-          <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden max-h-[60vh] overflow-y-auto">
+        <TabsContent value="servicios" className="mt-2">
+          <div className="border border-kyroy-border bg-white/50 backdrop-blur-sm overflow-hidden max-h-[60vh] overflow-y-auto shadow-md">
+            <div className="overflow-x-auto">
             <Table className="border-collapse">
-              <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-black">
+              <TableHeader className="bg-kyroy-pink-light sticky top-0 z-10 shadow-sm border-b-2 border-kyroy-border">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-10 py-0 px-4 w-[110px]">
                     <TableFilter
@@ -179,7 +180,7 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4 text-right w-[100px]">
-                    <span className="font-black uppercase tracking-widest text-[10px] text-slate-500">Acciones</span>
+                    <span className="font-black uppercase tracking-widest text-[10px] text-kyroy-pink">Acciones</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -227,13 +228,15 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="productos" className="mt-6">
-          <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden max-h-[60vh] overflow-y-auto">
+        <TabsContent value="productos" className="mt-2">
+          <div className="border border-kyroy-border bg-white/50 backdrop-blur-sm overflow-hidden max-h-[60vh] overflow-y-auto shadow-md">
+            <div className="overflow-x-auto">
             <Table className="border-collapse">
-              <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-black">
+              <TableHeader className="bg-kyroy-pink-light sticky top-0 z-10 shadow-sm border-b-2 border-kyroy-border">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-10 py-0 px-4 w-[110px]">
                     <TableFilter
@@ -261,7 +264,7 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4 text-right w-[100px]">
-                    <span className="font-black uppercase tracking-widest text-[10px] text-slate-500">Acciones</span>
+                    <span className="font-black uppercase tracking-widest text-[10px] text-kyroy-pink">Acciones</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -309,6 +312,7 @@ export function CatalogClient({ initialServices, initialProducts }: CatalogClien
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

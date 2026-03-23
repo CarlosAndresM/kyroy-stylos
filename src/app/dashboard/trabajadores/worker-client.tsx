@@ -121,12 +121,12 @@ export function WorkerClient({ initialWorkers, roles, sedes }: WorkerClientProps
   return (
     <LoadingGate>
       <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-slate-100 dark:bg-slate-900/50 p-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-white p-4 border-2 border-kyroy-border shadow-md">
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-kyroy-pink" />
           <Input
             placeholder="FILTRO RÁPIDO..."
-            className="pl-10 h-10 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-slate-950 font-bold text-xs uppercase"
+            className="pl-10 h-10 border-2 border-kyroy-border rounded-none bg-white dark:bg-slate-950 font-bold text-xs uppercase focus-visible:ring-kyroy-pink"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoComplete="off"
@@ -135,16 +135,17 @@ export function WorkerClient({ initialWorkers, roles, sedes }: WorkerClientProps
 
         <Button
           onClick={() => handleOpenModal()}
-          className="w-full sm:w-auto bg-slate-900 hover:bg-black text-white font-black gap-2 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-10 px-6 text-sm uppercase italic"
+          className="w-full sm:w-auto bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black gap-2 rounded-none border-2 border-kyroy-orange shadow-sm h-10 px-6 text-sm uppercase italic"
         >
           <Plus className="size-4" />
           Nuevo Trabajador
         </Button>
       </div>
 
-      <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden max-h-[70vh] overflow-y-auto">
+      <div className="border border-kyroy-border bg-white/50 backdrop-blur-sm shadow-md overflow-hidden max-h-[70vh] overflow-y-auto">
+        <div className="overflow-x-auto">
         <Table className="border-collapse">
-          <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-black">
+          <TableHeader className="bg-kyroy-pink-light sticky top-0 z-10 shadow-sm border-b-2 border-kyroy-border">
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-10 py-0 px-4">
                 <TableFilter
@@ -178,9 +179,9 @@ export function WorkerClient({ initialWorkers, roles, sedes }: WorkerClientProps
                   onFilterChange={(vals: string[]) => handleFilterChange('SC_NOMBRE', vals)}
                 />
               </TableHead>
-              <TableHead className="h-10 py-0 px-4 font-black text-slate-500 uppercase tracking-widest text-[10px] text-center">Servicios</TableHead>
-              <TableHead className="h-10 py-0 px-4 font-black text-slate-500 uppercase tracking-widest text-[10px] text-center">Vales</TableHead>
-              <TableHead className="h-10 py-0 px-4 font-black text-slate-500 uppercase tracking-widest text-[10px] text-center">Deuda</TableHead>
+              <TableHead className="h-10 py-0 px-4 font-black text-kyroy-pink uppercase tracking-widest text-[10px] text-center">Servicios</TableHead>
+              <TableHead className="h-10 py-0 px-4 font-black text-kyroy-pink uppercase tracking-widest text-[10px] text-center">Vales</TableHead>
+              <TableHead className="h-10 py-0 px-4 font-black text-kyroy-pink uppercase tracking-widest text-[10px] text-center">Deuda</TableHead>
               <TableHead className="h-10 py-0 px-4 text-center">
                 <TableFilter
                   label="Estado"
@@ -190,7 +191,7 @@ export function WorkerClient({ initialWorkers, roles, sedes }: WorkerClientProps
                   onFilterChange={(vals: string[]) => handleFilterChange('TR_ACTIVO', vals)}
                 />
               </TableHead>
-              <TableHead className="h-10 py-0 px-4 font-black text-slate-500 uppercase tracking-widest text-[10px] text-right">Acciones</TableHead>
+              <TableHead className="h-10 py-0 px-4 font-black text-kyroy-pink uppercase tracking-widest text-[10px] text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -274,6 +275,7 @@ export function WorkerClient({ initialWorkers, roles, sedes }: WorkerClientProps
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       <WorkerModal

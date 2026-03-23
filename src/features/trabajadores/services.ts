@@ -175,10 +175,62 @@ export async function getRoles(): Promise<ApiResponse> {
 
 export async function getSedes(): Promise<ApiResponse> {
   try {
-    const [rows] = await db.execute("SELECT SC_IDSUCURSAL_PK, SC_NOMBRE FROM KS_SUCURSALES ORDER BY SC_NOMBRE ASC");
+    const [rows] = await db.execute("SELECT SC_IDSUCURSAL_PK, SC_NOMBRE, SC_DIRECCION FROM KS_SUCURSALES ORDER BY SC_NOMBRE ASC");
     return { success: true, data: rows, error: null };
   } catch (error) {
     console.error("Error fetching sedes:", error);
     return { success: false, data: null, error: "Error al obtener las sedes" };
+  }
+}
+
+export async function saveSede(data: { SC_IDSUCURSAL_PK?: number, SC_NOMBRE: string, SC_DIRECCION?: string | null }): Promise<ApiResponse> {
+  try {
+    if (data.SC_IDSUCURSAL_PK) {
+      await db.execute(
+        "UPDATE KS_SUCURSALES SET SC_NOMBRE = ?, SC_DIRECCION = ? WHERE SC_IDSUCURSAL_PK = ?",
+        [data.SC_NOMBRE, data.SC_DIRECCION || null, data.SC_IDSUCURSAL_PK]
+      );
+    } else {
+      await db.execute(
+        "INSERT INTO KS_SUCURSALES (SC_NOMBRE, SC_DIRECCION) VALUES (?, ?)",
+        [data.SC_NOMBRE, data.SC_DIRECCION || null]
+      );
+    }
+    revalidatePath("/dashboard/sedes");
+    return { success: true, data: null, error: null };
+  } catch (error) {
+    console.error("Error saving sede:", error);
+    return { success: false, data: null, error: "Error al guardar la sucursal" };
+  }
+}
+
+export async function deleteSede(sedeId: number, adminPassword: string): Promise<ApiResponse> {
+  try {
+    // 1. Verify admin password
+    const [adminRows] = await db.execute(
+      `SELECT T.TR_IDTRABAJADOR_PK 
+       FROM KS_TRABAJADORES T
+       JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
+       WHERE T.TR_PASSWORD = ? AND R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'
+       LIMIT 1`,
+      [adminPassword]
+    );
+    const admins = adminRows as any[];
+    if (admins.length === 0) return { success: false, data: null, error: "Contraseña incorrecta" };
+
+    // 2. Check dependencies (workers associated with this branch)
+    const [workers]: any = await db.execute("SELECT COUNT(*) as count FROM KS_TRABAJADORES WHERE SC_IDSUCURSAL_FK = ?", [sedeId]);
+    if (workers[0].count > 0) {
+      return { success: false, data: null, error: "No se puede eliminar porque hay trabajadores asociados a esta sede" };
+    }
+
+    // 3. Delete
+    await db.execute("DELETE FROM KS_SUCURSALES WHERE SC_IDSUCURSAL_PK = ?", [sedeId]);
+
+    revalidatePath("/dashboard/sedes");
+    return { success: true, data: null, error: null };
+  } catch (error) {
+    console.error("Error deleting sede:", error);
+    return { success: false, data: null, error: "Error al eliminar la sucursal" };
   }
 }

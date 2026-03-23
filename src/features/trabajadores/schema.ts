@@ -26,3 +26,11 @@ export interface WorkerWithStats {
   total_vales: number;
   vales_pendientes: number;
 }
+
+export const sedeSchema = z.object({
+  SC_IDSUCURSAL_PK: z.number().optional(),
+  SC_NOMBRE: z.string().min(1, 'El nombre es obligatorio').max(100),
+  SC_DIRECCION: z.string().max(255).optional().nullable(),
+});
+
+export type SedeFormData = z.infer<typeof sedeSchema>;

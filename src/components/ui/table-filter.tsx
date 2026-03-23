@@ -94,10 +94,10 @@ export function TableFilter({
           </div>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-0 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" align="start">
-        <div className="p-2 border-b-2 border-black bg-slate-50">
+      <PopoverContent className="w-64 p-0 rounded-none border-2 border-kyroy-border shadow-[6px_6px_0px_0px_rgba(255,134,162,0.15)]" align="start">
+        <div className="p-2 border-b-2 border-kyroy-border bg-kyroy-pink-light/30">
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-rose-300" />
             <Input
               placeholder={`Buscar ${label.toLowerCase()}...`}
               value={searchValue}
@@ -105,7 +105,7 @@ export function TableFilter({
                   setSearchValue(e.target.value)
                   onSearchChange?.(e.target.value)
               }}
-              className="pl-8 h-8 text-xs rounded-none border-slate-300 focus:ring-0 focus:border-black bg-white"
+              className="pl-8 h-8 text-xs rounded-none border-kyroy-border focus:ring-0 focus:border-kyroy-pink bg-white font-bold"
               autoComplete="off"
             />
             {searchValue && (
@@ -123,10 +123,10 @@ export function TableFilter({
               <div
                 key={opt}
                 onClick={() => toggleValue(opt)}
-                className="flex items-center justify-between px-2 py-1.5 text-xs font-bold uppercase hover:bg-slate-100 cursor-pointer transition-colors"
+                className="flex items-center justify-between px-2 py-1.5 text-xs font-bold uppercase hover:bg-rose-50/50 cursor-pointer transition-colors"
               >
                 <span className="truncate flex-1">{opt || 'SIN VALOR'}</span>
-                {selectedValues.includes(opt) && <Check className="size-3.5 text-black" />}
+                {selectedValues.includes(opt) && <Check className="size-3.5 text-kyroy-pink" />}
               </div>
             ))
           ) : (
@@ -137,7 +137,7 @@ export function TableFilter({
         </div>
 
         {(isActive || searchValue) && (
-          <div className="p-2 border-t border-slate-200 flex justify-between gap-2 bg-slate-50">
+          <div className="p-2 border-t border-slate-200 flex justify-between gap-2 bg-rose-50/30">
             <Button 
                 variant="ghost" 
                 size="sm" 
@@ -149,7 +149,7 @@ export function TableFilter({
             <Button 
                 size="sm" 
                 onClick={() => setIsOpen(false)}
-                className="h-7 text-[9px] font-black uppercase bg-black text-white hover:bg-slate-800 rounded-none px-4"
+                className="h-7 text-[9px] font-black uppercase bg-kyroy-pink text-white hover:bg-rose-600 rounded-none px-4 shadow-[2px_2px_0px_0px_rgba(255,134,162,0.2)]"
             >
               APLICAR
             </Button>

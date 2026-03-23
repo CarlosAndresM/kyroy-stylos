@@ -14,24 +14,39 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params.push(sucursalId);
     }
 
-    // 1. Get total sales (FC_TOTAL where not cancelled)
+    // 1. Get total sales (ONLY PAGADO invoices)
     const [salesResult]: any = await db.execute(
       `SELECT SUM(FC_TOTAL) as total FROM KS_FACTURAS 
-       WHERE DATE(FC_FECHA) BETWEEN ? AND ? AND FC_ESTADO != 'CANCELADO' ${sucursalFilter}`,
+       WHERE DATE(FC_FECHA) BETWEEN ? AND ? AND FC_ESTADO = 'PAGADO' ${sucursalFilter}`,
       params
     );
 
-    // 2. Get total cash/direct payments (Paid by Cash or Transfer, excluding credits/vouchers)
-    // Actually, simply summing PF_VALOR for those invoices might be better.
-    const [paymentsResult]: any = await db.execute(
-      `SELECT SUM(pf.PF_VALOR) as total 
+    // 2. Get breakdown of payments by method (ONLY for PAGADO invoices to match ventas_total)
+    const [paymentsBreakdown]: any = await db.execute(
+      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? AND f.FC_ESTADO != 'CANCELADO' ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}`,
+       JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? 
+       AND f.FC_ESTADO = 'PAGADO' 
+       ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}
+       GROUP BY mp.MP_NOMBRE`,
       params
     );
 
-    // 3. New clients (Unique phones whose FIRST purchase is in this range)
+    // 3. Get total from Credit Abonos in this period
+    const [abonosResult]: any = await db.execute(
+      `SELECT SUM(ab.AB_VALOR) as total, COUNT(DISTINCT ab.CR_IDCREDITO_FK) as count
+       FROM KS_CREDITO_ABONOS ab
+       JOIN KS_CREDITOS c ON ab.CR_IDCREDITO_FK = c.CR_IDCREDITO_PK
+       JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       WHERE DATE(ab.AB_FECHA) BETWEEN ? AND ? 
+       AND f.FC_ESTADO != 'CANCELADO' 
+       ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}`,
+      params
+    );
+
+    // 4. New clients (Global)
     const [clientsResult]: any = await db.execute(
       `SELECT COUNT(*) as total FROM (
          SELECT FC_CLIENTE_TELEFONO, MIN(FC_FECHA) as primera_vez
@@ -42,16 +57,35 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       [dateFrom, dateTo]
     );
 
-    // 4. Credits today
-    const [creditsResult]: any = await db.execute(
-      `SELECT SUM(CR_VALOR_PENDIENTE) as total, COUNT(*) as count 
-       FROM KS_CREDITOS c
-       JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(c.CR_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}`,
+    // 5. Total Pendiente por Cobrar (SOLO EFECTIVO, TRANSF, DATAFONO en facturas pendientes)
+    // Se omiten CRÉDITOS y VALES porque no se cobrarán hoy
+    const [pendientesHoy]: any = await db.execute(
+      `SELECT SUM(pf.PF_VALOR) as total
+       FROM KS_PAGOS_FACTURA pf
+       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? 
+       AND f.FC_ESTADO = 'PENDIENTE'
+       AND mp.MP_NOMBRE NOT IN ('CREDITO', 'VALE')
+       ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}`,
       params
     );
 
-    // 5. Vales today
+    // 5b. Deuda Total Generada Hoy (Para mostrar en las tarjetas de CREDITO y VALE)
+    const [deudaNueva]: any = await db.execute(
+      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total
+       FROM KS_PAGOS_FACTURA pf
+       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? 
+       AND (f.FC_ESTADO = 'PENDIENTE' OR f.FC_ESTADO = 'PAGADO')
+       AND mp.MP_NOMBRE IN ('CREDITO', 'VALE')
+       ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}
+       GROUP BY mp.MP_NOMBRE`,
+      params
+    );
+
+    // 6. Vales in period
     const [valesResult]: any = await db.execute(
       `SELECT SUM(VL_VALOR_TOTAL) as total, COUNT(*) as count 
        FROM KS_VALES v
@@ -60,36 +94,41 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params
     );
 
-    // 6. Total services count
-    const [servicesCountResult]: any = await db.execute(
-      `SELECT COUNT(*) as total 
-       FROM KS_FACTURA_DETALLES fd
-       JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}`,
-      params
-    );
+    // Process breakdown (ONLY PAGADO for cards 4-8 to match 'Ventas Hoy')
+    const metodos: Record<string, number> = {
+      'EFECTIVO': 0,
+      'TRANSFERENCIA': 0,
+      'DATAFONO': 0,
+      'CREDITO': 0,
+      'VALE': 0
+    };
 
-    // 7. Deudas count (Unique phone numbers with at least one pending invoice in range)
-    const [deudasResult]: any = await db.execute(
-      `SELECT COUNT(DISTINCT FC_CLIENTE_TELEFONO) as total 
-       FROM KS_FACTURAS 
-       WHERE FC_ESTADO = 'PENDIENTE' 
-       AND DATE(FC_FECHA) BETWEEN ? AND ? ${sucursalFilter}`,
-      params
-    );
+    (paymentsBreakdown || []).forEach((row: any) => {
+      const metodo = row.metodo.toUpperCase();
+      if (metodo === 'EFECTIVO') metodos['EFECTIVO'] += Number(row.total || 0);
+      else if (metodo === 'DATAFONO' || metodo === 'TARJETA') metodos['DATAFONO'] += Number(row.total || 0);
+      else if (metodo === 'CREDITO') metodos['CREDITO'] += Number(row.total || 0);
+      else if (metodo === 'VALE') metodos['VALE'] += Number(row.total || 0);
+      else metodos['TRANSFERENCIA'] += Number(row.total || 0);
+    });
+
+    const totalVentasPagadas = Number(salesResult[0]?.total || 0);
+    const totalAbonosRecibidos = Number(abonosResult[0]?.total || 0);
+
+    // Recibido en Caja = (Efectivo + Transferencia + Datafono de Facturas Pagadas) + Abonos
+    const totalCaja = metodos['EFECTIVO'] + metodos['TRANSFERENCIA'] + metodos['DATAFONO'] + totalAbonosRecibidos;
 
     return {
       success: true,
       data: {
-        ventas_total: Number(salesResult[0]?.total || 0),
-        total_pagos: Number(paymentsResult[0]?.total || 0),
+        ventas_total: totalVentasPagadas,
+        total_caja: totalCaja,
+        metodos_pago: metodos,
+        por_cobrar_total: Number(pendientesHoy[0]?.total || 0),
+        total_abonos: totalAbonosRecibidos,
+        abonos_count: Number(abonosResult[0]?.count || 0),
         clientes_nuevos: Number(clientsResult[0]?.total || 0),
-        creditos_total: Number(creditsResult[0]?.total || 0),
-        creditos_count: Number(creditsResult[0]?.count || 0),
         vales_total: Number(valesResult[0]?.total || 0),
-        vales_count: Number(valesResult[0]?.count || 0),
-        servicios_count: Number(servicesCountResult[0]?.total || 0),
-        deudas_count: Number(deudasResult[0]?.total || 0),
       },
       error: null
     };
@@ -207,7 +246,11 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
        (SELECT GROUP_CONCAT(DISTINCT sv.SV_NOMBRE SEPARATOR ', ') 
         FROM KS_FACTURA_DETALLES fd 
         JOIN KS_SERVICIOS sv ON fd.SV_IDSERVICIO_FK = sv.SV_IDSERVICIO_PK 
-        WHERE fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK) as servicios
+        WHERE fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK) as servicios,
+       (SELECT GROUP_CONCAT(DISTINCT p.PR_NOMBRE SEPARATOR ', ') 
+        FROM KS_FACTURA_PRODUCTOS fp 
+        JOIN KS_PRODUCTOS p ON fp.PR_IDPRODUCTO_FK = p.PR_IDPRODUCTO_PK 
+        WHERE fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK) as productos
        FROM KS_FACTURAS f 
        JOIN KS_SUCURSALES s ON f.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
        LEFT JOIN KS_TRABAJADORES t ON f.TR_IDCLIENTE_FK = t.TR_IDTRABAJADOR_PK
@@ -218,11 +261,11 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
 
     // 2. Créditos
     const [creditos]: any = await db.execute(
-      `SELECT c.*, f.FC_NUMERO_FACTURA, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display
+      `SELECT c.*, f.FC_NUMERO_FACTURA, f.FC_CLIENTE_TELEFONO, f.FC_FECHA, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display
        FROM KS_CREDITOS c
        JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
        LEFT JOIN KS_TRABAJADORES t ON f.TR_IDCLIENTE_FK = t.TR_IDTRABAJADOR_PK
-       WHERE DATE(c.CR_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(6) : ''}
+       WHERE DATE(c.CR_FECHA) BETWEEN ? AND ? ${sucursalFilter}
        ORDER BY c.CR_FECHA DESC`,
       params
     );
@@ -238,12 +281,28 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
       params
     );
 
+    // 4. Productos detallados
+    const [productos]: any = await db.execute(
+      `SELECT fp.*, f.FC_NUMERO_FACTURA, f.FC_FECHA, f.FC_ESTADO, p.PR_NOMBRE as producto_nombre,
+       t.TR_NOMBRE as tecnico_nombre, sv.SV_NOMBRE as servicio_nombre
+       FROM KS_FACTURA_PRODUCTOS fp
+       JOIN KS_FACTURAS f ON fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       JOIN KS_PRODUCTOS p ON fp.PR_IDPRODUCTO_FK = p.PR_IDPRODUCTO_PK
+       JOIN KS_TRABAJADORES t ON fp.TR_IDTECNICO_FK = t.TR_IDTRABAJADOR_PK
+       LEFT JOIN KS_FACTURA_DETALLES fd ON fp.FD_IDDETALLE_FK = fd.FD_IDDETALLE_PK
+       LEFT JOIN KS_SERVICIOS sv ON fd.SV_IDSERVICIO_FK = sv.SV_IDSERVICIO_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? ${sucursalFilter}
+       ORDER BY f.FC_FECHA DESC`,
+      params
+    );
+
     return {
       success: true,
       data: {
         facturas,
         creditos,
-        vales
+        vales,
+        productos
       },
       error: null
     };

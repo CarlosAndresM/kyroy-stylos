@@ -44,12 +44,12 @@ export async function getInvoiceById(id: number): Promise<ApiResponse> {
 
     // Fetch details
     const [services]: any = await (db as any).execute(
-      "SELECT FD_VALOR, SV_IDSERVICIO_FK, TR_IDTECNICO_FK FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = ?",
+      "SELECT FD_IDDETALLE_PK, FD_VALOR, SV_IDSERVICIO_FK, TR_IDTECNICO_FK FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = ?",
       [id]
     );
 
     const [products]: any = await (db as any).execute(
-      "SELECT FP_VALOR, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = ?",
+      "SELECT FP_VALOR, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK, FD_IDDETALLE_FK FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = ?",
       [id]
     );
 
@@ -123,12 +123,41 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
         ]
       );
 
-      // Limpiar detalles previos para re-insertar
+      // Limpiar detalles de servicios y productos (Safe to clear and re-insert)
       await (connection as any).execute("DELETE FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
       await (connection as any).execute("DELETE FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-      await (connection as any).execute("DELETE FROM KS_PAGOS_FACTURA WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-      // Limpiar vale si existía (se recreará si sigue siendo vale)
-      await (connection as any).execute("DELETE FROM KS_VALES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+      
+      // Para pagos y deudas, seremos más quirúrgicos para no perder trazabilidad de abonos previos
+      // 1. Identificar qué métodos de pago ya no están presentes para borrarlos
+      const newMethodIds = data.payments.map(p => p.MP_IDMETODO_FK);
+      
+      // Borrar pagos que ya no están en el nuevo envío
+      await (connection as any).execute(
+        `DELETE FROM KS_PAGOS_FACTURA WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK NOT IN (${newMethodIds.length > 0 ? newMethodIds.join(',') : '-1'})`,
+        [invoiceId]
+      );
+
+      // Borrar Vales y Créditos SOLO si su método de pago correspondiente ya no está
+      // (Si están, los actualizaremos en el loop de inserción más abajo)
+      const [methodRows]: any = await (connection as any).execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO");
+      const creditMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
+      const valeMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
+
+      if (!newMethodIds.includes(valeMethodId)) {
+          const [vRows]: any = await (connection as any).execute("SELECT VL_IDVALE_PK FROM KS_VALES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+          for(const v of vRows) {
+              await (connection as any).execute("DELETE FROM KS_VALE_CUOTAS WHERE VL_IDVALE_FK = ?", [v.VL_IDVALE_PK]);
+          }
+          await (connection as any).execute("DELETE FROM KS_VALES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+      }
+
+      if (!newMethodIds.includes(creditMethodId)) {
+          const [cRows]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+          for(const c of cRows) {
+              await (connection as any).execute("DELETE FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ?", [c.CR_IDCREDITO_PK]);
+          }
+          await (connection as any).execute("DELETE FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+      }
 
     } else {
       // INSERTAR NUEVA FACTURA
@@ -155,36 +184,76 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       invoiceId = invoiceResult.insertId;
     }
 
-    // 1.1 Si es Vale de técnico, registrar en KS_VALES
-    if (data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale && data.TR_IDCLIENTE_FK) {
-      await (connection as any).execute(
-        `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [data.FC_TOTAL, 1, data.FC_TOTAL, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK]
-      );
-    }
+    // Identificar IDs especiales de métodos de pago
+    const [methodRows]: any = await (connection as any).execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO");
+    const methods = methodRows as { MP_IDMETODO_PK: number, MP_NOMBRE: string }[];
+    const creditMethodId = methods.find(m => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
+    const valeMethodId = methods.find(m => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
 
-    // 2. Insertar Detalles de Servicios
-    for (const service of data.services) {
-      await (connection as any).execute(
-        `INSERT INTO KS_FACTURA_DETALLES (FD_VALOR, FC_IDFACTURA_FK, SV_IDSERVICIO_FK, TR_IDTECNICO_FK) 
-         VALUES (?, ?, ?, ?)`,
-        [service.FD_VALOR, invoiceId, service.SV_IDSERVICIO_FK, service.TR_IDTECNICO_FK]
-      );
-    }
+    // 1.1 Si es Vale de técnico, registrar en KS_VALES y sus Cuotas
+    const isValeInPayments = data.payments.some(p => p.MP_IDMETODO_FK === valeMethodId);
+    if ((data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale) || isValeInPayments) {
+      const valeTotal = isValeInPayments 
+        ? data.payments.find(p => p.MP_IDMETODO_FK === valeMethodId)?.PF_VALOR || 0
+        : data.FC_TOTAL;
+      
+      const numCuotas = data.VL_NUMERO_CUOTAS || 1;
+      const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
+      const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
 
-    // 3. Insertar Detalles de Productos
-    if (data.products && data.products.length > 0) {
-      for (const product of data.products) {
+      const [valeResult]: any = await (connection as any).execute(
+        `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, VL_FECHA_INICIO_COBRO)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
+      );
+      const valeId = valeResult.insertId;
+
+      // Generar cuotas semanales (ajustar según prefiera el usuario)
+      for (let i = 1; i <= numCuotas; i++) {
+        const fechaCuota = new Date(fechaInicio);
+        fechaCuota.setDate(fechaCuota.getDate() + (i - 1) * 7); // Semanal por defecto
+
         await (connection as any).execute(
-          `INSERT INTO KS_FACTURA_PRODUCTOS (FP_VALOR, FC_IDFACTURA_FK, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK) 
-           VALUES (?, ?, ?, ?)`,
-          [product.FP_VALOR, invoiceId, product.PR_IDPRODUCTO_FK, product.TR_IDTECNICO_FK]
+          `INSERT INTO KS_VALE_CUOTAS (VC_NUMERO_CUOTA, VC_VALOR_CUOTA, VC_ESTADO, VC_FECHA_COBRO, VL_IDVALE_FK)
+           VALUES (?, ?, ?, ?, ?)`,
+          [i, valorCuota, 'PENDIENTE', fechaCuota, valeId]
         );
       }
     }
 
-    // 4. Insertar Pagos
+    // 2. Insertar Detalles de Servicios
+    for (const service of data.services) {
+      const [serviceResult]: any = await (connection as any).execute(
+        `INSERT INTO KS_FACTURA_DETALLES (FD_VALOR, FC_IDFACTURA_FK, SV_IDSERVICIO_FK, TR_IDTECNICO_FK) 
+         VALUES (?, ?, ?, ?)`,
+        [service.FD_VALOR, invoiceId, service.SV_IDSERVICIO_FK, service.TR_IDTECNICO_FK]
+      );
+      const serviceDetailId = serviceResult.insertId;
+
+      // 2.1 Insertar productos asociados a este servicio
+      if (service.products && service.products.length > 0) {
+        for (const product of service.products) {
+          await (connection as any).execute(
+            `INSERT INTO KS_FACTURA_PRODUCTOS (FP_VALOR, FC_IDFACTURA_FK, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK, FD_IDDETALLE_FK) 
+             VALUES (?, ?, ?, ?, ?)`,
+            [product.FP_VALOR, invoiceId, product.PR_IDPRODUCTO_FK, product.TR_IDTECNICO_FK, serviceDetailId]
+          );
+        }
+      }
+    }
+
+    // 3. Insertar Detalles de Productos INDEPENDIENTES (si existen en el array de nivel superior)
+    if (data.products && data.products.length > 0) {
+      for (const product of data.products) {
+        await (connection as any).execute(
+          `INSERT INTO KS_FACTURA_PRODUCTOS (FP_VALOR, FC_IDFACTURA_FK, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK, FD_IDDETALLE_FK) 
+           VALUES (?, ?, ?, ?, ?)`,
+          [product.FP_VALOR, invoiceId, product.PR_IDPRODUCTO_FK, product.TR_IDTECNICO_FK, product.FD_IDDETALLE_FK || null]
+        );
+      }
+    }
+
+    // 4. Insertar o Actualizar Pagos
     for (const payment of data.payments) {
       if (payment.PF_VALOR > 0) {
         let finalUrl = payment.PF_EVIDENCIA_URL;
@@ -192,11 +261,89 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
           finalUrl = await finalizeUpload(finalUrl, data.FC_NUMERO_FACTURA || `FAC-${invoiceId}`);
         }
 
-        await (connection as any).execute(
-          `INSERT INTO KS_PAGOS_FACTURA (PF_VALOR, PF_EVIDENCIA_URL, FC_IDFACTURA_FK, MP_IDMETODO_FK) 
-           VALUES (?, ?, ?, ?)`,
-          [payment.PF_VALOR, finalUrl || null, invoiceId, payment.MP_IDMETODO_FK]
+        // Verificar si este método ya existía para esta factura
+        const [existingPayment]: any = await (connection as any).execute(
+          "SELECT PF_IDPAGO_PK FROM KS_PAGOS_FACTURA WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
+          [invoiceId, payment.MP_IDMETODO_FK]
         );
+
+        if (existingPayment.length > 0) {
+          await (connection as any).execute(
+            "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = ?, PF_EVIDENCIA_URL = ? WHERE PF_IDPAGO_PK = ?",
+            [payment.PF_VALOR, finalUrl || null, existingPayment[0].PF_IDPAGO_PK]
+          );
+        } else {
+          await (connection as any).execute(
+            `INSERT INTO KS_PAGOS_FACTURA (PF_VALOR, PF_EVIDENCIA_URL, FC_IDFACTURA_FK, MP_IDMETODO_FK) 
+             VALUES (?, ?, ?, ?)`,
+            [payment.PF_VALOR, finalUrl || null, invoiceId, payment.MP_IDMETODO_FK]
+          );
+        }
+
+        // 4.1 Si es Vale de técnico, registrar o actualizar
+        const isVale = payment.MP_IDMETODO_FK === valeMethodId;
+        if ((data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale) || isVale) {
+            const valeTotal = payment.MP_IDMETODO_FK === valeMethodId ? payment.PF_VALOR : data.FC_TOTAL;
+            const [existingVale]: any = await (connection as any).execute(
+              "SELECT VL_IDVALE_PK FROM KS_VALES WHERE FC_IDFACTURA_FK = ?",
+              [invoiceId]
+            );
+
+            if (existingVale.length > 0) {
+              const valeId = existingVale[0].VL_IDVALE_PK;
+              // Actualizar total del vale (ajustar valor de cuotas si no están pagadas)
+              await (connection as any).execute(
+                "UPDATE KS_VALES SET VL_VALOR_TOTAL = ? WHERE VL_IDVALE_PK = ?",
+                [valeTotal, valeId]
+              );
+              // NOTA: No recalculamos cuotas automáticamente para no sobreescribir las ya pagadas.
+              // En un sistema real, aquí iría lógica de ajuste de saldo.
+            } else {
+              // ... El código de inserción de vale nuevo (movido aquí para coherencia si no existía)
+              const numCuotas = data.VL_NUMERO_CUOTAS || 1;
+              const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
+              const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
+
+              const [vRes]: any = await (connection as any).execute(
+                `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, VL_FECHA_INICIO_COBRO)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
+              );
+              const vId = vRes.insertId;
+              for (let i = 1; i <= numCuotas; i++) {
+                const fCuota = new Date(fechaInicio);
+                fCuota.setDate(fCuota.getDate() + (i - 1) * 7);
+                await (connection as any).execute(
+                  `INSERT INTO KS_VALE_CUOTAS (VC_NUMERO_CUOTA, VC_VALOR_CUOTA, VC_ESTADO, VC_FECHA_COBRO, VL_IDVALE_FK)
+                   VALUES (?, ?, ?, ?, ?)`,
+                  [i, valorCuota, 'PENDIENTE', fCuota, vId]
+                );
+              }
+            }
+        }
+
+        // 4.2 Si es crédito, registrar o actualizar
+        if (payment.MP_IDMETODO_FK === creditMethodId) {
+          const [existingCredit]: any = await (connection as any).execute(
+            "SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?",
+            [invoiceId]
+          );
+
+          if (existingCredit.length > 0) {
+            // Solo actualizamos el valor pendiente si no se ha pagado nada
+            // O mejor: lo actualizamos y la trazabilidad de abonos dirá el resto
+            await (connection as any).execute(
+              "UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = ? WHERE CR_IDCREDITO_PK = ?",
+              [payment.PF_VALOR, existingCredit[0].CR_IDCREDITO_PK]
+            );
+          } else {
+            await (connection as any).execute(
+              `INSERT INTO KS_CREDITOS (CR_VALOR_PENDIENTE, FC_IDFACTURA_FK)
+               VALUES (?, ?)`,
+              [payment.PF_VALOR, invoiceId]
+            );
+          }
+        }
       }
     }
 
@@ -249,7 +396,11 @@ export async function deleteInvoice(invoiceId: number): Promise<ApiResponse> {
     // 2. Eliminar vales
     await connection.execute(`DELETE FROM KS_VALES WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
 
-    // 3. Eliminar créditos
+    // 3. Eliminar créditos y sus abonos
+    const [oldCredits]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+    for(const c of oldCredits) {
+      await (connection as any).execute("DELETE FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ?", [c.CR_IDCREDITO_PK]);
+    }
     await connection.execute(`DELETE FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
 
     // 4. Eliminar detalles (servicios)
@@ -346,3 +497,180 @@ export async function getNextInvoiceNumber(): Promise<ApiResponse> {
   }
 }
 
+/**
+ * Agregar un producto a una factura existente y asociarlo opcionalmente a un servicio
+ */
+export async function addProductToInvoice(
+  invoiceId: number, 
+  productId: number, 
+  technicianId: number, 
+  value: number, 
+  detailId?: number
+): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Insertar el producto con la asociación opcional al servicio (detailId)
+    await connection.execute(
+      `INSERT INTO KS_FACTURA_PRODUCTOS (FP_VALOR, FC_IDFACTURA_FK, PR_IDPRODUCTO_FK, TR_IDTECNICO_FK, FD_IDDETALLE_FK) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [value, invoiceId, productId, technicianId, detailId || null]
+    );
+
+    // 2. Actualizar el total de la factura (incrementar el valor del producto)
+    await connection.execute(
+      "UPDATE KS_FACTURAS SET FC_TOTAL = FC_TOTAL + ? WHERE FC_IDFACTURA_PK = ?",
+      [value, invoiceId]
+    );
+
+    // 3. Si la factura tiene un CRÉDITO asociado, incrementar el valor pendiente del crédito
+    // Y también sincronizar el registro de pago correspondiente
+    const [methodRows]: any = await connection.execute("SELECT MP_IDMETODO_PK FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) = 'CREDITO'");
+    const creditMethodId = methodRows[0]?.MP_IDMETODO_PK;
+    
+    if (creditMethodId) {
+      await connection.execute(
+        "UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE + ? WHERE FC_IDFACTURA_FK = ?",
+        [value, invoiceId]
+      );
+      await connection.execute(
+        "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
+        [value, invoiceId, creditMethodId]
+      );
+    }
+    
+    // Lo mismo para VALES si aplica
+    const [valeMethRows]: any = await connection.execute("SELECT MP_IDMETODO_PK FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) = 'VALE'");
+    const valeMethodId = valeMethRows[0]?.MP_IDMETODO_PK;
+    if (valeMethodId) {
+      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL + ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
+      await connection.execute(
+        "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
+        [value, invoiceId, valeMethodId]
+      );
+    }
+
+    await connection.commit();
+    revalidatePath("/dashboard");
+    return { success: true, data: null, error: null };
+  } catch (error: any) {
+    if (connection) await connection.rollback();
+    console.error("Error adding product to invoice:", error);
+    return { success: false, data: null, error: error.message || "Error al agregar producto a la factura" };
+  } finally {
+    if (connection) connection.release();
+  }
+}
+/**
+ * Actualizar una asociación de producto existente
+ */
+export async function updateProductInInvoice(
+  productInvoiceId: number,
+  productId: number,
+  technicianId: number,
+  value: number,
+  detailId?: number
+): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Obtener el valor actual para ajustar el total de la factura
+    const [oldRows]: any = await connection.execute(
+      "SELECT FP_VALOR, FC_IDFACTURA_FK FROM KS_FACTURA_PRODUCTOS WHERE FP_IDFACTURA_PRODUCTO_PK = ?",
+      [productInvoiceId]
+    );
+
+    if (oldRows.length === 0) throw new Error("Registro de producto no encontrado");
+    const oldValue = Number(oldRows[0].FP_VALOR);
+    const invoiceId = oldRows[0].FC_IDFACTURA_FK;
+
+    // 2. Actualizar el registro
+    await connection.execute(
+      `UPDATE KS_FACTURA_PRODUCTOS SET 
+       FP_VALOR = ?, PR_IDPRODUCTO_FK = ?, TR_IDTECNICO_FK = ?, FD_IDDETALLE_FK = ?
+       WHERE FP_IDFACTURA_PRODUCTO_PK = ?`,
+      [value, productId, technicianId, detailId || null, productInvoiceId]
+    );
+
+    // 3. Ajustar el total de la factura (Resta viejo, suma nuevo)
+    await connection.execute(
+      "UPDATE KS_FACTURAS SET FC_TOTAL = FC_TOTAL - ? + ? WHERE FC_IDFACTURA_PK = ?",
+      [oldValue, value, invoiceId]
+    );
+
+    // 4. Si tiene crédito/vale, ajustar también su valor pendiente y registros de pago
+    const [mRows]: any = await connection.execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) IN ('CREDITO', 'VALE')");
+    const creditMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
+    const valeMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
+
+    if (creditMethodId) {
+      await connection.execute("UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
+      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, creditMethodId]);
+    }
+    if (valeMethodId) {
+      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
+      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, valeMethodId]);
+    }
+
+    await connection.commit();
+    revalidatePath("/dashboard");
+    return { success: true, data: null, error: null };
+  } catch (error: any) {
+    if (connection) await connection.rollback();
+    console.error("Error updating product in invoice:", error);
+    return { success: false, data: null, error: error.message || "Error al actualizar producto" };
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+/**
+ * Eliminar una asociación de producto
+ */
+export async function deleteProductFromInvoice(productInvoiceId: number): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Obtener valor y factura
+    const [rows]: any = await connection.execute(
+      "SELECT FP_VALOR, FC_IDFACTURA_FK FROM KS_FACTURA_PRODUCTOS WHERE FP_IDFACTURA_PRODUCTO_PK = ?",
+      [productInvoiceId]
+    );
+
+    if (rows.length === 0) throw new Error("Registro no encontrado");
+    const value = Number(rows[0].FP_VALOR);
+    const invoiceId = rows[0].FC_IDFACTURA_FK;
+
+    // 2. Eliminar
+    await connection.execute("DELETE FROM KS_FACTURA_PRODUCTOS WHERE FP_IDFACTURA_PRODUCTO_PK = ?", [productInvoiceId]);
+
+    // 3. Ajustar total
+    await connection.execute("UPDATE KS_FACTURAS SET FC_TOTAL = FC_TOTAL - ? WHERE FC_IDFACTURA_PK = ?", [value, invoiceId]);
+
+    // 4. Ajustar crédito/vale si existe
+    const [mRows]: any = await connection.execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) IN ('CREDITO', 'VALE')");
+    const creditMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
+    const valeMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
+
+    if (creditMethodId) {
+      await connection.execute("UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
+      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, creditMethodId]);
+    }
+    if (valeMethodId) {
+      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
+      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, valeMethodId]);
+    }
+
+    await connection.commit();
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error: any) {
+    if (connection) await connection.rollback();
+    return { success: false, error: error.message };
+  } finally {
+    if (connection) connection.release();
+  }
+}

@@ -3,13 +3,14 @@
 import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { revalidatePath } from "next/cache";
+import { finalizeUpload } from "@/lib/file-utils";
 
 /**
- * Obtener todos los créditos pendientes
+ * Obtener créditos (por defecto solo pendientes)
  */
-export async function getCredits(): Promise<ApiResponse> {
+export async function getCredits(all: boolean = false): Promise<ApiResponse> {
   try {
-    const [rows]: any = await db.execute(`
+    let query = `
       SELECT 
         c.CR_IDCREDITO_PK,
         c.CR_VALOR_PENDIENTE,
@@ -27,9 +28,15 @@ export async function getCredits(): Promise<ApiResponse> {
       JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
       JOIN KS_SUCURSALES s ON f.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
       LEFT JOIN KS_TRABAJADORES t ON f.TR_IDCLIENTE_FK = t.TR_IDTRABAJADOR_PK
-      WHERE c.CR_VALOR_PENDIENTE > 0
-      ORDER BY c.CR_FECHA DESC
-    `);
+    `;
+
+    if (!all) {
+      query += " WHERE c.CR_VALOR_PENDIENTE > 0 ";
+    }
+
+    query += " ORDER BY c.CR_FECHA DESC ";
+
+    const [rows]: any = await db.execute(query);
     return { success: true, data: rows, error: null };
   } catch (error) {
     console.error("Error fetching credits:", error);
@@ -38,16 +45,20 @@ export async function getCredits(): Promise<ApiResponse> {
 }
 
 /**
- * Registrar un pago/abono a un crédito
+ * Registrar un pago/abono a un crédito con historial y evidencia
  */
-export async function payCredit(creditId: number, amount: number): Promise<ApiResponse> {
+export async function payCredit(
+  creditId: number,
+  amount: number,
+  params?: { date?: Date, evidenceUrl?: string }
+): Promise<ApiResponse> {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
     // 1. Obtener crédito actual
     const [credits]: any = await connection.execute(
-      "SELECT CR_VALOR_PENDIENTE, FC_IDFACTURA_FK FROM KS_CREDITOS WHERE CR_IDCREDITO_PK = ?",
+      "SELECT CR_VALOR_PENDIENTE, FC_IDFACTURA_FK, FC_NUMERO_FACTURA FROM KS_CREDITOS c JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK WHERE CR_IDCREDITO_PK = ?",
       [creditId]
     );
 
@@ -55,11 +66,17 @@ export async function payCredit(creditId: number, amount: number): Promise<ApiRe
       throw new Error("Crédito no encontrado");
     }
 
-    const { CR_VALOR_PENDIENTE, FC_IDFACTURA_FK } = credits[0];
+    const { CR_VALOR_PENDIENTE, FC_IDFACTURA_FK, FC_NUMERO_FACTURA } = credits[0];
     const newBalance = Number(CR_VALOR_PENDIENTE) - amount;
 
     if (newBalance < -0.01) {
       throw new Error("El monto del pago excede el saldo pendiente");
+    }
+
+    // 1.5 Finalizar carga de evidencia si existe
+    let finalEvidenceUrl = params?.evidenceUrl;
+    if (finalEvidenceUrl && finalEvidenceUrl.includes('/temp/')) {
+      finalEvidenceUrl = await finalizeUpload(finalEvidenceUrl, `ABONO-${FC_NUMERO_FACTURA}-${Date.now()}`);
     }
 
     // 2. Actualizar balance
@@ -68,18 +85,19 @@ export async function payCredit(creditId: number, amount: number): Promise<ApiRe
       [Math.max(0, newBalance), creditId]
     );
 
-    // 3. Si se pagó todo, actualizar estado de factura
+    // 3. Registrar Abono (Trazabilidad)
+    await connection.execute(
+      "INSERT INTO KS_CREDITO_ABONOS (AB_VALOR, AB_FECHA, AB_EVIDENCIA_URL, CR_IDCREDITO_FK) VALUES (?, ?, ?, ?)",
+      [amount, params?.date || new Date(), finalEvidenceUrl || null, creditId]
+    );
+
+    // 4. Si se pagó todo, actualizar estado de factura
     if (newBalance <= 0) {
       await connection.execute(
         "UPDATE KS_FACTURAS SET FC_ESTADO = 'PAGADO' WHERE FC_IDFACTURA_PK = ?",
         [FC_IDFACTURA_FK]
       );
     }
-
-    // 4. Registrar en pagos factura para historial
-    // NOTA: Para unificar, podríamos usar la tabla de pagos existente
-    // pero tendríamos que saber qué método de pago usó.
-    // Como simplificación por ahora, solo actualizamos el balance.
 
     await connection.commit();
     revalidatePath("/dashboard/creditos");
@@ -90,5 +108,21 @@ export async function payCredit(creditId: number, amount: number): Promise<ApiRe
     return { success: false, data: null, error: error.message || "Error al pagar crédito" };
   } finally {
     if (connection) connection.release();
+  }
+}
+
+/**
+ * Obtener historial de abonos de un crédito
+ */
+export async function getCreditHistory(creditId: number): Promise<ApiResponse> {
+  try {
+    const [rows]: any = await db.execute(
+      "SELECT AB_IDABONO_PK, AB_VALOR, AB_FECHA, AB_EVIDENCIA_URL FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ? ORDER BY AB_FECHA DESC",
+      [creditId]
+    );
+    return { success: true, data: rows, error: null };
+  } catch (error) {
+    console.error("Error fetching credit history:", error);
+    return { success: false, data: null, error: "Error al obtener historial de abonos" };
   }
 }

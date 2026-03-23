@@ -102,10 +102,10 @@ export function WorkerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] border-slate-200 dark:border-slate-800 rounded-[32px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">
-            {editingWorker ? 'Editar Trabajador' : 'Nuevo Trabajador'}
+      <DialogContent className="sm:max-w-[500px] border-2 border-kyroy-border rounded-none shadow-[12px_12px_0px_0px_rgba(255,134,162,0.15)] p-0 bg-white overflow-hidden">
+        <DialogHeader className="bg-gradient-to-r from-kyroy-pink to-rose-400 p-6 border-b-2 border-kyroy-pink">
+          <DialogTitle className="text-xl font-black text-white uppercase italic tracking-widest">
+            {editingWorker ? 'EDITAR TRABAJADOR' : 'NUEVO TRABAJADOR'}
           </DialogTitle>
         </DialogHeader>
 
@@ -117,9 +117,9 @@ export function WorkerModal({
                 name="TR_NOMBRE"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Nombre Completo</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Nombre Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej. Juan Pérez" {...field} className="rounded-xl border-slate-200 focus:ring-[#FF7E5F] focus:border-[#FF7E5F]" />
+                      <Input placeholder="Ej. Juan Pérez" {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,9 +132,9 @@ export function WorkerModal({
                   name="TR_TELEFONO"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Teléfono</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="3001234567" {...field} value={field.value || ''} className="rounded-xl border-slate-200" />
+                        <Input placeholder="3001234567" {...field} value={field.value || ''} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -145,9 +145,9 @@ export function WorkerModal({
                   name="TR_PASSWORD"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Contraseña</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Contraseña</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder={editingWorker ? "Dejar en blanco para no cambiar" : "Mínimo 6 caracteres"} {...field} className="rounded-xl border-slate-200" autoComplete="new-password" />
+                        <Input type="password" placeholder={editingWorker ? "Dejar en blanco" : "Mínimo 6 caracteres"} {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" autoComplete="new-password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -161,17 +161,17 @@ export function WorkerModal({
                   name="RL_IDROL_FK"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Rol</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Rol</FormLabel>
                       <Select 
                         onValueChange={(val) => field.onChange(parseInt(val))} 
                         value={field.value?.toString()}
                       >
                         <FormControl>
-                          <SelectTrigger className="rounded-xl border-slate-200">
+                          <SelectTrigger className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs">
                             <SelectValue placeholder="Seleccione un rol" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl">
+                        <SelectContent className="rounded-none border-2 border-kyroy-border shadow-xl">
                           {roles.map((role) => (
                             <SelectItem key={role.RL_IDROL_PK} value={role.RL_IDROL_PK.toString()}>
                               {role.RL_NOMBRE.replace('_', ' ')}
@@ -189,17 +189,17 @@ export function WorkerModal({
                   name="SC_IDSUCURSAL_FK"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Sucursal</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Sucursal</FormLabel>
                       <Select 
                         onValueChange={(val) => field.onChange(val === 'none' ? null : parseInt(val))} 
                         value={field.value?.toString() || 'none'}
                       >
                         <FormControl>
-                          <SelectTrigger className="rounded-xl border-slate-200">
+                          <SelectTrigger className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink">
                             <SelectValue placeholder="Seleccione sucursal" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-xl">
+                        <SelectContent className="rounded-none border-2 border-kyroy-border shadow-xl">
                           <SelectItem value="none">Sin sucursal (Global)</SelectItem>
                           {sedes.map((sede) => (
                             <SelectItem key={sede.SC_IDSUCURSAL_PK} value={sede.SC_IDSUCURSAL_PK.toString()}>
@@ -220,9 +220,9 @@ export function WorkerModal({
                   name="TR_SUELDO_BASE"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-slate-700 dark:text-slate-300">Sueldo Base ($)</FormLabel>
+                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Sueldo Base ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="0" {...field} className="rounded-xl border-slate-200" />
+                        <Input type="number" placeholder="0" {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -234,16 +234,16 @@ export function WorkerModal({
                 control={form.control}
                 name="TR_ACTIVO"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-2xl border border-slate-100 p-4 bg-slate-50/50">
+                  <FormItem className="flex items-center justify-between rounded-none border border-kyroy-border p-4 bg-kyroy-pink-light">
                     <div className="space-y-0.5">
-                      <FormLabel className="font-bold">Estado de Cuenta</FormLabel>
-                      <p className="text-xs text-slate-500 italic">Desactiva para impedir el acceso al sistema.</p>
+                      <FormLabel className="text-xs font-black uppercase italic">Estado de Cuenta</FormLabel>
+                      <p className="text-[10px] text-kyroy-text italic">Desactiva para impedir el acceso al sistema.</p>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-[#FF7E5F]"
+                        className="data-[state=checked]:bg-kyroy-pink"
                       />
                     </FormControl>
                   </FormItem>
@@ -251,19 +251,19 @@ export function WorkerModal({
               />
             </div>
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="pt-4 gap-2">
               <Button 
                 type="button" 
                 variant="ghost" 
                 onClick={onClose}
-                className="rounded-xl"
+                className="rounded-none border-2 border-kyroy-border font-bold uppercase text-xs h-10 px-6 hover:bg-slate-50"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B] hover:opacity-90 text-white font-bold rounded-xl px-8 shadow-lg shadow-orange-500/20"
+                className="bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black rounded-none border-2 border-kyroy-orange h-10 px-8 shadow-sm uppercase italic text-sm"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingWorker ? 'Guardar Cambios' : 'Crear Trabajador'}

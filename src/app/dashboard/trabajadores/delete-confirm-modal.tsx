@@ -43,62 +43,61 @@ export function DeleteConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] border-red-200 dark:border-red-900/50 rounded-[32px] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 to-orange-500" />
-
-        <DialogHeader className="pt-4">
-          <div className="size-12 rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
-            <AlertCircle className="size-8" />
-          </div>
-          <DialogTitle className="text-2xl font-black text-slate-900 dark:text-white">
-            ¿Eliminar Trabajador?
+      <DialogContent className="sm:max-w-[425px] border-2 border-kyroy-border rounded-none shadow-[10px_10px_0px_0px_rgba(255,134,162,0.2)] p-0 overflow-hidden bg-white">
+        <DialogHeader className="bg-gradient-to-r from-red-500 to-rose-600 p-6 border-b-2 border-red-700">
+          <DialogTitle className="text-xl font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+            <AlertCircle className="size-5" /> ¿ELIMINAR TRABAJADOR?
           </DialogTitle>
-          <DialogDescription className="text-slate-500 dark:text-slate-400 font-medium pt-2">
-            Estás a punto de eliminar permanentemente a <span className="font-black text-red-500 italic">"{workerName}"</span>.
-            Esta acción solo se permite si el trabajador no tiene registros asociados.
+          <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest italic pt-1">
+             Esta acci&oacute;n es irreversible y requiere autorizaci&oacute;n.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-6 space-y-4">
+        <div className="p-6 space-y-4">
+          <p className="text-xs font-medium text-slate-600 leading-relaxed">
+            Estás a punto de eliminar permanentemente a <span className="font-black text-red-600 italic">"{workerName}"</span>.
+          </p>
+
           <div className="space-y-2">
-            <Label htmlFor="admin-password" title="Contraseña Administrativa" className="font-bold text-slate-700 dark:text-slate-300">
-              Confirma con tu contraseña
+            <Label htmlFor="admin-password" title="Contraseña Administrativa" className="text-[10px] font-black uppercase text-slate-500 italic tracking-wider">
+              CONTRASEÑA DE SEGURIDAD:
             </Label>
             <Input
               id="admin-password"
               type="password"
-              placeholder="Introduce tu contraseña"
-              className="rounded-xl border-slate-200 focus:ring-red-500 focus:border-red-500 h-12"
+              placeholder="CONFIRME SU IDENTIDAD"
+              className="rounded-none border-2 border-kyroy-border focus:border-red-500 h-11 font-black shadow-sm bg-rose-50/10 transition-all text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
               autoComplete="new-password"
             />
           </div>
-          <div className="bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/10 rounded-2xl p-4">
-            <p className="text-[10px] uppercase font-black text-red-500 tracking-widest leading-normal">
-              Advertencia: Si el trabajador tiene facturas, servicios o vales registrados, el sistema impedirá la eliminación por integridad de datos.
+
+          <div className="bg-red-50 border-l-4 border-red-500 p-3">
+            <p className="text-[9px] uppercase font-black text-red-600 tracking-tight leading-normal flex items-center gap-2">
+              <AlertCircle className="size-3" /> SI TIENE REGISTROS ASOCIADOS (FACTURAS, VALES), SE IMPEDIRÁ LA ELIMINACIÓN.
             </p>
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="p-4 bg-slate-50 border-t-2 border-kyroy-border gap-2">
           <Button
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="rounded-xl flex-1 sm:flex-none"
+            className="rounded-none border-2 border-kyroy-border font-black uppercase text-xs h-11 px-6 hover:bg-white text-slate-400"
           >
-            Cancelar
+            CANCELAR
           </Button>
           <Button
             type="button"
             disabled={!password || isSubmitting}
             onClick={handleConfirm}
-            className="bg-red-600 hover:bg-red-700 text-white font-black rounded-xl px-8 shadow-lg shadow-red-500/20 flex-1 sm:flex-none"
+            className="bg-red-600 hover:bg-red-700 text-white font-black rounded-none px-8 shadow-[4px_4px_0px_0px_rgba(185,28,28,0.2)] flex-1 sm:flex-none h-11 uppercase text-xs tracking-widest active:shadow-none translate-x-0 active:translate-x-[2px] active:translate-y-[2px]"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Confirmar Eliminación
+            CONFIRMAR ELIMINACIÓN
           </Button>
         </DialogFooter>
       </DialogContent>

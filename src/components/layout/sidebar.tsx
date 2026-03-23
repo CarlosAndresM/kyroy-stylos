@@ -18,13 +18,25 @@ import {
   X,
   ChevronRight,
   MapPin,
-  Shield // Added Shield
+  Shield
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { logout } from '@/features/auth/services'
 import { toast } from '@/lib/toast-helper'
+
+// Hook para detectar si estamos en móvil
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false)
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+  return isMobile
+}
 
 const NAV_ITEMS = [
   {
@@ -93,11 +105,25 @@ interface SidebarProps {
   role?: string
 }
 
+// Contexto para controlar el sidebar desde el header en móvil
+export const SidebarContext = React.createContext<{
+  openMobile: () => void
+}>({
+  openMobile: () => {}
+})
+
 export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false)
   const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+
+  // Cerrar drawer al cambiar de ruta en móvil
+  React.useEffect(() => {
+    setIsMobileOpen(false)
+  }, [pathname])
 
   const handleLogout = async () => {
     try {
@@ -117,11 +143,40 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
 
   const filteredNavItems = NAV_ITEMS.filter(item => item.roles.includes(role))
 
+  // En móvil, el sidebar se esconde/muestra como drawer
+  const sidebarVisible = isMobile ? isMobileOpen : true
+
   return (
+    <>
+      {/* Overlay para cerrar en móvil */}
+      {isMobile && isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Botón hamburguesa flotante para móvil */}
+      {isMobile && !isMobileOpen && (
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="fixed top-4 left-4 z-50 size-10 rounded-full bg-slate-950 border-2 border-slate-700 flex items-center justify-center text-slate-200 shadow-xl md:hidden"
+          title="Abrir menú"
+        >
+          <Menu className="size-5" />
+        </button>
+      )}
+
     <aside
       className={cn(
-        "relative flex flex-col h-screen bg-slate-950 text-slate-200 transition-all duration-300 border-r border-slate-800 shadow-xl",
-        isCollapsed ? "w-20" : "w-64" // Reduced width from 72 to 64
+        "flex flex-col bg-slate-950 text-slate-200 border-r border-slate-800 shadow-xl transition-all duration-300",
+        // Desktop: ocupa h-screen de forma normal en el flex layout
+        !isMobile && "relative h-screen",
+        // Desktop collapse
+        !isMobile && (isCollapsed ? "w-20" : "w-64"),
+        // Móvil: posición fija como drawer
+        isMobile && "fixed top-0 left-0 h-full z-50 w-72",
+        isMobile && (isMobileOpen ? "translate-x-0" : "-translate-x-full")
       )}
     >
       {/* Logo Area */}
@@ -207,15 +262,29 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
         </Button>
       </div>
 
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-4 top-20 size-8 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 hover:text-[#FF7E5F] hover:border-[#FF7E5F]/50 shadow-xl transition-all hover:scale-110 cursor-pointer group/toggle z-50" // Adjusted top from 24 to 20
-        title={isCollapsed ? "Mostrar menú" : "Esconder menú"}
-      >
-        <Menu className={cn("size-4 transition-transform", isCollapsed ? "rotate-180" : "rotate-0")} />
-      </button>
+      {/* Collapse Toggle - solo en desktop */}
+      {!isMobile && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-4 top-20 size-8 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 hover:text-[#FF7E5F] hover:border-[#FF7E5F]/50 shadow-xl transition-all hover:scale-110 cursor-pointer group/toggle z-50"
+          title={isCollapsed ? "Mostrar menú" : "Esconder menú"}
+        >
+          <Menu className={cn("size-4 transition-transform", isCollapsed ? "rotate-180" : "rotate-0")} />
+        </button>
+      )}
+
+      {/* Botón cerrar en móvil dentro del sidebar */}
+      {isMobile && (
+        <button
+          onClick={() => setIsMobileOpen(false)}
+          className="absolute top-4 right-4 size-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-all"
+          title="Cerrar menú"
+        >
+          <X className="size-4" />
+        </button>
+      )}
     </aside>
+    </>
   )
 }
 

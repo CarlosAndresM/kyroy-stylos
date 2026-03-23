@@ -119,12 +119,12 @@ export default function AdminClient({ initialAdmins, roles, sedes }: AdminClient
   return (
     <LoadingGate>
       <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-slate-100 dark:bg-slate-900/50 p-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-kyroy-pink-light/30 dark:bg-slate-900/50 p-4 border-2 border-kyroy-border shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)]">
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <Input
             placeholder="FILTRO RÁPIDO..."
-            className="pl-10 h-10 border-2 border-black rounded-none shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white dark:bg-slate-950 font-bold text-xs uppercase"
+            className="pl-10 h-10 border-2 border-kyroy-border rounded-none shadow-[2px_2px_0px_0px_rgba(255,134,162,0.1)] bg-white dark:bg-slate-950 font-bold text-xs uppercase focus:bg-rose-50/50 transition-all focus:border-kyroy-pink"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             autoComplete="off"
@@ -133,7 +133,7 @@ export default function AdminClient({ initialAdmins, roles, sedes }: AdminClient
 
         <Button
           onClick={() => handleOpenModal()}
-          className="w-full sm:w-auto bg-slate-900 hover:bg-black text-white font-black gap-2 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] h-10 px-6 text-sm uppercase italic"
+          className="w-full sm:w-auto bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black gap-2 rounded-none border-2 border-kyroy-orange shadow-[4px_4px_0px_0px_rgba(249,115,22,0.2)] h-10 px-6 text-sm uppercase italic active:shadow-none translate-x-0 active:translate-x-[2px] active:translate-y-[2px]"
         >
           <Plus className="size-4" />
           Registrar Administrador
@@ -143,7 +143,7 @@ export default function AdminClient({ initialAdmins, roles, sedes }: AdminClient
       <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden max-h-[70vh] overflow-y-auto">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-black">
+            <TableHeader className="bg-kyroy-pink-light/30 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-kyroy-border">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-10 py-0 px-4">
                   <TableFilter 

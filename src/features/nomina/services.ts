@@ -157,7 +157,12 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
 
     await connection.commit();
     revalidatePath("/dashboard/nomina");
-    return { success: true, data: { nominaId }, message: "Nómina procesada correctamente" };
+
+    const message = workers.length === 0 
+      ? "Nómina procesada, pero no se encontraron técnicos activos para este periodo."
+      : "Nómina procesada correctamente";
+
+    return { success: true, data: { nominaId }, message };
 
   } catch (error) {
     if (connection) await connection.rollback();
