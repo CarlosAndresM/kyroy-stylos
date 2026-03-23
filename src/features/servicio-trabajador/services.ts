@@ -17,9 +17,9 @@ export async function crearValeCompletado(data: ValeFormData): Promise<ApiRespon
 
     const valorCuota = validated.VL_VALOR_TOTAL / validated.VL_NUMERO_CUOTAS;
 
-    // 1. Insertar Vale principal
+    // 1. Insertar Servicio principal
     const [valeResult]: any = await (connection as any).execute(
-      `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, VL_FECHA_INICIO_COBRO, TR_IDTRABAJADOR_FK, FC_IDFACTURA_FK)
+      `INSERT INTO KS_SERVICIOS_TRABAJADOR (ST_VALOR_TOTAL, ST_NUMERO_CUOTAS, ST_VALOR_CUOTA, ST_ESTADO, ST_FECHA_INICIO_COBRO, TR_IDTRABAJADOR_FK, FC_IDFACTURA_FK)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         validated.VL_VALOR_TOTAL,
@@ -36,12 +36,12 @@ export async function crearValeCompletado(data: ValeFormData): Promise<ApiRespon
 
     // 2. Generar Plan de Cuotas Semanales
     for (let i = 0; i < validated.VL_NUMERO_CUOTAS; i++) {
-        const fechaCobro = addDays(validated.VL_FECHA_INICIO_COBRO, i * 7);
-        await (connection as any).execute(
-          `INSERT INTO KS_VALE_CUOTAS (VC_NUMERO_CUOTA, VC_VALOR_CUOTA, VC_ESTADO, VC_FECHA_COBRO, VL_IDVALE_FK)
+      const fechaCobro = addDays(validated.VL_FECHA_INICIO_COBRO, i * 7);
+      await (connection as any).execute(
+        `INSERT INTO KS_SERVICIO_TRABAJADOR_CUOTAS (STC_NUMERO_CUOTA, STC_VALOR_CUOTA, STC_ESTADO, STC_FECHA_COBRO, ST_IDSERVICIO_TRABAJADOR_FK)
            VALUES (?, ?, ?, ?, ?)`,
-          [i + 1, valorCuota, 'PENDIENTE', fechaCobro, valeId]
-        );
+        [i + 1, valorCuota, 'PENDIENTE', fechaCobro, valeId]
+      );
     }
 
     await connection.commit();
@@ -61,18 +61,18 @@ export async function crearValeCompletado(data: ValeFormData): Promise<ApiRespon
  * Obtener cuotas pendientes para una nómina (dentro de un rango de fechas)
  */
 export async function getCuotasPendientes(workerId: number, startDate: Date, endDate: Date): Promise<ApiResponse> {
-    try {
-        const [rows] = await db.query(
-          `SELECT vc.*, vl.VL_VALOR_TOTAL 
-           FROM KS_VALE_CUOTAS vc 
-           JOIN KS_VALES vl ON vc.VL_IDVALE_FK = vl.VL_IDVALE_PK
-           WHERE vl.TR_IDTRABAJADOR_FK = ? 
-           AND vc.VC_ESTADO = 'PENDIENTE'
-           AND vc.VC_FECHA_COBRO BETWEEN ? AND ?`,
-          [workerId, startDate, endDate]
-        ) as any;
-        return { success: true, data: rows };
-    } catch (error) {
-        return { success: false, error: "Error al obtener cuotas" };
-    }
+  try {
+    const [rows] = await db.query(
+      `SELECT stc.*, st.ST_VALOR_TOTAL 
+           FROM KS_SERVICIO_TRABAJADOR_CUOTAS stc 
+           JOIN KS_SERVICIOS_TRABAJADOR st ON stc.ST_IDSERVICIO_TRABAJADOR_FK = st.ST_IDSERVICIO_TRABAJADOR_PK
+           WHERE st.TR_IDTRABAJADOR_FK = ? 
+           AND stc.STC_ESTADO = 'PENDIENTE'
+           AND stc.STC_FECHA_COBRO BETWEEN ? AND ?`,
+      [workerId, startDate, endDate]
+    ) as any;
+    return { success: true, data: rows };
+  } catch (error) {
+    return { success: false, error: "Error al obtener cuotas" };
+  }
 }

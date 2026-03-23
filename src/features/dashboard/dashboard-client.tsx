@@ -515,33 +515,33 @@ export function DashboardClient() {
                     {/* Row 1: Core Metrics */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                         {[
-                            { 
-                                title: `Ventas Hoy`, 
-                                value: `$${(stats?.ventas_total || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Facturas Pagadas Hoy', 
-                                icon: TrendingUp, 
-                                color: 'from-[#FF7E5F] to-[#FEB47B]' 
+                            {
+                                title: `Ventas Hoy`,
+                                value: `$${(stats?.ventas_total || 0).toLocaleString('es-CO')}`,
+                                sub: 'Facturas Pagadas Hoy',
+                                icon: TrendingUp,
+                                color: 'from-[#FF7E5F] to-[#FEB47B]'
                             },
-                            { 
-                                title: 'Recibido en Caja', 
-                                value: `$${(stats?.total_caja || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Directo + Abonos de Deuda', 
-                                icon: Wallet, 
-                                color: 'from-emerald-600 to-teal-500' 
+                            {
+                                title: 'Recibido en Caja',
+                                value: `$${(stats?.total_caja || 0).toLocaleString('es-CO')}`,
+                                sub: 'Directo + Abonos de Deuda',
+                                icon: Wallet,
+                                color: 'from-emerald-600 to-teal-500'
                             },
-                            { 
-                                title: 'Por Cobrar', 
-                                value: `$${(stats?.por_cobrar_total || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Ventas Pendientes Hoy', 
-                                icon: HandCoins, 
-                                color: 'from-red-500 to-rose-400' 
+                            {
+                                title: 'Abonos de Deuda',
+                                value: `$${(stats?.total_abonos || 0).toLocaleString('es-CO')}`,
+                                sub: 'Pagos a deudas de clientes',
+                                icon: History,
+                                color: 'from-purple-600 to-indigo-500'
                             },
-                            { 
-                                title: 'Efectivo', 
-                                value: `$${(stats?.metodos_pago?.['EFECTIVO'] || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Suma de Ventas Pagadas', 
-                                icon: DollarSign, 
-                                color: 'from-green-600 to-emerald-500' 
+                            {
+                                title: 'Por Cobrar',
+                                value: `$${(stats?.por_cobrar_total || 0).toLocaleString('es-CO')}`,
+                                sub: 'Ventas Pendientes Hoy',
+                                icon: HandCoins,
+                                color: 'from-red-500 to-rose-400'
                             },
                         ].map((stat, i) => (
                             <Card key={i} className="border-2 border-rose-100 rounded-none shadow-md overflow-hidden relative group bg-white dark:bg-slate-900">
@@ -561,35 +561,42 @@ export function DashboardClient() {
                     </div>
 
                     {/* Row 2: Payment Methods Breakdown */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mt-4 md:mt-8">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6 mt-4 md:mt-8">
                         {[
-                            { 
-                                title: 'Transferencia', 
-                                value: `$${(stats?.metodos_pago?.['TRANSFERENCIA'] || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Nequi / Daviplata / Bancos', 
-                                icon: Landmark, 
-                                color: 'from-blue-600 to-cyan-500' 
+                            {
+                                title: 'Efectivo',
+                                value: `$${(stats?.metodos_pago?.['EFECTIVO'] || 0).toLocaleString('es-CO')}`,
+                                sub: 'Suma de Ventas Pagadas',
+                                icon: DollarSign,
+                                color: 'from-green-600 to-emerald-500'
                             },
-                            { 
-                                title: 'Datáfono', 
-                                value: `$${(stats?.metodos_pago?.['DATAFONO'] || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Tarjetas Débito / Crédito', 
-                                icon: CreditCard, 
-                                color: 'from-indigo-600 to-violet-500' 
+                            {
+                                title: 'Transferencia',
+                                value: `$${(stats?.metodos_pago?.['TRANSFERENCIA'] || 0).toLocaleString('es-CO')}`,
+                                sub: 'Nequi / Daviplata / Bancos',
+                                icon: Landmark,
+                                color: 'from-blue-600 to-cyan-500'
                             },
-                            { 
-                                title: 'Crédito', 
-                                value: `$${(stats?.metodos_pago?.['CREDITO'] || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Cruces en Ventas Pagadas', 
-                                icon: History, 
-                                color: 'from-amber-600 to-orange-400' 
+                            {
+                                title: 'Datáfono',
+                                value: `$${(stats?.metodos_pago?.['DATAFONO'] || 0).toLocaleString('es-CO')}`,
+                                sub: 'Tarjetas Débito / Crédito',
+                                icon: CreditCard,
+                                color: 'from-indigo-600 to-violet-500'
                             },
-                            { 
-                                title: 'Vale', 
-                                value: `$${(stats?.metodos_pago?.['VALE'] || 0).toLocaleString('es-CO')}`, 
-                                sub: 'Deducciones en Facturas', 
-                                icon: Ticket, 
-                                color: 'from-slate-600 to-slate-450' 
+                            {
+                                title: 'Crédito',
+                                value: `$${(stats?.metodos_pago?.['CREDITO'] || 0).toLocaleString('es-CO')}`,
+                                sub: 'Deuda generada hoy',
+                                icon: History,
+                                color: 'from-amber-600 to-orange-400'
+                            },
+                            {
+                                title: 'Vale',
+                                value: `$${(stats?.metodos_pago?.['VALE'] || 0).toLocaleString('es-CO')}`,
+                                sub: 'Deducciones en Facturas',
+                                icon: Ticket,
+                                color: 'from-slate-600 to-slate-450'
                             },
                         ].map((stat, i) => (
                             <Card key={i} className="border-2 border-rose-100 rounded-none shadow-md overflow-hidden relative group bg-white dark:bg-slate-900">
@@ -1142,7 +1149,7 @@ export function DashboardClient() {
                                             value: p.PR_IDPRODUCTO_PK.toString()
                                         }))}
                                         value={apSelectedProductId}
-                                        onValueChange={handleProductChange}
+                                        onValueChange={(val) => handleProductChange(val.toString())}
                                         placeholder="BUSCAR PRODUCTO..."
                                         className="w-full h-10 border-2 border-rose-200 rounded-none font-black text-xs uppercase focus:border-orange-400 shadow-sm"
                                     />
@@ -1156,10 +1163,10 @@ export function DashboardClient() {
                                             value: s.FD_IDDETALLE_PK.toString()
                                         }))}
                                         value={apSelectedServiceId}
-                                        onValueChange={setApSelectedServiceId}
+                                        onValueChange={(val) => setApSelectedServiceId(val.toString())}
                                         placeholder="SELECCIONAR SERVICIO..."
                                         className="w-full h-10 border-2 border-rose-200 rounded-none font-black text-xs uppercase bg-rose-50/10 focus:border-orange-400"
-                                        emptyMessage={(!apInvoiceDetails.services || apInvoiceDetails.services.length === 0) ? "NO HAY SERVICIOS EN ESTA FACTURA" : "NO SE ENCONTRÓ"}
+                                        emptyText={(!apInvoiceDetails.services || apInvoiceDetails.services.length === 0) ? "NO HAY SERVICIOS EN ESTA FACTURA" : "NO SE ENCONTRÓ"}
                                     />
                                 </div>
 
@@ -1183,7 +1190,7 @@ export function DashboardClient() {
                                                 value: t.TR_IDTRABAJADOR_PK.toString()
                                             }))}
                                             value={apTechnicianId}
-                                            onValueChange={setApTechnicianId}
+                                            onValueChange={(val) => setApTechnicianId(val.toString())}
                                             placeholder="TÉCNICO..."
                                             className="w-full h-10 border-2 border-rose-200 rounded-none font-black text-xs uppercase focus:border-orange-400 shadow-sm"
                                         />

@@ -85,12 +85,12 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params
     );
 
-    // 6. Vales in period
+    // 6. Servicios en el periodo
     const [valesResult]: any = await db.execute(
-      `SELECT SUM(VL_VALOR_TOTAL) as total, COUNT(*) as count 
-       FROM KS_VALES v
-       LEFT JOIN KS_FACTURAS f ON v.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(v.VL_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND (f.FC_IDFACTURA_PK IS NULL OR f.' + sucursalFilter.trim().substring(4) + ')' : ''}`,
+      `SELECT SUM(ST_VALOR_TOTAL) as total, COUNT(*) as count 
+       FROM KS_SERVICIOS_TRABAJADOR st
+       LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       WHERE DATE(st.ST_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND (f.FC_IDFACTURA_PK IS NULL OR f.' + sucursalFilter.trim().substring(4) + ')' : ''}`,
       params
     );
 
@@ -270,14 +270,14 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
       params
     );
 
-    // 3. Vales
+    // 3. Servicios Propios
     const [vales]: any = await db.execute(
-      `SELECT v.*, t.TR_NOMBRE as trabajador_nombre, f.FC_NUMERO_FACTURA
-       FROM KS_VALES v
-       JOIN KS_TRABAJADORES t ON v.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-       LEFT JOIN KS_FACTURAS f ON v.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(v.VL_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND (f.FC_IDFACTURA_PK IS NULL OR f.' + sucursalFilter.trim().substring(6) + ')' : ''}
-       ORDER BY v.VL_FECHA DESC`,
+      `SELECT st.*, t.TR_NOMBRE as trabajador_nombre, f.FC_NUMERO_FACTURA
+       FROM KS_SERVICIOS_TRABAJADOR st
+       JOIN KS_TRABAJADORES t ON st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
+       LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       WHERE DATE(st.ST_FECHA) BETWEEN ? AND ? ${sucursalFilter ? 'AND (f.FC_IDFACTURA_PK IS NULL OR f.' + sucursalFilter.trim().substring(6) + ')' : ''}
+       ORDER BY st.ST_FECHA DESC`,
       params
     );
 

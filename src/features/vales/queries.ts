@@ -5,8 +5,7 @@ export async function getAdelantos() {
   const [rows] = await db.query<RowDataPacket[]>(`
     SELECT 
       a.*,
-      t.TR_NOMBRES,
-      t.TR_APELLIDOS
+      t.TR_NOMBRE
     FROM KS_ADELANTOS a
     JOIN KS_TRABAJADORES t ON a.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
     ORDER BY a.AD_FECHA DESC, a.AD_FECHA_CREACION DESC
@@ -18,8 +17,7 @@ export async function getAdelantosPendientes() {
   const [rows] = await db.query<RowDataPacket[]>(`
     SELECT 
       a.*,
-      t.TR_NOMBRES,
-      t.TR_APELLIDOS
+      t.TR_NOMBRE
     FROM KS_ADELANTOS a
     JOIN KS_TRABAJADORES t ON a.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
     WHERE a.AD_ESTADO = 'PENDIENTE'

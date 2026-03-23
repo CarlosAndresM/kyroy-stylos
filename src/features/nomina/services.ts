@@ -127,12 +127,12 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
       const prdTotal = Number(products[0].total || 0);
       const prdDeduct = prdTotal * (config.NC_PORCENTAJE_PRODUCTO / 100);
 
-      // 4.3. Obtener cuotas de vales para este periodo
+      // 4.3. Obtener cuotas de servicios para este periodo
       const [vales]: any = await (connection as any).execute(
-        `SELECT SUM(VC_VALOR_CUOTA) as total 
-         FROM KS_VALE_CUOTAS vc
-         JOIN KS_VALES vl ON vc.VL_IDVALE_FK = vl.VL_IDVALE_PK
-         WHERE vl.TR_IDTRABAJADOR_FK = ? AND vc.VC_ESTADO = 'PENDIENTE' AND vc.VC_FECHA_COBRO BETWEEN ? AND ?`,
+        `SELECT SUM(STC_VALOR_CUOTA) as total 
+         FROM KS_SERVICIO_TRABAJADOR_CUOTAS stc
+         JOIN KS_SERVICIOS_TRABAJADOR st ON stc.ST_IDSERVICIO_TRABAJADOR_FK = st.ST_IDSERVICIO_TRABAJADOR_PK
+         WHERE st.TR_IDTRABAJADOR_FK = ? AND stc.STC_ESTADO = 'PENDIENTE' AND stc.STC_FECHA_COBRO BETWEEN ? AND ?`,
         [worker.TR_IDTRABAJADOR_PK, data.startDate, data.endDate]
       );
       const valesDeduct = Number(vales[0].total || 0);
@@ -196,14 +196,14 @@ export async function confirmarNomina(nominaId: number): Promise<ApiResponse> {
       [nominaId]
     );
 
-    // 3. Marcar las cuotas de vales como pagadas
+    // 3. Marcar las cuotas de servicios como pagadas
     for (const detail of details) {
       await (connection as any).execute(
-        `UPDATE KS_VALE_CUOTAS vc
-         JOIN KS_VALES vl ON vc.VL_IDVALE_FK = vl.VL_IDVALE_PK
-         SET vc.VC_ESTADO = 'PAGADO'
-         WHERE vl.TR_IDTRABAJADOR_FK = ? AND vc.VC_ESTADO = 'PENDIENTE' 
-         AND vc.VC_FECHA_COBRO BETWEEN ? AND ?`,
+        `UPDATE KS_SERVICIO_TRABAJADOR_CUOTAS stc
+         JOIN KS_SERVICIOS_TRABAJADOR st ON stc.ST_IDSERVICIO_TRABAJADOR_FK = st.ST_IDSERVICIO_TRABAJADOR_PK
+         SET stc.STC_ESTADO = 'PAGADO'
+         WHERE st.TR_IDTRABAJADOR_FK = ? AND stc.STC_ESTADO = 'PENDIENTE' 
+         AND stc.STC_FECHA_COBRO BETWEEN ? AND ?`,
         [detail.TR_IDTRABAJADOR_FK, NM_FECHA_INICIO, NM_FECHA_FIN]
       );
     }

@@ -33,14 +33,14 @@ export async function getTrabajadores(): Promise<ApiResponse<WorkerWithStats[]>>
           WHERE fp.TR_IDTECNICO_FK = t.TR_IDTRABAJADOR_PK
         ) as servicios_count,
         IFNULL((
-          SELECT SUM(vl.VL_VALOR_TOTAL) 
-          FROM KS_VALES vl 
-          WHERE vl.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
+          SELECT SUM(st.ST_VALOR_TOTAL) 
+          FROM KS_SERVICIOS_TRABAJADOR st 
+          WHERE st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
         ), 0) as total_vales,
         (
           SELECT COUNT(*) 
-          FROM KS_VALES vl 
-          WHERE vl.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK AND vl.VL_ESTADO = 'PENDIENTE'
+          FROM KS_SERVICIOS_TRABAJADOR st 
+          WHERE st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK AND st.ST_ESTADO = 'PENDIENTE'
         ) as vales_pendientes
       FROM KS_TRABAJADORES t
       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
@@ -137,7 +137,7 @@ export async function deleteWorker(workerId: number, adminPassword: string): Pro
     const [facturas]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURAS WHERE TR_IDCAJERO_FK = ?", [workerId]);
     const [detalles]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURA_DETALLES WHERE TR_IDTECNICO_FK = ?", [workerId]);
     const [productos]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURA_PRODUCTOS WHERE TR_IDTECNICO_FK = ?", [workerId]);
-    const [vales]: any = await db.execute("SELECT COUNT(*) as count FROM KS_VALES WHERE TR_IDTRABAJADOR_FK = ?", [workerId]);
+    const [vales]: any = await db.execute("SELECT COUNT(*) as count FROM KS_SERVICIOS_TRABAJADOR WHERE TR_IDTRABAJADOR_FK = ?", [workerId]);
 
     if (
       facturas[0].count > 0 ||

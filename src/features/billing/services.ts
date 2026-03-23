@@ -60,7 +60,7 @@ export async function getInvoiceById(id: number): Promise<ApiResponse> {
 
     // Check if it's a vale
     const [vales]: any = await (db as any).execute(
-      "SELECT 1 FROM KS_VALES WHERE FC_IDFACTURA_FK = ?",
+      "SELECT 1 FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?",
       [id]
     );
 
@@ -144,11 +144,11 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       const valeMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
 
       if (!newMethodIds.includes(valeMethodId)) {
-          const [vRows]: any = await (connection as any).execute("SELECT VL_IDVALE_PK FROM KS_VALES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+          const [vRows]: any = await (connection as any).execute("SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
           for(const v of vRows) {
-              await (connection as any).execute("DELETE FROM KS_VALE_CUOTAS WHERE VL_IDVALE_FK = ?", [v.VL_IDVALE_PK]);
+              await (connection as any).execute("DELETE FROM KS_SERVICIO_TRABAJADOR_CUOTAS WHERE ST_IDSERVICIO_TRABAJADOR_FK = ?", [v.ST_IDSERVICIO_TRABAJADOR_PK]);
           }
-          await (connection as any).execute("DELETE FROM KS_VALES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+          await (connection as any).execute("DELETE FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
       }
 
       if (!newMethodIds.includes(creditMethodId)) {
@@ -202,19 +202,19 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
 
       const [valeResult]: any = await (connection as any).execute(
-        `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, VL_FECHA_INICIO_COBRO)
+        `INSERT INTO KS_SERVICIOS_TRABAJADOR (ST_VALOR_TOTAL, ST_NUMERO_CUOTAS, ST_VALOR_CUOTA, ST_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, ST_FECHA_INICIO_COBRO)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
       );
       const valeId = valeResult.insertId;
 
-      // Generar cuotas semanales (ajustar según prefiera el usuario)
+      // Generar cuotas semanales
       for (let i = 1; i <= numCuotas; i++) {
         const fechaCuota = new Date(fechaInicio);
-        fechaCuota.setDate(fechaCuota.getDate() + (i - 1) * 7); // Semanal por defecto
+        fechaCuota.setDate(fechaCuota.getDate() + (i - 1) * 7);
 
         await (connection as any).execute(
-          `INSERT INTO KS_VALE_CUOTAS (VC_NUMERO_CUOTA, VC_VALOR_CUOTA, VC_ESTADO, VC_FECHA_COBRO, VL_IDVALE_FK)
+          `INSERT INTO KS_SERVICIO_TRABAJADOR_CUOTAS (STC_NUMERO_CUOTA, STC_VALOR_CUOTA, STC_ESTADO, STC_FECHA_COBRO, ST_IDSERVICIO_TRABAJADOR_FK)
            VALUES (?, ?, ?, ?, ?)`,
           [i, valorCuota, 'PENDIENTE', fechaCuota, valeId]
         );
@@ -285,27 +285,23 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
         if ((data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale) || isVale) {
             const valeTotal = payment.MP_IDMETODO_FK === valeMethodId ? payment.PF_VALOR : data.FC_TOTAL;
             const [existingVale]: any = await (connection as any).execute(
-              "SELECT VL_IDVALE_PK FROM KS_VALES WHERE FC_IDFACTURA_FK = ?",
+              "SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?",
               [invoiceId]
             );
 
             if (existingVale.length > 0) {
-              const valeId = existingVale[0].VL_IDVALE_PK;
-              // Actualizar total del vale (ajustar valor de cuotas si no están pagadas)
+              const valeId = existingVale[0].ST_IDSERVICIO_TRABAJADOR_PK;
               await (connection as any).execute(
-                "UPDATE KS_VALES SET VL_VALOR_TOTAL = ? WHERE VL_IDVALE_PK = ?",
+                "UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ? WHERE ST_IDSERVICIO_TRABAJADOR_PK = ?",
                 [valeTotal, valeId]
               );
-              // NOTA: No recalculamos cuotas automáticamente para no sobreescribir las ya pagadas.
-              // En un sistema real, aquí iría lógica de ajuste de saldo.
             } else {
-              // ... El código de inserción de vale nuevo (movido aquí para coherencia si no existía)
               const numCuotas = data.VL_NUMERO_CUOTAS || 1;
               const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
               const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
 
               const [vRes]: any = await (connection as any).execute(
-                `INSERT INTO KS_VALES (VL_VALOR_TOTAL, VL_NUMERO_CUOTAS, VL_VALOR_CUOTA, VL_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, VL_FECHA_INICIO_COBRO)
+                `INSERT INTO KS_SERVICIOS_TRABAJADOR (ST_VALOR_TOTAL, ST_NUMERO_CUOTAS, ST_VALOR_CUOTA, ST_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, ST_FECHA_INICIO_COBRO)
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
                 [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
               );
@@ -314,7 +310,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
                 const fCuota = new Date(fechaInicio);
                 fCuota.setDate(fCuota.getDate() + (i - 1) * 7);
                 await (connection as any).execute(
-                  `INSERT INTO KS_VALE_CUOTAS (VC_NUMERO_CUOTA, VC_VALOR_CUOTA, VC_ESTADO, VC_FECHA_COBRO, VL_IDVALE_FK)
+                  `INSERT INTO KS_SERVICIO_TRABAJADOR_CUOTAS (STC_NUMERO_CUOTA, STC_VALOR_CUOTA, STC_ESTADO, STC_FECHA_COBRO, ST_IDSERVICIO_TRABAJADOR_FK)
                    VALUES (?, ?, ?, ?, ?)`,
                   [i, valorCuota, 'PENDIENTE', fCuota, vId]
                 );
@@ -393,8 +389,8 @@ export async function deleteInvoice(invoiceId: number): Promise<ApiResponse> {
     // 1. Eliminar pagos
     await connection.execute(`DELETE FROM KS_PAGOS_FACTURA WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
 
-    // 2. Eliminar vales
-    await connection.execute(`DELETE FROM KS_VALES WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
+    // 2. Eliminar servicios trabajador
+    await connection.execute(`DELETE FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
 
     // 3. Eliminar créditos y sus abonos
     const [oldCredits]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
@@ -544,7 +540,7 @@ export async function addProductToInvoice(
     const [valeMethRows]: any = await connection.execute("SELECT MP_IDMETODO_PK FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) = 'VALE'");
     const valeMethodId = valeMethRows[0]?.MP_IDMETODO_PK;
     if (valeMethodId) {
-      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL + ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
+      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL + ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
       await connection.execute(
         "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
         [value, invoiceId, valeMethodId]
@@ -610,7 +606,7 @@ export async function updateProductInInvoice(
       await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, creditMethodId]);
     }
     if (valeMethodId) {
-      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
+      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
       await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, valeMethodId]);
     }
 
@@ -660,7 +656,7 @@ export async function deleteProductFromInvoice(productInvoiceId: number): Promis
       await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, creditMethodId]);
     }
     if (valeMethodId) {
-      await connection.execute("UPDATE KS_VALES SET VL_VALOR_TOTAL = VL_VALOR_TOTAL - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
+      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
       await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, valeMethodId]);
     }
 
