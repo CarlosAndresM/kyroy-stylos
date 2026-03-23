@@ -38,6 +38,7 @@ import { Badge } from '@/components/ui/badge';
 import { ComboboxSearch } from '@/components/ui/combobox-search';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Progress } from '@/components/ui/progress';
 
 interface Adelanto {
   AD_IDADELANTO_PK: number;
@@ -358,6 +359,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                     onFilterChange={(vals: string[]) => handleFilterChange('AD_ESTADO', vals)}
                   />
                 </TableHead>
+                <TableHead>Pago</TableHead>
                 <TableHead>Observaciones</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -398,6 +400,21 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(adelanto.AD_ESTADO)}
+                    </TableCell>
+                    <TableCell className="w-[120px]">
+                      {adelanto.AD_ESTADO !== 'ANULADO' && (
+                        <div className="space-y-1">
+                          <Progress 
+                            value={(Number(adelanto.AD_CUOTAS_PAGADAS) / Number(adelanto.AD_CUOTAS)) * 100} 
+                            className="h-1.5"
+                          />
+                          <div className="flex justify-between text-[10px] text-slate-500 font-medium whitespace-nowrap gap-2">
+                            <span>{Math.round((Number(adelanto.AD_CUOTAS_PAGADAS) / Number(adelanto.AD_CUOTAS)) * 100)}%</span>
+                            <span>{adelanto.AD_CUOTAS_PAGADAS}/{adelanto.AD_CUOTAS} cuotas</span>
+                          </div>
+                        </div>
+                      )}
+                      {adelanto.AD_ESTADO === 'ANULADO' && <span className="text-[10px] text-slate-400">-</span>}
                     </TableCell>
                     <TableCell className="max-w-[200px] truncate" title={adelanto.AD_OBSERVACIONES || ''}>
                       {adelanto.AD_OBSERVACIONES || '-'}
