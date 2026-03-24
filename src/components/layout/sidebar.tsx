@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import {
   LayoutDashboard,
@@ -13,7 +13,6 @@ import {
   Ticket,
   History,
   Settings,
-  LogOut,
   Menu,
   X,
   ChevronRight,
@@ -24,9 +23,7 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { logout } from '@/features/auth/services'
-import { toast } from '@/lib/toast-helper'
+
 
 // Hook para detectar si estamos en móvil
 function useIsMobile() {
@@ -128,32 +125,14 @@ export const SidebarContext = React.createContext<{
 
 export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const isMobile = useIsMobile()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
-  const [isLoggingOut, setIsLoggingOut] = React.useState(false)
 
   // Cerrar drawer al cambiar de ruta en móvil
   React.useEffect(() => {
     setIsMobileOpen(false)
   }, [pathname])
-
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true)
-      const res = await logout()
-      if (res.success) {
-        toast.success('Sesión cerrada', 'Has cerrado sesión correctamente.')
-        router.push('/auth/login')
-      }
-    } catch (error) {
-      console.error('Logout error:', error)
-      toast.error('Error', 'No se pudo cerrar la sesión.')
-    } finally {
-      setIsLoggingOut(false)
-    }
-  }
 
   const filteredNavItems = NAV_ITEMS.filter(item => item.roles.includes(role))
 
@@ -259,22 +238,7 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-3 border-t border-slate-800/50"> {/* Reduced p-4 to p-3 */}
-          <Button
-            variant="ghost"
-            disabled={isLoggingOut}
-            onClick={handleLogout}
-            className={cn(
-              "w-full justify-start gap-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-xl px-3 py-5 transition-all", // Reduced gap-4 to gap-3, px-4 to px-3, py-6 to py-5
-              isCollapsed && "justify-center px-0"
-            )}
-          >
-            <LogOut className={cn("size-4.5", isLoggingOut && "animate-pulse")} />
-            {!isCollapsed && <span className="font-medium text-sm"> {/* Reduced text size to sm */}
-              {isLoggingOut ? 'Cerrando...' : 'Cerrar Sesión'}
-            </span>}
-          </Button>
-        </div>
+
 
         {/* Collapse Toggle - solo en desktop */}
         {!isMobile && (
