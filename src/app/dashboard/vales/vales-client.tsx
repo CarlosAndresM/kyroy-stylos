@@ -72,7 +72,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string[] }>({});
-  
+
   // Form State
   const [monto, setMonto] = useState('');
   const [cuotas, setCuotas] = useState('1');
@@ -81,7 +81,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
   const [trabajadorId, setTrabajadorId] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [observaciones, setObservaciones] = useState('');
-  
+
   const [selectedAdelanto, setSelectedAdelanto] = useState<Adelanto | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -93,7 +93,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
       for (const [col, values] of Object.entries(activeFilters)) {
         if (values.length === 0) continue;
-        
+
         let val = '';
         if (col === 'TRABAJADOR') val = a.TR_NOMBRE || '';
         else if (col === 'ROL') val = a.RL_NOMBRE || '';
@@ -123,7 +123,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
     const filtered = (selectedRole && selectedRole !== 'all')
       ? trabajadores.filter(t => t.RL_NOMBRE === selectedRole)
       : trabajadores;
-      
+
     return filtered.map(t => ({
       label: t.TR_NOMBRE,
       value: t.TR_IDTRABAJADOR_PK
@@ -153,7 +153,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
           d = new Date(str);
         }
       }
-      
+
       if (isNaN(d.getTime())) return '-';
       return format(d, formatStr, { locale: es });
     } catch (e) {
@@ -164,21 +164,21 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
   const getRepaymentRange = (selectedDateStr: string, role: string) => {
     if (!selectedDateStr) return null;
     const date = new Date(selectedDateStr + 'T00:00:00');
-    
+
     if (role === 'CAJERO') {
       const day = date.getDate();
       const monthStart = startOfMonth(date);
       const monthEnd = endOfMonth(date);
       const midPoint = new Date(date.getFullYear(), date.getMonth(), 15);
       const secondHalfStart = new Date(date.getFullYear(), date.getMonth(), 16);
-      
-      return day <= 15 
+
+      return day <= 15
         ? { start: monthStart, end: midPoint, label: 'Quincena (1-15)' }
         : { start: secondHalfStart, end: monthEnd, label: 'Quincena (16-Fin)' };
     }
-    
-    return { 
-      start: startOfWeek(date, { weekStartsOn: 0 }), 
+
+    return {
+      start: startOfWeek(date, { weekStartsOn: 0 }),
       end: endOfWeek(date, { weekStartsOn: 0 }),
       label: 'Semana'
     };
@@ -186,7 +186,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
   const calculateSchedule = (adelanto: Adelanto) => {
     if (!adelanto.AD_FECHA_INICIO_COBRO) return [];
-    
+
     const rawDate = adelanto.AD_FECHA_INICIO_COBRO as any;
     let startDate: Date;
     if (rawDate instanceof Date || (typeof rawDate === 'object' && typeof (rawDate as any).getTime === 'function')) {
@@ -203,11 +203,11 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
     }
 
     if (isNaN(startDate.getTime())) return [];
-    
+
     const schedule = [];
     const cuotas = Number(adelanto.AD_CUOTAS || 1);
     const montoCuota = Number(adelanto.AD_MONTO || 0) / cuotas;
-    
+
     for (let i = 0; i < cuotas; i++) {
       let date: Date;
       if (adelanto.RL_NOMBRE === 'CAJERO') {
@@ -215,13 +215,13 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
         const totalQuincenas = i + (startIsSecondHalf ? 1 : 0);
         const monthOffset = Math.floor(totalQuincenas / 2);
         const isSecondHalf = totalQuincenas % 2 === 1;
-        
+
         date = new Date(startDate.getFullYear(), startDate.getMonth() + monthOffset, isSecondHalf ? 16 : 1);
       } else {
         date = new Date(startDate);
         date.setDate(startDate.getDate() + (i * 7));
       }
-      
+
       schedule.push({
         numero: i + 1,
         fecha: date,
@@ -255,9 +255,9 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         toast.success('Vale registrado', 'El vale se ha creado exitosamente.');
         setIsCreateModalOpen(false);
@@ -280,13 +280,13 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
   const handleAnular = async (id: number) => {
     if (!confirm('¿Estás seguro de que deseas anular este vale?')) return;
-    
+
     try {
       const res = await fetch(`/api/vales/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         toast.success('Vale anulado', 'El vale ha sido marcado como anulado.');
-        setAdelantos(prev => prev.map(a => 
+        setAdelantos(prev => prev.map(a =>
           a.AD_IDADELANTO_PK === id ? { ...a, AD_ESTADO: 'ANULADO' } : a
         ));
       } else {
@@ -311,15 +311,15 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-          <Input 
+          <Input
             placeholder="Buscar por trabajador..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
           />
         </div>
-        
-        <Button 
+
+        <Button
           onClick={() => setIsCreateModalOpen(true)}
           className="w-full sm:w-auto bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white shadow-lg shadow-[#FF7E5F]/20 rounded-xl"
         >
@@ -399,8 +399,8 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                     <TableCell className="w-[120px]">
                       {adelanto.AD_ESTADO !== 'ANULADO' && (
                         <div className="space-y-1">
-                          <Progress 
-                            value={(Number(adelanto.AD_CUOTAS_PAGADAS) / Number(adelanto.AD_CUOTAS)) * 100} 
+                          <Progress
+                            value={(Number(adelanto.AD_CUOTAS_PAGADAS) / Number(adelanto.AD_CUOTAS)) * 100}
                             className="h-1.5"
                           />
                           <div className="flex justify-between text-[10px] text-slate-500 font-medium whitespace-nowrap gap-2">
@@ -416,8 +416,8 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => { setSelectedAdelanto(adelanto); setIsDetailsOpen(true); }}
                           title="Ver detalles"
@@ -490,9 +490,9 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                 <Label>Monto</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
-                  <Input 
-                    type="number" 
-                    placeholder="0.00" 
+                  <Input
+                    type="number"
+                    placeholder="0.00"
                     className="pl-7"
                     value={monto}
                     onChange={(e) => setMonto(e.target.value)}
@@ -505,8 +505,8 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
               <div className="space-y-1.5">
                 <Label>N° de Cuotas (Semanales)</Label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   value={cuotas}
                   onChange={(e) => setCuotas(e.target.value)}
                   required
@@ -522,8 +522,8 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                 <Label>Fecha Desembolso</Label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-500" />
-                  <Input 
-                    type="date" 
+                  <Input
+                    type="date"
                     className="pl-9"
                     value={fechaDesembolso}
                     onChange={(e) => setFechaDesembolso(e.target.value)}
@@ -584,7 +584,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
             <div className="space-y-1.5">
               <Label>Observaciones (Opcional)</Label>
-              <Textarea 
+              <Textarea
                 placeholder="Motivo u observaciones del vale..."
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
@@ -594,15 +594,15 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
             </div>
 
             <DialogFooter className="pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => setIsCreateModalOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancelar
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 disabled={isSubmitting}
                 className="bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white"
@@ -650,7 +650,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Estado General</p>
-                  <Badge 
+                  <Badge
                     variant={selectedAdelanto.AD_ESTADO === 'DESCONTADO' ? 'default' : selectedAdelanto.AD_ESTADO === 'ANULADO' ? 'destructive' : 'secondary'}
                     className="text-[10px] h-5"
                   >
@@ -686,7 +686,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                             {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(item.monto)}
                           </TableCell>
                           <TableCell className="py-2 text-right">
-                            <Badge 
+                            <Badge
                               variant={item.estado === 'PAGADA' ? 'default' : 'outline'}
                               className={cn(
                                 "text-[9px] h-4 tracking-tighter",

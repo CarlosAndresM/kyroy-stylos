@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import * as React from 'react'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
@@ -323,7 +323,7 @@ export function BillingModal({
     }
   }, [balance, watchedPayments, form])
 
-  // Si cambia el total y solo hay un pago de crÃƒÂ©dito/vale, lo actualizamos automÃƒÂ¡ticamente
+  // Si cambia el total y solo hay un pago de crédito/vale, lo actualizamos automáticamente
   React.useEffect(() => {
     if (watchedPayments.length === 1) {
       const methodId = watchedPayments[0].MP_IDMETODO_FK
@@ -335,7 +335,12 @@ export function BillingModal({
   }, [total, paymentMethods, form]) // Solo cuando cambia el total y hay un solo pago
 
   // Mapeo para comboboxes
-  const technicianOptions = technicians.map(t => ({ label: t.TR_NOMBRE, value: t.TR_IDTRABAJADOR_PK }))
+  const technicianOptions = technicians
+    .filter(t => t.RL_NOMBRE === 'TECNICO')
+    .map(t => ({ label: t.TR_NOMBRE, value: t.TR_IDTRABAJADOR_PK }))
+  
+  const workerOptions = technicians.map(t => ({ label: t.TR_NOMBRE, value: t.TR_IDTRABAJADOR_PK }))
+  
   const serviceOptions = services.map(s => ({ label: s.SV_NOMBRE, value: s.SV_IDSERVICIO_PK }))
   const productOptions = products.map(p => ({ label: p.PR_NOMBRE, value: p.PR_IDPRODUCTO_PK }))
 
@@ -461,7 +466,7 @@ export function BillingModal({
 
   const verifyAdminAndChangeStatus = async () => {
     if (!adminPassword) {
-      toast.error('Ingrese la contraseÃƒÂ±a')
+      toast.error('Ingrese la contraseña')
       return
     }
 
@@ -476,10 +481,10 @@ export function BillingModal({
         setPendingStatusChange(null)
         toast.success('Estado actualizado correctamente')
       } else {
-        toast.error(res.error || 'ContraseÃƒÂ±a incorrecta')
+        toast.error(res.error || 'Contraseña incorrecta')
       }
     } catch (error) {
-      toast.error('Error de verificaciÃƒÂ³n')
+      toast.error('Error de verificación')
     } finally {
       setIsVerifyingAdmin(false)
     }
@@ -501,9 +506,9 @@ export function BillingModal({
         {isAdminAuthOpen && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl border border-slate-200 shadow-2xl p-6 w-full max-w-sm">
-              <h3 className="text-sm font-bold text-slate-900 mb-1">AutorizaciÃ³n requerida</h3>
-              <p className="text-xs text-slate-500 mb-4">Para modificar una factura PAGADA se requiere contraseÃ±a de administrador.</p>
-              <Input type="password" placeholder="ContraseÃ±a administrador" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="mb-4" autoFocus autoComplete="new-password" onKeyDown={(e) => e.key === 'Enter' && verifyAdminAndChangeStatus()} />
+              <h3 className="text-sm font-bold text-slate-900 mb-1">Autorización requerida</h3>
+              <p className="text-xs text-slate-500 mb-4">Para modificar una factura PAGADA se requiere contraseña de administrador.</p>
+              <Input type="password" placeholder="Contraseña administrador" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="mb-4" autoFocus autoComplete="new-password" onKeyDown={(e) => e.key === 'Enter' && verifyAdminAndChangeStatus()} />
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => { setIsAdminAuthOpen(false); setAdminPassword(''); setPendingStatusChange(null) }}>Cancelar</Button>
                 <Button className="flex-1 bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white" onClick={verifyAdminAndChangeStatus} disabled={isVerifyingAdmin}>
@@ -518,10 +523,10 @@ export function BillingModal({
           <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="flex flex-col h-full overflow-hidden">
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
 
-              {/* â”€â”€ SECCIÃ“N CLIENTE â”€â”€ */}
+              {/* ── SECCIÓN CLIENTE ── */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6 border-b border-slate-100">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">InformaciÃ³n del cliente</h3>
+                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Información del cliente</h3>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo</label>
@@ -531,7 +536,7 @@ export function BillingModal({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CLIENTE">Cliente externo</SelectItem>
-                        <SelectItem value="TECNICO">Personal / TÃ©cnico</SelectItem>
+                        <SelectItem value="TECNICO">Personal / Técnico</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -547,7 +552,7 @@ export function BillingModal({
                       )} />
                       <FormField control={form.control} name="FC_CLIENTE_TELEFONO" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>TelÃ©fono *</FormLabel>
+                          <FormLabel>Teléfono *</FormLabel>
                           <Input {...field} value={field.value || ''} disabled={isPaid} placeholder="300 000 0000" />
                           <FormMessage className="text-xs" />
                         </FormItem>
@@ -557,13 +562,13 @@ export function BillingModal({
                     <FormField control={form.control} name="TR_IDCLIENTE_FK" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Trabajador *</FormLabel>
-                        <ComboboxSearch options={technicianOptions} value={field.value || ''} disabled={isPaid} onValueChange={(val) => field.onChange(val)} placeholder="Buscar trabajador..." className="w-full" />
+                        <ComboboxSearch options={workerOptions} value={field.value || ''} disabled={isPaid} onValueChange={(val) => field.onChange(val)} placeholder="Buscar trabajador..." className="w-full" />
                         <FormMessage className="text-xs" />
                       </FormItem>
                     )} />
                   )}
 
-                  {/* Factura fÃ­sica */}
+                  {/* Factura física */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Evidencia fÃ­sica</label>
                     <div className="flex items-center gap-2">
@@ -581,7 +586,7 @@ export function BillingModal({
                   </div>
                 </div>
 
-                {/* META / FECHA / NÃšMERO */}
+                {/* META / FECHA / NÚMERO */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Datos de la factura</h3>
 
@@ -622,10 +627,10 @@ export function BillingModal({
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="FC_FECHA" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fecha de emisiÃ³n</FormLabel>
+                        <FormLabel>Fecha de emisión</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start font-normal gap-2">
+                            <Button variant="outline" disabled={true} className="w-full justify-start font-bold gap-2 bg-slate-50 border-slate-200">
                               <CalendarIcon className="size-4 text-slate-400" />
                               {field.value ? format(field.value, "dd/MM/yyyy") : "Seleccionar"}
                             </Button>
@@ -639,8 +644,8 @@ export function BillingModal({
 
                     <FormField control={form.control} name="FC_NUMERO_FACTURA" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>NÂ° Factura</FormLabel>
-                        <Input {...field} value={field.value || ''} disabled={isEditing} placeholder="0000" />
+                        <FormLabel>N° Factura</FormLabel>
+                        <Input {...field} value={field.value || ''} disabled={true} className="bg-slate-50 font-bold border-slate-200" placeholder="Automático" />
                       </FormItem>
                     )} />
                   </div>
@@ -650,7 +655,7 @@ export function BillingModal({
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
                       <div className="flex items-center gap-2">
                         <Receipt className="size-4 text-amber-600" />
-                        <span className="text-xs font-bold text-amber-700 uppercase">ConfiguraciÃ³n de Vale</span>
+                        <span className="text-xs font-bold text-amber-700 uppercase">Configuración de Vale</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <FormField control={form.control} name="VL_FECHA_INICIO_COBRO" render={({ field }) => (
@@ -671,7 +676,7 @@ export function BillingModal({
                         )} />
                         <FormField control={form.control} name="VL_NUMERO_CUOTAS" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">NÂ° cuotas</FormLabel>
+                            <FormLabel className="text-xs">N° cuotas</FormLabel>
                             <Input {...field} type="number" min={1} disabled={isPaid} onChange={(e) => field.onChange(parseInt(e.target.value) || 1)} placeholder="1" />
                           </FormItem>
                         )} />
@@ -681,7 +686,7 @@ export function BillingModal({
                 </div>
               </div>
 
-              {/* â”€â”€ SECCIÃ“N SERVICIOS â”€â”€ */}
+              {/* ── SECCIÓN SERVICIOS ── */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Servicios</h3>
@@ -698,7 +703,7 @@ export function BillingModal({
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[35%]">Servicio</th>
-                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[30%]">Encargado</th>
+                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[30%]">Tecnico</th>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3">Productos</th>
                           <th className="text-right text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[130px]">Valor</th>
                           <th className="w-10 px-2 py-3"></th>
@@ -718,7 +723,7 @@ export function BillingModal({
                               <FormField control={form.control} name={`services.${index}.TR_IDTECNICO_FK`} render={({ field }) => (
                                 <ComboboxSearch options={technicianOptions} value={field.value} disabled={isPaid}
                                   onValueChange={(val) => field.onChange(val)}
-                                  placeholder="Encargado..." className="h-9 text-xs" />
+                                  placeholder="Tecnico..." className="h-9 text-xs" />
                               )} />
                             </td>
                             <td className="px-4 py-3">
@@ -762,17 +767,23 @@ export function BillingModal({
                 </div>
               </div>
 
-              {/* â”€â”€ SECCIÃ“N PAGOS â”€â”€ */}
+              {/* ── SECCIÓN PAGOS ── */}
               <div className="space-y-3">
-                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">MÃ©todos de pago</h3>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Métodos de pago</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* SelecciÃ³n de mÃ©todos */}
+                  {/* Selección de métodos */}
                   <div className="space-y-2">
-                    <p className="text-xs text-slate-500">Seleccione uno o varios mÃ©todos:</p>
+                    <p className="text-xs text-slate-500">Seleccione uno o varios métodos:</p>
                     <div className="grid grid-cols-2 gap-2">
                       {paymentMethods
-                        .filter(method => !(clientType === 'CLIENTE' && method.MP_NOMBRE?.toUpperCase() === 'VALE'))
+                        .filter(method => {
+                          const nameMatch = method.MP_NOMBRE?.toUpperCase();
+                          if (clientType === 'CLIENTE') {
+                            return nameMatch !== 'VALE' && nameMatch !== 'SERVICIO DE TRABAJADOR';
+                          }
+                          return true;
+                        })
                         .map(method => {
                           const isSelected = !!watchedPayments.find(p => p.MP_IDMETODO_FK === method.MP_IDMETODO_PK)
                           return (
@@ -794,7 +805,7 @@ export function BillingModal({
                     </div>
                   </div>
 
-                  {/* DistribuciÃ³n y balance */}
+                  {/* Distribución y balance */}
                   <div className="space-y-3">
                     {watchedPayments.length > 0 && (
                       <div className="space-y-2">
@@ -855,7 +866,7 @@ export function BillingModal({
               </div>
             </div>
 
-            {/* â”€â”€ FOOTER â”€â”€ */}
+            {/* ── FOOTER ── */}
             <div className="flex-shrink-0 border-t border-slate-100 px-6 py-4 flex gap-3 bg-white">
               <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
                 {isViewOnly ? 'Cerrar' : 'Cancelar'}

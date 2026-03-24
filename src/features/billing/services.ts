@@ -12,7 +12,10 @@ import { finalizeUpload } from "@/lib/file-utils";
 export async function getTechnicians(): Promise<ApiResponse> {
   try {
     const [rows] = await db.execute(
-      "SELECT TR_IDTRABAJADOR_PK, TR_NOMBRE FROM KS_TRABAJADORES WHERE RL_IDROL_FK = (SELECT RL_IDROL_PK FROM KS_ROLES WHERE RL_NOMBRE = 'TECNICO') AND TR_ACTIVO = TRUE"
+      `SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE, r.RL_NOMBRE 
+       FROM KS_TRABAJADORES t 
+       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK 
+       WHERE r.RL_NOMBRE IN ('TECNICO', 'CAJERO') AND t.TR_ACTIVO = TRUE`
     );
     return { success: true, data: rows, error: null };
   } catch (error) {

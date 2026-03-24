@@ -119,149 +119,159 @@ export default function AdminClient({ initialAdmins, roles, sedes }: AdminClient
   return (
     <LoadingGate>
       <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-kyroy-pink-light/30 dark:bg-slate-900/50 p-4 border-2 border-kyroy-border shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)]">
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-          <Input
-            placeholder="FILTRO RÁPIDO..."
-            className="pl-10 h-10 border-2 border-kyroy-border rounded-none shadow-[2px_2px_0px_0px_rgba(255,134,162,0.1)] bg-white dark:bg-slate-950 font-bold text-xs uppercase focus:bg-rose-50/50 transition-all focus:border-kyroy-pink"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            autoComplete="off"
-          />
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por nombre o teléfono..."
+              className="pl-9 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-[#FF7E5F]/20"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+
+          <Button
+            onClick={() => handleOpenModal()}
+            className="w-full sm:w-auto bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white font-bold gap-2 rounded-xl shadow-lg shadow-[#FF7E5F]/20 h-10 px-6 text-xs uppercase"
+          >
+            <Plus className="size-4" />
+            Registrar Administrador
+          </Button>
         </div>
 
-        <Button
-          onClick={() => handleOpenModal()}
-          className="w-full sm:w-auto bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black gap-2 rounded-none border-2 border-kyroy-orange shadow-[4px_4px_0px_0px_rgba(249,115,22,0.2)] h-10 px-6 text-sm uppercase italic active:shadow-none translate-x-0 active:translate-x-[2px] active:translate-y-[2px]"
-        >
-          <Plus className="size-4" />
-          Registrar Administrador
-        </Button>
-      </div>
-
-      <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm overflow-hidden max-h-[70vh] overflow-y-auto">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-kyroy-pink-light/30 dark:bg-slate-900 sticky top-0 z-10 shadow-sm border-b-2 border-kyroy-border">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="h-10 py-0 px-4">
-                  <TableFilter 
-                    label="Administrador" 
-                    options={getFilterOptions('TR_NOMBRE')}
-                    selectedValues={activeFilters['TR_NOMBRE'] || []}
-                    onFilterChange={(vals: string[]) => handleFilterChange('TR_NOMBRE', vals)}
-                  />
-                </TableHead>
-                <TableHead className="h-10 py-0 px-4">
-                  <TableFilter 
-                    label="Teléfono" 
-                    options={getFilterOptions('TR_TELEFONO')}
-                    selectedValues={activeFilters['TR_TELEFONO'] || []}
-                    onFilterChange={(vals: string[]) => handleFilterChange('TR_TELEFONO', vals)}
-                  />
-                </TableHead>
-                <TableHead className="h-10 py-0 px-4">
-                  <TableFilter 
-                    label="Sucursal" 
-                    options={getFilterOptions('SC_NOMBRE')}
-                    selectedValues={activeFilters['SC_NOMBRE'] || []}
-                    onFilterChange={(vals: string[]) => handleFilterChange('SC_NOMBRE', vals)}
-                  />
-                </TableHead>
-                <TableHead className="h-10 py-0 px-4 text-center">
-                  <TableFilter 
-                    label="Estado" 
-                    align="center"
-                    options={getFilterOptions('TR_ACTIVO')}
-                    selectedValues={activeFilters['TR_ACTIVO'] || []}
-                    onFilterChange={(vals: string[]) => handleFilterChange('TR_ACTIVO', vals)}
-                  />
-                </TableHead>
-                <TableHead className="h-10 py-0 px-4 font-black text-slate-500 uppercase tracking-widest text-[10px] text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAdmins.map((admin) => (
-                <TableRow key={admin.TR_IDTRABAJADOR_PK} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800/50">
-                  <TableCell className="py-2 px-4">
-                    <span className="font-bold text-slate-900 dark:text-white text-xs">
-                      {admin.TR_NOMBRE}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-2 px-4">
-                    <span className="font-medium text-slate-600 text-xs">
-                      {admin.TR_TELEFONO || '---'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-2 px-4">
-                    <span className="text-[10px] font-black uppercase text-slate-500 italic bg-slate-100 px-1.5 py-0.5 border border-slate-200">
-                      {admin.SC_NOMBRE || 'GLOBAL'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-2 px-4 text-center">
-                    <span className={cn(
-                      "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter border shadow-sm",
-                      admin.TR_ACTIVO ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"
-                    )}>
-                      {admin.TR_ACTIVO ? 'ACTIVO' : 'INACTIVO'}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-2 px-4 text-right">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button
-                        onClick={() => handleToggleStatus(admin)}
-                        className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all"
-                        title="Alternar estado"
-                      >
-                        <Power className="size-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenModal(admin)}
-                        className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-all"
-                        title="Editar"
-                      >
-                        <Edit2 className="size-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenDeleteModal(admin)}
-                        className="p-1.5 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </button>
-                    </div>
-                  </TableCell>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-6 h-12">
+                    <TableFilter 
+                      label="Administrador" 
+                      options={getFilterOptions('TR_NOMBRE')}
+                      selectedValues={activeFilters['TR_NOMBRE'] || []}
+                      onFilterChange={(vals: string[]) => handleFilterChange('TR_NOMBRE', vals)}
+                    />
+                  </TableHead>
+                  <TableHead className="px-6 h-12">
+                    <TableFilter 
+                      label="Teléfono" 
+                      options={getFilterOptions('TR_TELEFONO')}
+                      selectedValues={activeFilters['TR_TELEFONO'] || []}
+                      onFilterChange={(vals: string[]) => handleFilterChange('TR_TELEFONO', vals)}
+                    />
+                  </TableHead>
+                  <TableHead className="px-6 h-12">
+                    <TableFilter 
+                      label="Sucursal" 
+                      options={getFilterOptions('SC_NOMBRE')}
+                      selectedValues={activeFilters['SC_NOMBRE'] || []}
+                      onFilterChange={(vals: string[]) => handleFilterChange('SC_NOMBRE', vals)}
+                    />
+                  </TableHead>
+                  <TableHead className="px-6 h-12 text-center">
+                    <TableFilter 
+                      label="Estado" 
+                      align="center"
+                      options={getFilterOptions('TR_ACTIVO')}
+                      selectedValues={activeFilters['TR_ACTIVO'] || []}
+                      onFilterChange={(vals: string[]) => handleFilterChange('TR_ACTIVO', vals)}
+                    />
+                  </TableHead>
+                  <TableHead className="px-6 h-12 text-right w-[120px]">
+                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Acciones</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-              {filteredAdmins.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-slate-500 italic text-xs">
-                    No se encontraron administradores
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredAdmins.map((admin) => (
+                  <TableRow key={admin.TR_IDTRABAJADOR_PK} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800/50">
+                    <TableCell className="px-6 py-4">
+                      <span className="font-bold text-slate-900 dark:text-white text-xs">
+                        {admin.TR_NOMBRE}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <span className="font-medium text-slate-500 text-xs">
+                        {admin.TR_TELEFONO || '---'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                        {admin.SC_NOMBRE || 'Global'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-center">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border",
+                        admin.TR_ACTIVO 
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                          : "bg-red-50 text-red-600 border-red-100"
+                      )}>
+                        {admin.TR_ACTIVO ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-1">
+                         <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleStatus(admin)}
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-[#FF7E5F] hover:bg-[#FF7E5F]/5"
+                          title="Alternar estado"
+                        >
+                          <Power className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenModal(admin)}
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-[#FF7E5F] hover:bg-[#FF7E5F]/5"
+                          title="Editar"
+                        >
+                          <Edit2 className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleOpenDeleteModal(admin)}
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredAdmins.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center text-slate-400 py-10 italic text-sm">
+                      No se encontraron administradores.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-      </div>
 
-      <WorkerModal
-        key={editingAdmin?.TR_IDTRABAJADOR_PK || 'new'}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-        editingWorker={editingAdmin}
-        roles={roles}
-        sedes={sedes}
-      />
+        <WorkerModal
+          key={editingAdmin?.TR_IDTRABAJADOR_PK || 'new'}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSave}
+          editingWorker={editingAdmin}
+          roles={roles}
+          sedes={sedes}
+        />
 
-      <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        workerName={adminToDelete?.TR_NOMBRE || ''}
-      />
+        <DeleteConfirmModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDelete}
+          workerName={adminToDelete?.TR_NOMBRE || ''}
+        />
       </div>
     </LoadingGate>
   )

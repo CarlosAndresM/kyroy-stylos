@@ -8,7 +8,8 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from '@/components/ui/dialog'
 import { 
   Form, 
@@ -102,24 +103,27 @@ export function WorkerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] border-2 border-kyroy-border rounded-none shadow-[12px_12px_0px_0px_rgba(255,134,162,0.15)] p-0 bg-white overflow-hidden">
-        <DialogHeader className="bg-gradient-to-r from-kyroy-pink to-rose-400 p-6 border-b-2 border-kyroy-pink">
-          <DialogTitle className="text-xl font-black text-white uppercase italic tracking-widest">
-            {editingWorker ? 'EDITAR TRABAJADOR' : 'NUEVO TRABAJADOR'}
+      <DialogContent className="sm:max-w-[500px] border-slate-200 dark:border-slate-800 rounded-2xl p-0 bg-white dark:bg-slate-900 overflow-hidden shadow-xl">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
+            {editingWorker ? 'Editar Trabajador' : 'Nuevo Trabajador'}
           </DialogTitle>
+          <DialogDescription>
+            Complete la información para registrar o actualizar los datos del personal.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 pb-6 pt-2">
             <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="TR_NOMBRE"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Nombre Completo</FormLabel>
+                    <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Nombre Completo</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ej. Juan Pérez" {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
+                      <Input placeholder="Ej. Juan Pérez" {...field} className="rounded-xl border-slate-200 focus:ring-[#FF7E5F]/20" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,9 +136,9 @@ export function WorkerModal({
                   name="TR_TELEFONO"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Teléfono</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Teléfono</FormLabel>
                       <FormControl>
-                        <Input placeholder="3001234567" {...field} value={field.value || ''} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
+                        <Input placeholder="3001234567" {...field} value={field.value || ''} className="rounded-xl border-slate-200 focus:ring-[#FF7E5F]/20" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -145,9 +149,9 @@ export function WorkerModal({
                   name="TR_PASSWORD"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Contraseña</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Contraseña</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder={editingWorker ? "Dejar en blanco" : "Mínimo 6 caracteres"} {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" autoComplete="new-password" />
+                        <Input type="password" placeholder={editingWorker ? "Dejar en blanco" : "Mínimo 6 caracteres"} {...field} className="rounded-xl border-slate-200 focus:ring-[#FF7E5F]/20" autoComplete="new-password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -161,17 +165,17 @@ export function WorkerModal({
                   name="RL_IDROL_FK"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Rol</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Rol</FormLabel>
                       <Select 
                         onValueChange={(val) => field.onChange(parseInt(val))} 
                         value={field.value?.toString()}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs">
+                          <SelectTrigger className="rounded-xl border-slate-200">
                             <SelectValue placeholder="Seleccione un rol" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-none border-2 border-kyroy-border shadow-xl">
+                        <SelectContent className="rounded-xl">
                           {roles.map((role) => (
                             <SelectItem key={role.RL_IDROL_PK} value={role.RL_IDROL_PK.toString()}>
                               {role.RL_NOMBRE.replace('_', ' ')}
@@ -189,17 +193,17 @@ export function WorkerModal({
                   name="SC_IDSUCURSAL_FK"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Sucursal</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Sucursal</FormLabel>
                       <Select 
                         onValueChange={(val) => field.onChange(val === 'none' ? null : parseInt(val))} 
                         value={field.value?.toString() || 'none'}
                       >
                         <FormControl>
-                          <SelectTrigger className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink">
+                          <SelectTrigger className="rounded-xl border-slate-200">
                             <SelectValue placeholder="Seleccione sucursal" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="rounded-none border-2 border-kyroy-border shadow-xl">
+                        <SelectContent className="rounded-xl">
                           <SelectItem value="none">Sin sucursal (Global)</SelectItem>
                           {sedes.map((sede) => (
                             <SelectItem key={sede.SC_IDSUCURSAL_PK} value={sede.SC_IDSUCURSAL_PK.toString()}>
@@ -214,36 +218,34 @@ export function WorkerModal({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="TR_SUELDO_BASE"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-[10px] font-black uppercase text-kyroy-text italic">Sueldo Base ($)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="0" {...field} className="h-10 border-2 border-kyroy-border rounded-none font-bold text-xs focus-visible:ring-kyroy-pink" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="TR_SUELDO_BASE"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-bold uppercase text-slate-500 tracking-wider">Sueldo Base ($)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} className="rounded-xl border-slate-200 focus:ring-[#FF7E5F]/20" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
                 name="TR_ACTIVO"
                 render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-none border border-kyroy-border p-4 bg-kyroy-pink-light">
+                  <FormItem className="flex items-center justify-between rounded-xl border border-slate-100 p-4 bg-slate-50/50">
                     <div className="space-y-0.5">
-                      <FormLabel className="text-xs font-black uppercase italic">Estado de Cuenta</FormLabel>
-                      <p className="text-[10px] text-kyroy-text italic">Desactiva para impedir el acceso al sistema.</p>
+                      <FormLabel className="text-xs font-bold uppercase">Estado de Cuenta</FormLabel>
+                      <p className="text-[11px] text-slate-400">Desactiva para impedir el acceso al sistema.</p>
                     </div>
                     <FormControl>
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-kyroy-pink"
+                        className="data-[state=checked]:bg-[#FF7E5F]"
                       />
                     </FormControl>
                   </FormItem>
@@ -254,16 +256,16 @@ export function WorkerModal({
             <DialogFooter className="pt-4 gap-2">
               <Button 
                 type="button" 
-                variant="ghost" 
+                variant="outline" 
                 onClick={onClose}
-                className="rounded-none border-2 border-kyroy-border font-bold uppercase text-xs h-10 px-6 hover:bg-slate-50"
+                className="rounded-xl px-6"
               >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black rounded-none border-2 border-kyroy-orange h-10 px-8 shadow-sm uppercase italic text-sm"
+                className="bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white font-bold rounded-xl px-8 shadow-lg shadow-[#FF7E5F]/20"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingWorker ? 'Guardar Cambios' : 'Crear Trabajador'}

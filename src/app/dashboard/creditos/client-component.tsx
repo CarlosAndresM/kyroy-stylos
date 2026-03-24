@@ -175,25 +175,27 @@ export default function CreditsPage() {
   if (!mounted) return null
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase italic">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Cuentas por Cobrar <span className="text-[#FF7E5F]">(Créditos)</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium uppercase text-[10px] tracking-widest italic">
-            Monitor de deudas de clientes y pagos pendientes.
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            Gestión de facturas a crédito y seguimiento de pagos.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="flex border-2 border-kyroy-border rounded-none overflow-hidden shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)] h-12 bg-white">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('PENDIENTES')}
               className={cn(
-                "px-6 h-full flex items-center gap-2 text-[10px] font-black uppercase transition-all",
-                activeTab === 'PENDIENTES' ? "bg-kyroy-pink text-white" : "bg-white text-slate-500 hover:bg-kyroy-pink-light/30"
+                "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
+                activeTab === 'PENDIENTES' 
+                  ? "bg-white dark:bg-slate-700 text-[#FF7E5F] shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               )}
             >
               <DollarSign className="size-3.5" />
@@ -202,28 +204,31 @@ export default function CreditsPage() {
             <button
               onClick={() => setActiveTab('HISTORICO')}
               className={cn(
-                "px-6 h-full flex items-center gap-2 text-[10px] font-black uppercase transition-all border-l-2 border-kyroy-border",
-                activeTab === 'HISTORICO' ? "bg-kyroy-pink text-white" : "bg-white text-slate-500 hover:bg-kyroy-pink-light/30"
+                "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
+                activeTab === 'HISTORICO' 
+                  ? "bg-white dark:bg-slate-700 text-[#FF7E5F] shadow-sm" 
+                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               )}
             >
               <History className="size-3.5" />
               Histórico
             </button>
           </div>
-          <Card className="border-2 border-kyroy-border rounded-none shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)] bg-kyroy-pink text-white px-6 h-20 flex flex-col justify-center min-w-[260px]">
-            <span className="text-[10px] font-black uppercase text-white/70 block tracking-widest italic leading-tight">CARTERA {activeTab}</span>
-            <span className="text-3xl font-black italic tracking-tighter">$ {totalDebt.toLocaleString('es-CO')}</span>
-          </Card>
+          
+          <div className="bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-2xl flex flex-col justify-center min-w-[200px] shadow-lg shadow-slate-200 dark:shadow-none">
+            <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">TOTAL CARTERA</span>
+            <span className="text-2xl font-black text-white">$ {totalDebt.toLocaleString('es-CO')}</span>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col lg:flex-row gap-4 items-center bg-kyroy-pink-light/30 dark:bg-slate-900 p-4 border-2 border-kyroy-border shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)]">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <Input
-            placeholder="BUSCAR POR FACTURA, CLIENTE O TELÉFONO..."
-            className="pl-10 h-11 border-2 border-kyroy-border rounded-none shadow-[2px_2px_0px_0px_rgba(255,134,162,0.15)] bg-white dark:bg-slate-950 font-black text-xs uppercase"
+            placeholder="Buscar por factura, cliente o teléfono..."
+            className="pl-9 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -232,73 +237,74 @@ export default function CreditsPage() {
 
       {/* Main Table */}
       <LoadingGate>
-        <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden shadow-sm">
-          <Table>
-            <TableHeader className="bg-kyroy-pink-light/30 dark:bg-slate-900 border-b-2 border-kyroy-border">
-              <TableRow>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px] px-4"># Fac</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px]">Registro</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px]">Sede</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px]">Cliente</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px]">Teléfono</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px]">Servicios</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px] text-right">Total</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px] text-right">Pendiente</TableHead>
-                <TableHead className="font-black text-slate-500 uppercase tracking-widest text-[9px] text-center">Acción</TableHead>
-              </TableRow>
-            </TableHeader>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] px-6"># Fac</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Registro</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Sede</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Cliente</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Teléfono</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Servicios</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] text-right">Total</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] text-right">Pendiente</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] text-center">Acción</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {filteredCredits.length > 0 ? (
                 filteredCredits.map((credit, i) => (
-                  <TableRow key={credit.CR_IDCREDITO_PK} className="hover:bg-kyroy-pink-light/30 group border-b border-slate-100">
-                    <TableCell className="px-4 py-4 font-black text-xs text-slate-900 uppercase">
+                  <TableRow key={credit.CR_IDCREDITO_PK} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800/50">
+                    <TableCell className="px-6 py-4 font-bold text-xs text-slate-900 dark:text-white">
                       #{credit.FC_NUMERO_FACTURA}
                     </TableCell>
-                    <TableCell className="text-[10px] font-bold text-slate-500 uppercase italic whitespace-nowrap">
+                    <TableCell className="text-[10px] font-medium text-slate-500 uppercase">
                       {format(new Date(credit.CR_FECHA), 'dd/MM/yy', { locale: es })}
                     </TableCell>
-                    <TableCell className="font-bold text-[10px] uppercase text-slate-600 truncate max-w-[100px]">
+                    <TableCell className="text-[10px] font-medium text-slate-500 uppercase">
                       {credit.sucursal_nombre}
                     </TableCell>
-                    <TableCell className="text-[11px] font-black text-slate-900 uppercase">
+                    <TableCell className="text-xs font-bold text-slate-700 dark:text-slate-300">
                       {credit.cliente_display || credit.FC_CLIENTE_NOMBRE}
                     </TableCell>
-                    <TableCell className="text-[11px] font-bold text-slate-500">
+                    <TableCell className="text-[11px] text-slate-500">
                       {credit.FC_CLIENTE_TELEFONO}
                     </TableCell>
-                    <TableCell className="max-w-[120px] truncate text-[10px] font-bold text-slate-600 uppercase">
-                      {credit.servicios || 'N/A'}
+                    <TableCell className="max-w-[120px] truncate text-[10px] text-slate-500">
+                      {credit.servicios || '---'}
                     </TableCell>
-                    <TableCell className="text-right font-black text-xs text-slate-400">
+                    <TableCell className="text-right font-medium text-xs text-slate-400">
                       $ {Number(credit.FC_TOTAL).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
                       {Number(credit.CR_VALOR_PENDIENTE) > 0 ? (
-                        <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-1 border border-red-100 rounded-none italic whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-600 border border-red-100">
                           $ {Number(credit.CR_VALOR_PENDIENTE).toLocaleString()}
                         </span>
                       ) : (
-                        <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 border border-emerald-100 rounded-none italic uppercase flex items-center justify-end gap-1">
-                          <CheckCircle2 className="size-3 text-emerald-600" /> LIQUIDADO
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase">
+                          <CheckCircle2 className="size-3 mr-1" /> Liquidado
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center px-6">
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => handleViewHistory(credit)}
-                          className="h-8 w-8 p-0 rounded-none border border-kyroy-border hover:bg-kyroy-pink-light/30 shadow-[2px_2px_0px_0px_rgba(255,134,162,0.15)]"
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-[#FF7E5F] hover:bg-[#FF7E5F]/5"
                           title="Ver Trazabilidad"
                         >
-                          <History className="size-3.5" />
+                          <History className="size-4" />
                         </Button>
                         {Number(credit.CR_VALOR_PENDIENTE) > 0 && (
                           <Button
                             size="sm"
                             onClick={() => handlePayClick(credit)}
-                            className="h-8 px-4 bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black text-[9px] uppercase tracking-widest rounded-none border-2 border-kyroy-border shadow-[3px_3px_0px_0px_rgba(255,134,162,0.15)]"
+                            className="h-8 px-4 bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white rounded-xl shadow-sm text-[10px] font-bold"
                           >
                             Abonar
                           </Button>
@@ -309,7 +315,7 @@ export default function CreditsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-48 text-center text-slate-400 py-10 italic uppercase font-bold text-xs">
+                  <TableCell colSpan={9} className="h-32 text-center text-slate-400 italic text-xs">
                     No se encontraron créditos pendientes.
                   </TableCell>
                 </TableRow>
@@ -317,68 +323,69 @@ export default function CreditsPage() {
             </TableBody>
           </Table>
         </div>
+        </div>
       </LoadingGate>
 
       {/* MODAL DE ABONO */}
       <Dialog open={isPayModalOpen} onOpenChange={setIsPayModalOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-2 border-kyroy-border bg-white rounded-none shadow-[10px_10px_0px_0px_rgba(255,134,162,0.15)] animate-in slide-in-from-bottom duration-500">
-          <DialogHeader className="p-6 bg-gradient-to-r from-kyroy-pink to-rose-400 text-white border-b-2 border-kyroy-pink">
-            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter">Registrar Pago / Abono</DialogTitle>
-            <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest italic">
-              Actualice el saldo del cr&eacute;dito seleccionado.
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl">
+          <DialogHeader className="p-6 border-b border-slate-100 dark:border-slate-800">
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Registrar Pago / Abono</DialogTitle>
+            <DialogDescription className="text-slate-500">
+              Actualice el saldo del crédito seleccionado.
             </DialogDescription>
           </DialogHeader>
 
           <div className="p-6 space-y-6">
             {selectedCredit && (
               <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-kyroy-border pb-2">
-                  <span className="text-[10px] font-black uppercase text-slate-500">FACTURA:</span>
-                  <span className="text-xs font-black">#{selectedCredit.FC_NUMERO_FACTURA}</span>
+                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Factura:</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">#{selectedCredit.FC_NUMERO_FACTURA}</span>
                 </div>
-                <div className="flex justify-between items-center border-b border-kyroy-border pb-2">
-                  <span className="text-[10px] font-black uppercase text-slate-500">CLIENTE:</span>
-                  <span className="text-xs font-black">{selectedCredit.FC_CLIENTE_NOMBRE}</span>
+                <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Cliente:</span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">{selectedCredit.FC_CLIENTE_NOMBRE}</span>
                 </div>
-                <div className="flex justify-between items-center bg-red-50 p-3 border border-red-200">
-                  <span className="text-[10px] font-black uppercase text-red-600">SALDO PENDIENTE:</span>
-                  <span className="text-lg font-black text-red-600">$ {Number(selectedCredit.CR_VALOR_PENDIENTE).toLocaleString()}</span>
+                <div className="flex justify-between items-center bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/30">
+                  <span className="text-[10px] font-bold uppercase text-red-600 dark:text-red-400">Saldo pendiente:</span>
+                  <span className="text-lg font-black text-red-600 dark:text-red-400">$ {Number(selectedCredit.CR_VALOR_PENDIENTE).toLocaleString()}</span>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-kyroy-pink block italic tracking-widest">MONTO A PAGAR / ABONAR:</label>
+                  <label className="text-[10px] font-bold uppercase text-[#FF7E5F] block tracking-wider ItalIC">MONTO A PAGAR / ABONAR:</label>
                   <NumericFormat
                     value={payAmount}
                     onValueChange={(vals) => setPayAmount(vals.floatValue || 0)}
                     thousandSeparator="."
                     decimalSeparator=","
                     prefix="$ "
-                    className="w-full h-12 border-2 border-kyroy-border px-4 text-xl font-black bg-kyroy-pink-light/20 focus:bg-white focus:outline-none focus:border-kyroy-pink rounded-none shadow-[4px_4px_0px_0px_rgba(255,134,162,0.1)] transition-all"
+                    className="w-full h-12 border border-slate-200 dark:border-slate-800 px-4 text-xl font-black bg-slate-50 dark:bg-slate-950 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF7E5F]/20 rounded-xl transition-all"
                     autoFocus
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-500 italic">FECHA DE ABONO:</label>
+                    <label className="text-[10px] font-bold uppercase text-slate-400">FECHA DE ABONO:</label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full h-10 border-kyroy-border rounded-none justify-start px-3 font-bold text-xs hover:bg-rose-50 hover:text-kyroy-pink"
+                          className="w-full h-10 border-slate-200 dark:border-slate-800 rounded-xl justify-start px-3 font-medium text-xs hover:bg-slate-50"
                         >
-                          <CalendarIcon className="mr-2 size-4 text-rose-400" />
-                          {abonoDate ? format(abonoDate, "dd/MM/yyyy") : "SELECCIONAR"}
+                          <CalendarIcon className="mr-2 size-4 text-[#FF7E5F]" />
+                          {abonoDate ? format(abonoDate, "dd/MM/yyyy") : "Seleccionar"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-none border-2 border-kyroy-border" align="start">
-                        <Calendar mode="single" selected={abonoDate} onSelect={(d) => d && setAbonoDate(d)} initialFocus className="rounded-none" />
+                      <PopoverContent className="w-auto p-0 rounded-xl border border-slate-200 overflow-hidden" align="start">
+                        <Calendar mode="single" selected={abonoDate} onSelect={(d) => d && setAbonoDate(d)} initialFocus />
                       </PopoverContent>
                     </Popover>
                   </div>
 
                   <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-black uppercase text-slate-500 italic">EVIDENCIA PAGO:</label>
+                    <label className="text-[10px] font-bold uppercase text-slate-400">EVIDENCIA PAGO:</label>
                     <input
                       type="file"
                       className="hidden"
@@ -389,28 +396,28 @@ export default function CreditsPage() {
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full h-10 border-kyroy-border rounded-none justify-start px-3 font-bold text-xs",
-                        abonoEvidenceUrl ? "bg-green-50 text-green-700 border-green-500" : "bg-white"
+                        "w-full h-10 border-slate-200 dark:border-slate-800 rounded-xl justify-start px-3 font-medium text-xs",
+                        abonoEvidenceUrl ? "bg-emerald-50 text-emerald-700 border-emerald-500" : "bg-white"
                       )}
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isUploadingEvidence}
                       type="button"
                     >
                       {isUploadingEvidence ? (
-                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        <Loader2 className="mr-2 size-4 animate-spin font-bold" />
                       ) : abonoEvidenceUrl ? (
-                        <CheckCircle2 className="mr-2 size-4 text-green-600" />
+                        <CheckCircle2 className="mr-2 size-4 text-emerald-600" />
                       ) : (
-                        <Camera className="mr-2 size-4 text-slate-500" />
+                        <Camera className="mr-2 size-4 text-slate-400" />
                       )}
-                      {isUploadingEvidence ? "SUBIENDO..." : abonoEvidenceUrl ? "ADJUNTADO" : "FOTO/VOUCHER"}
+                      {isUploadingEvidence ? "Subiendo..." : abonoEvidenceUrl ? "Adjuntado" : "Foto / Voucher"}
                     </Button>
 
                     {abonoEvidenceUrl && (
                       <button
                         type="button"
                         onClick={() => setAbonoEvidenceUrl('')}
-                        className="absolute -right-1 -top-1 bg-red-600 text-white rounded-full p-1 border border-kyroy-border hover:bg-red-700 transition-colors shadow-sm"
+                        className="absolute -right-1 -top-1 bg-red-600 text-white rounded-full p-1 shadow-sm hover:bg-red-700 transition-colors"
                       >
                         <Trash2 className="size-2.5" />
                       </button>
@@ -419,11 +426,11 @@ export default function CreditsPage() {
                 </div>
 
                 {abonoEvidenceUrl && (
-                  <div className="border border-kyroy-border bg-kyroy-pink-light/30 p-2 overflow-hidden">
+                  <div className="border border-slate-100 dark:border-slate-800 bg-slate-50 rounded-xl p-2 overflow-hidden">
                     <img
                       src={abonoEvidenceUrl}
                       alt="Vista previa evidencia"
-                      className="w-full h-32 object-contain grayscale hover:grayscale-0 transition-all cursor-zoom-in"
+                      className="w-full h-32 object-contain hover:scale-105 transition-all cursor-zoom-in"
                       onClick={() => window.open(abonoEvidenceUrl, '_blank')}
                     />
                   </div>
@@ -432,57 +439,59 @@ export default function CreditsPage() {
             )}
           </div>
 
-          <DialogFooter className="p-4 bg-kyroy-pink-light/30 flex gap-2 sm:gap-0 sm:justify-between border-t-2 border-kyroy-border">
+          <DialogFooter className="p-4 bg-slate-50 dark:bg-slate-800/50 flex gap-2 sm:gap-0 sm:justify-between border-t border-slate-100 dark:border-slate-800">
             <Button
               variant="outline"
-              className="rounded-none border-2 border-kyroy-border font-black uppercase text-xs h-11 px-6 active:translate-x-[1px] active:translate-y-[1px] text-slate-500 hover:text-kyroy-pink hover:bg-white"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-xs h-11 px-6 text-slate-500 hover:bg-white"
               onClick={() => setIsPayModalOpen(false)}
             >
-              CANCELAR
+              Cancelar
             </Button>
             <Button
-              className="bg-kyroy-orange hover:bg-kyroy-orange-hover text-white font-black uppercase text-xs h-11 px-8 rounded-none shadow-[4px_4px_0px_0px_rgba(249,115,22,0.3)] active:shadow-none translate-x-0 active:translate-x-[2px] active:translate-y-[2px] gap-2 border-2 border-orange-600/20"
+              className="bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white text-xs h-11 px-8 rounded-xl shadow-lg shadow-[#FF7E5F]/20 gap-2 border-none"
               onClick={handleConfirmPay}
               disabled={isSubmitting || payAmount <= 0}
             >
               {isSubmitting ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin text-white" />
               ) : (
                 <DollarSign className="size-4" />
               )}
-              {isSubmitting ? 'PROCESANDO...' : 'REGISTRAR ABONO'}
+              {isSubmitting ? 'Procesando...' : 'Registrar Abono'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       {/* MODAL DE TRAZABILIDAD */}
       <Dialog open={isHistoryModalOpen} onOpenChange={setIsHistoryModalOpen}>
-        <DialogContent className="max-w-2xl border-2 border-kyroy-border rounded-none shadow-[12px_12px_0px_0px_rgba(255,134,162,0.15)] p-0 bg-white">
-          <DialogHeader className="bg-gradient-to-r from-kyroy-pink to-rose-500 p-6 border-b-2 border-kyroy-pink">
-            <DialogTitle className="text-white font-black uppercase text-xl italic tracking-tighter">TRAZABILIDAD DE PAGOS</DialogTitle>
-            <DialogDescription className="text-white/80 text-[11px] uppercase font-bold tracking-widest mt-1 italic">Historial completo de abonos realizados para liquidar esta deuda.</DialogDescription>
+        <DialogContent className="max-w-2xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-0 bg-white dark:bg-slate-900 overflow-hidden">
+          <DialogHeader className="p-6 border-b border-slate-100 dark:border-slate-800">
+            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Trazabilidad de pagos</DialogTitle>
+            <DialogDescription className="text-slate-500 text-sm mt-1">
+              Historial completo de abonos realizados para liquidar esta deuda.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="p-0 max-h-[500px] overflow-y-auto">
             {loadingHistory ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Loader2 className="size-10 animate-spin text-rose-200" />
-                <span className="text-xs font-black uppercase text-rose-300 italic">RECUPERANDO HISTORIAL...</span>
+                <Loader2 className="size-10 animate-spin text-slate-200" />
+                <span className="text-xs font-bold text-slate-400">Recuperando historial...</span>
               </div>
             ) : creditHistory.length > 0 ? (
-              <div className="border border-kyroy-border border-t-0 border-x-0">
-                <Table className="border-collapse">
-                  <TableHeader className="bg-kyroy-pink-light/30 border-b-2 border-kyroy-border">
-                    <TableRow className="divide-x divide-kyroy-border">
-                      <TableHead className="text-[11px] font-black uppercase text-slate-500 italic h-12 px-6">FECHA DEL ABONO</TableHead>
-                      <TableHead className="text-[11px] font-black uppercase text-slate-500 italic h-12 text-right px-6">MONTO ABONADO</TableHead>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50">
+                    <TableRow>
+                      <TableHead className="text-[11px] font-bold uppercase text-slate-500 h-12 px-6">FECHA DEL ABONO</TableHead>
+                      <TableHead className="text-[11px] font-bold uppercase text-slate-500 h-12 text-right px-6">MONTO ABONADO</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody className="divide-y divide-kyroy-border">
+                  <TableBody>
                     {creditHistory.map((abono) => (
-                      <TableRow key={abono.AB_IDABONO_PK} className="divide-x divide-kyroy-border hover:bg-rose-50/30 transition-colors">
+                      <TableRow key={abono.AB_IDABONO_PK} className="hover:bg-slate-50 transition-colors border-b border-slate-100 dark:border-slate-800">
                         <TableCell className="px-6 py-5">
-                          <span className="text-[15px] font-black text-slate-800 uppercase tracking-tight">
+                          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
                             {format(new Date(abono.AB_FECHA), "dd 'de' MMMM, yyyy", { locale: es })}
                           </span>
                         </TableCell>
@@ -491,20 +500,18 @@ export default function CreditsPage() {
                             {abono.AB_EVIDENCIA_URL && (
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="h-8 border-kyroy-border text-kyroy-pink hover:bg-rose-50 rounded-none shadow-sm"
+                                variant="ghost"
+                                className="h-8 text-[#FF7E5F] hover:bg-[#FF7E5F]/5 rounded-xl border-none"
                                 onClick={() => window.open(abono.AB_EVIDENCIA_URL, '_blank')}
                                 title="Ver Comprobante"
                               >
-                                <Camera className="size-3.5 mr-2" />
-                                VER FOTO
+                                <Camera className="size-4 mr-2" />
+                                Ver Foto
                               </Button>
                             )}
-                            <div className="flex flex-col">
-                              <span className="text-lg font-black text-rose-600 tracking-tighter">
-                                $ {Number(abono.AB_MONTO).toLocaleString()}
-                              </span>
-                            </div>
+                            <span className="text-lg font-black text-slate-900 dark:text-white">
+                              $ {Number(abono.AB_MONTO).toLocaleString()}
+                            </span>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -525,12 +532,12 @@ export default function CreditsPage() {
             )}
           </div>
 
-          <DialogFooter className="p-4 bg-kyroy-pink-light/30 border-t-2 border-kyroy-border">
+          <DialogFooter className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
             <Button
-              className="w-full bg-kyroy-pink hover:bg-rose-600 text-white font-black uppercase text-xs h-11 px-8 rounded-none shadow-[4px_4px_0px_0px_rgba(255,134,162,0.15)] active:shadow-none translate-x-0 active:translate-x-[1px] active:translate-y-[1px]"
+              className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold h-11 rounded-xl shadow-lg border-none"
               onClick={() => setIsHistoryModalOpen(false)}
             >
-              CERRAR HISTORIAL
+              Cerrar Historial
             </Button>
           </DialogFooter>
         </DialogContent>

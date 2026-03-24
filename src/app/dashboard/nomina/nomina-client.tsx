@@ -36,7 +36,7 @@ import {
   getPayrollWorkers
 } from "@/features/nomina/services";
 
-import { toast } from "sonner";
+import { toast } from "@/lib/toast-helper";
 import {
   Dialog,
   DialogContent,
@@ -94,10 +94,10 @@ export default function NominaClient() {
     try {
       const res = await procesarNominaSemanal({ startDate, endDate });
       if (res.success) {
-        toast.success(res.message);
+        toast.success(res.message || "Operación exitosa");
         await fetchNomina();
       } else {
-        toast.error(res.error);
+        toast.error(res.error || "Ocurrió un error");
       }
     } finally {
       setLoading(false);
@@ -109,10 +109,10 @@ export default function NominaClient() {
     setLoading(true);
     const res = await confirmarNomina(nominaBatch.NM_IDNOMINA_PK);
     if (res.success) {
-      toast.success(res.message);
+      toast.success(res.message || "Operación exitosa");
       await fetchNomina();
     } else {
-      toast.error(res.error);
+      toast.error(res.error || "Ocurrió un error");
     }
     setLoading(false);
   };
@@ -124,10 +124,10 @@ export default function NominaClient() {
     setLoading(true);
     const res = await deleteNomina(nominaBatch.NM_IDNOMINA_PK);
     if (res.success) {
-      toast.success(res.message);
+      toast.success(res.message || "Operación exitosa");
       await fetchNomina();
     } else {
-      toast.error(res.error);
+      toast.error(res.error || "Ocurrió un error");
     }
     setLoading(false);
   };
@@ -140,11 +140,11 @@ export default function NominaClient() {
     });
 
     if (res.success) {
-      toast.success(res.message);
+      toast.success(res.message || "Configuración guardada");
       fetchConfigs();
       setShowConfigForm(false);
     } else {
-      toast.error(res.error);
+      toast.error(res.error || "Error al guardar");
     }
   };
 
@@ -357,14 +357,14 @@ export default function NominaClient() {
               </h4>
               <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
                 <Table className="border-collapse">
-                  <TableHeader className="bg-kyroy-pink-light/30 border-b-2 border-kyroy-pink sticky top-0 z-20">
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="text-[10px] font-black uppercase tracking-wider h-10 px-4">Vigencia Desde</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-wider h-10 px-4 text-center">% SVC</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-wider h-10 px-4 text-center">% PRD</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase tracking-wider h-10 px-4 text-right">Estado</TableHead>
-                    </TableRow>
-                  </TableHeader>
+          <TableHeader className="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-slate-500">Vigencia Desde</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% SVC</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% PRD</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-right text-slate-500">Estado</TableHead>
+            </TableRow>
+          </TableHeader>
                   <TableBody>
                     {configs.map((cfg, idx) => (
                       <TableRow key={idx} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0 group">
