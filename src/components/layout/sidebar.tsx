@@ -96,22 +96,16 @@ const NAV_ITEMS = [
     roles: ['ADMINISTRADOR_TOTAL']
   },
   {
-    title: 'Nómina de tecnicos',
+    title: 'Nomina Tecnicos',
     href: '/dashboard/nomina',
     icon: History,
     roles: ['ADMINISTRADOR_TOTAL']
   },
   {
-    title: 'Nómina administrador de punto',
-    href: '/dashboard/nomina-admin',
-    icon: History,
-    roles: ['ADMINISTRADOR_PUNTO']
-  },
-  {
     title: 'Gastos',
     href: '/dashboard/gastos',
     icon: TrendingDown,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+    roles: ['ADMINISTRADOR_TOTAL']
   },
   {
     title: 'Créditos',
