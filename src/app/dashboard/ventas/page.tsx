@@ -4,6 +4,7 @@ import { getServices, getProducts } from "@/features/catalog/services";
 import { getSedes } from "@/features/trabajadores/services";
 import { getCurrentUserSession } from "@/features/dashboard/services";
 import { BillingClient } from "@/app/dashboard/ventas/billing-client";
+import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
   title: "Ventas | Kyroy Stilos",
@@ -40,14 +41,10 @@ export default async function VentasPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase italic">
-          Ventas y Facturación
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium tracking-tight">
-          Gestiona los registros de ventas y cobros en tiempo real.
-        </p>
-      </div>
+      <DashboardBanner 
+        title="Ventas y Facturación"
+        subtitle="Gestiona los registros de ventas y cobros en tiempo real."
+      />
 
       <BillingClient
         initialInvoices={invoices as any[]}

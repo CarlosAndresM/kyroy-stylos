@@ -44,6 +44,7 @@ import { getCredits, payCredit, getCreditHistory } from '@/features/billing/cred
 import { toast } from '@/lib/toast-helper'
 import { LoadingGate } from '@/components/ui/loading-gate'
 import { Loader2 } from 'lucide-react'
+import { DashboardBanner } from '@/components/layout/dashboard-banner'
 
 export default function CreditsPage() {
   // Estados principales
@@ -176,51 +177,45 @@ export default function CreditsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Cuentas por Cobrar <span className="text-[#FF7E5F]">(Créditos)</span>
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Gestión de facturas a crédito y seguimiento de pagos.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            <button
-              onClick={() => setActiveTab('PENDIENTES')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
-                activeTab === 'PENDIENTES' 
-                  ? "bg-white dark:bg-slate-700 text-[#FF7E5F] shadow-sm" 
-                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              )}
-            >
-              <DollarSign className="size-3.5" />
-              Pendientes
-            </button>
-            <button
-              onClick={() => setActiveTab('HISTORICO')}
-              className={cn(
-                "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2",
-                activeTab === 'HISTORICO' 
-                  ? "bg-white dark:bg-slate-700 text-[#FF7E5F] shadow-sm" 
-                  : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-              )}
-            >
-              <History className="size-3.5" />
-              Histórico
-            </button>
-          </div>
-          
-          <div className="bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-2xl flex flex-col justify-center min-w-[200px] shadow-lg shadow-slate-200 dark:shadow-none">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">TOTAL CARTERA</span>
-            <span className="text-2xl font-black text-white">$ {totalDebt.toLocaleString('es-CO')}</span>
-          </div>
-        </div>
-      </div>
+      <DashboardBanner 
+        title={<>Cuentas por Cobrar <span className="text-[#FF7E5F]">(Créditos)</span></>}
+        subtitle="Gestión de facturas a crédito y seguimiento de pagos."
+        extra={
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                <div className="flex bg-black/40 p-1 rounded-xl backdrop-blur-md border border-white/10 shadow-2xl">
+                    <button
+                        onClick={() => setActiveTab('PENDIENTES')}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 tracking-tighter uppercase",
+                            activeTab === 'PENDIENTES' 
+                                ? "bg-white text-[#FF7E5F] shadow-xl" 
+                                : "text-white/60 hover:text-white"
+                        )}
+                    >
+                        <DollarSign className="size-3.5" />
+                        Pendientes
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('HISTORICO')}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 tracking-tighter uppercase",
+                            activeTab === 'HISTORICO' 
+                                ? "bg-white text-[#FF7E5F] shadow-xl" 
+                                : "text-white/60 hover:text-white"
+                        )}
+                    >
+                        <History className="size-3.5" />
+                        Histórico
+                    </button>
+                </div>
+                
+                <div className="bg-black/60 text-white px-6 py-3 rounded-2xl flex flex-col justify-center min-w-[200px] shadow-2xl backdrop-blur-md border border-white/10">
+                    <span className="text-[10px] font-black uppercase text-[#FF7E5F] block tracking-widest mb-0.5">TOTAL CARTERA</span>
+                    <span className="text-2xl font-black text-white">$ {totalDebt.toLocaleString('es-CO')}</span>
+                </div>
+            </div>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-center gap-4">

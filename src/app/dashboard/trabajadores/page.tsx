@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { getTrabajadores, getRoles, getSedes } from "@/features/trabajadores/services";
 import { WorkerClient } from "@/app/dashboard/trabajadores/worker-client";
 import { getCurrentUserSession } from "@/features/dashboard/services";
+import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
   title: "Trabajadores | Kyros Stilos",
@@ -33,13 +34,10 @@ export default async function TrabajadoresPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-400 dark:to-white">
-            Gestión de Personal
-          </h1>
-        </div>
-      </div>
+      <DashboardBanner 
+        title="Gestión de Personal"
+        subtitle="Administra técnicos, roles y asignaciones por sucursal."
+      />
 
       <WorkerClient
         initialWorkers={workers || []}

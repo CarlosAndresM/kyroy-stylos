@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { getSedes } from "@/features/trabajadores/services";
 import { SedesClient } from "./sedes-client";
+import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
   title: "Sucursales | Kyroy Stilos",
@@ -13,14 +14,10 @@ export default async function SedesPage() {
 
   return (
     <div className="space-y-6 pb-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase italic">
-          Sucursales
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase italic">
-          Gestión de puntos de venta y locales.
-        </p>
-      </div>
+      <DashboardBanner 
+        title="Sucursales"
+        subtitle="Gestión de puntos de venta y locales físicos."
+      />
 
       <SedesClient initialSedes={sedes} />
     </div>

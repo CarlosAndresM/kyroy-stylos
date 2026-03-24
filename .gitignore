@@ -9,6 +9,8 @@
 # testing
 /coverage
 
+SGI-OS
+
 # next.js
 /.next/
 /out/

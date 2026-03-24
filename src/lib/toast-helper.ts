@@ -30,7 +30,8 @@ const createToast = (variant: ToastVariant, defaultDuration: number) => {
         id: toastId,
         title,
         description,
-        variant: variant
+        variant: variant,
+        duration: duration
       })
     ), {
       id,

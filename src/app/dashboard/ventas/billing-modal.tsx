@@ -648,7 +648,7 @@ export function BillingModal({
                         <FormLabel>N° Factura</FormLabel>
                         <Input {...field} value={field.value || ''} disabled={isPaid}
                           className={cn("bg-white font-bold border-slate-200 focus:border-[#FF7E5F] focus:ring-[#FF7E5F]/20", isPaid && "bg-slate-50")}
-                          placeholder="AUTOMÁTICO" />
+                          placeholder="" />
                       </FormItem>
                     )} />
                   </div>

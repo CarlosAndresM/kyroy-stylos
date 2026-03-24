@@ -46,6 +46,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { DashboardBanner } from '@/components/layout/dashboard-banner';
 
 export default function NominaClient() {
   const [loading, setLoading] = useState(false);
@@ -63,7 +64,7 @@ export default function NominaClient() {
 
   useEffect(() => {
     fetchNomina();
-  }, [startDate]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     if (configOpen) {
@@ -152,28 +153,20 @@ export default function NominaClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <Banknote className="h-8 w-8 text-[#ff86a2]" />
-            Gestión Nomina Técnicos
-          </h1>
-          <p className="text-sm text-slate-400 font-medium italic">
-            Cálculo semanal de comisiones y sueldos para técnicos.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
+      <DashboardBanner 
+        title={<>Gestión <span className="text-[#FF7E5F]">Nómina</span> Técnicos</>}
+        subtitle="Cálculo semanal de comisiones y sueldos para técnicos."
+        extra={
           <Button
             variant="outline"
             onClick={() => setConfigOpen(true)}
-            className="gap-2"
+            className="gap-2 bg-black/40 border-white/10 text-white hover:bg-black/60 shadow-2xl backdrop-blur-md rounded-xl"
           >
             <Settings className="size-4" />
-            Parametrizar Nomina Técnicos
+            Parametrizar Nómina Técnicos
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Rango de Fechas */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
@@ -333,7 +326,7 @@ export default function NominaClient() {
       {/* Modal Configuración */}
       <Dialog open={configOpen} onOpenChange={(open) => { setConfigOpen(open); if (!open) setShowConfigForm(false); }}>
         <DialogContent className="w-[1280px] max-w-[95vw] rounded-xl border border-slate-200 p-0 overflow-hidden shadow-2xl bg-white dark:bg-slate-900">
-          <DialogHeader className="p-6 border-b border-slate-100 flex-row items-center justify-between">
+          <DialogHeader className="p-6 pr-14 border-b border-slate-100 flex-row items-center justify-between">
             <div className="flex items-center gap-3">
               <Settings className="h-5 w-5 text-[#FF7E5F]" />
               <DialogTitle className="text-lg font-bold">
@@ -343,8 +336,8 @@ export default function NominaClient() {
             <Button
               onClick={() => setShowConfigForm(!showConfigForm)}
               className={cn(
-                "h-10 w-10 p-0 rounded-none border-2 border-input transition-all",
-                showConfigForm ? "bg-red-500 border-red-500 rotate-45" : "bg-emerald-600 border-emerald-600"
+                "h-10 w-10 p-0 rounded-xl border-2 border-input transition-all",
+                showConfigForm ? "bg-red-500 border-red-500 rotate-45 mr-2" : "bg-emerald-600 border-emerald-600 mr-2"
               )}
             >
               <Plus className="size-6 text-white" />

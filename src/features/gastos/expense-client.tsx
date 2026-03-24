@@ -44,6 +44,7 @@ import { toast } from '@/lib/toast-helper'
 import { UnifiedGasto, GastoData } from './schema'
 import { createExpense } from './services'
 import { getSedes } from '@/features/trabajadores/services'
+import { DashboardBanner } from '@/components/layout/dashboard-banner'
 
 interface ExpenseClientProps {
   initialData: UnifiedGasto[]
@@ -146,44 +147,30 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Header compact section */}
-      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pb-6 border-b border-slate-200">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-50 rounded-2xl border border-orange-100 shadow-sm">
-              <TrendingDown className="size-6 text-[#FF7E5F]" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                Gestión de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B]">Gastos</span>
-              </h1>
-              <p className="text-sm text-slate-500 font-medium italic">Historial unificado de egresos y nómina confirmada.</p>
-            </div>
-          </div>
-        </div>
+      <DashboardBanner 
+        title={<>Gestión de <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B]">Gastos</span></>}
+        subtitle="Historial unificado de egresos y nómina confirmada."
+        extra={
+            <div className="flex flex-wrap items-center gap-4">
+                <div className="h-14 flex items-center bg-black/40 border border-white/10 text-white rounded-2xl px-6 shadow-2xl backdrop-blur-md group transition-all">
+                    <div className="border-r border-white/10 pr-6 mr-6 hidden sm:block">
+                        <p className="text-[10px] font-black text-[#FF7E5F] uppercase tracking-widest mb-0.5">TOTAL EGRESOS</p>
+                        <p className="text-xl font-black text-white leading-none tabular-nums">
+                            $ {totalGastos.toLocaleString('es-CO')}
+                        </p>
+                    </div>
+                    <CircleDollarSign className="size-6 text-[#FF7E5F] group-hover:scale-110 transition-transform" />
+                </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="h-14 flex items-center bg-white dark:bg-slate-900 border border-slate-200 rounded-2xl px-4 shadow-sm group transition-all hover:border-[#FF7E5F]">
-            <div className="border-r border-slate-100 pr-4 mr-4 hidden sm:block">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">TOTAL EGRESOS</p>
-              <p className="text-xl font-black text-slate-900 dark:text-white leading-none tabular-nums">
-                $ {totalGastos.toLocaleString('es-CO')}
-              </p>
+                <Button
+                    onClick={handleOpenModal}
+                    className="bg-[#FF7E5F] text-white hover:bg-[#FF7E5F]/90 rounded-2xl border-none font-extrabold h-14 px-8 shadow-2xl shadow-[#FF7E5F]/20 transition-all active:scale-95"
+                >
+                    <Plus className="size-5 mr-2" /> Registrar Gasto
+                </Button>
             </div>
-            <div className="sm:hidden">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">TOTAL:</p>
-              <p className="text-base font-black text-slate-900">$ {totalGastos.toLocaleString('es-CO')}</p>
-            </div>
-            <CircleDollarSign className="size-5 text-[#FF7E5F] group-hover:scale-110 transition-transform" />
-          </div>
-
-          <Button
-            onClick={handleOpenModal}
-            className="bg-[#FF7E5F] text-white hover:bg-[#FF7E5F]/90 rounded-2xl border-none font-bold h-14 px-8 shadow-lg shadow-coral-500/20 transition-all active:scale-95"
-          >
-            <Plus className="size-4 mr-2" /> Registrar Gasto
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Filters bar */}
       <div className="flex flex-col sm:flex-row items-center gap-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-4 border border-slate-200 rounded-2xl shadow-sm">

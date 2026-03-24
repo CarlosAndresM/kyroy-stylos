@@ -78,7 +78,7 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
     // 2. Eliminar cualquier nómina existente en este rango que NO esté CONFIRMADA
     // (Limpieza por si el usuario está volviendo a procesar)
     const [existing]: any = await (connection as any).execute(
-      "SELECT NM_IDNOMINA_PK FROM KS_NOMINAS WHERE NM_FECHA_INICIO = ? AND NM_FECHA_FIN = ? AND NM_ESTADO != 'CONFIRMADA'",
+      "SELECT NM_IDNOMINA_PK FROM KS_NOMINAS WHERE DATE(NM_FECHA_INICIO) = DATE(?) AND DATE(NM_FECHA_FIN) = DATE(?) AND NM_ESTADO != 'CONFIRMADA'",
       [data.startDate, data.endDate]
     );
 
@@ -273,7 +273,7 @@ export async function confirmarNomina(nominaId: number): Promise<ApiResponse> {
 export async function getNominaByRange(startDate: Date, endDate: Date): Promise<ApiResponse> {
   try {
     const [rows]: any = await db.query(
-      "SELECT * FROM KS_NOMINAS WHERE NM_FECHA_INICIO = ? AND NM_FECHA_FIN = ? LIMIT 1",
+      "SELECT * FROM KS_NOMINAS WHERE DATE(NM_FECHA_INICIO) = DATE(?) AND DATE(NM_FECHA_FIN) = DATE(?) LIMIT 1",
       [startDate, endDate]
     );
 

@@ -19,7 +19,8 @@ import {
   MapPin,
   Shield,
   Wallet,
-  TrendingDown
+  TrendingDown,
+  ClipboardList
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -108,6 +109,12 @@ const NAV_ITEMS = [
     title: 'Créditos',
     href: '/dashboard/creditos',
     icon: Receipt,
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+  },
+  {
+    title: 'Solicitudes',
+    href: '/dashboard/solicitudes',
+    icon: ClipboardList,
     roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   }
 ]

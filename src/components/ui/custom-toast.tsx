@@ -12,11 +12,11 @@ interface CustomToastProps {
   title: string
   description?: string
   variant: ToastVariant
+  duration?: number
 }
 
-export const CustomToast = ({ id, title, description, variant }: CustomToastProps) => {
+export const CustomToast = ({ id, title, description, variant, duration = 4000 }: CustomToastProps) => {
   const [progress, setProgress] = React.useState(100)
-  const duration = 4000 // default duration
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -75,20 +75,20 @@ export const CustomToast = ({ id, title, description, variant }: CustomToastProp
             </p>
           )}
         </div>
-
-        {/* Close Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            sonnerToast.dismiss(id);
-          }}
-          className="absolute top-2 right-2 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all z-[100] cursor-pointer"
-          aria-label="Cerrar notificación"
-        >
-          <X className="w-4 h-4" />
-        </button>
       </div>
+
+      {/* Close Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          sonnerToast.dismiss(id);
+        }}
+        className="absolute top-2 right-2 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all z-[110] cursor-pointer pointer-events-auto"
+        aria-label="Cerrar notificación"
+      >
+        <X className="w-4 h-4" />
+      </button>
 
       {/* Progress Bar Container */}
       <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gray-50/50">

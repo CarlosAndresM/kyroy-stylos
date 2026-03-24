@@ -76,3 +76,22 @@ export async function getCuotasPendientes(workerId: number, startDate: Date, end
     return { success: false, error: "Error al obtener cuotas" };
   }
 }
+
+/**
+ * Obtener todas las cuotas asociadas a un servicio específico
+ */
+export async function getCuotasByService(serviceId: number): Promise<ApiResponse> {
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM KS_SERVICIO_TRABAJADOR_CUOTAS 
+       WHERE ST_IDSERVICIO_TRABAJADOR_FK = ? 
+       ORDER BY STC_NUMERO_CUOTA ASC`,
+      [serviceId]
+    );
+    return { success: true, data: rows };
+  } catch (error) {
+    console.error("Error al obtener cuotas por servicio:", error);
+    return { success: false, error: "Error al obtener el plan de cuotas" };
+  }
+}
+

@@ -37,13 +37,6 @@ export default async function DashboardLayout({
           <div className="flex items-center gap-4 flex-1">
             {/* Placeholder para el botón hamburguesa en móvil (el sidebar lo renderiza) */}
             <div className="size-10 md:hidden" />
-            <div className="relative w-full max-w-md group hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 group-focus-within:text-[#FF7E5F] transition-colors" />
-              <Input 
-                placeholder="BUSCAR..." 
-                className="pl-10 bg-slate-100/50 dark:bg-slate-800/50 border-none focus-visible:ring-1 focus-visible:ring-[#FF7E5F]/50 h-10 w-full rounded-full transition-all"
-              />
-            </div>
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">

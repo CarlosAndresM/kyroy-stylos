@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getAllAdelantosService } from '@/features/vales/services';
 import { getTrabajadores } from '@/features/trabajadores/services';
 import { ValesClient } from '@/app/dashboard/vales/vales-client';
+import { DashboardBanner } from '@/components/layout/dashboard-banner';
 
 export const metadata: Metadata = {
   title: 'Vales | Kyros Stilos',
@@ -23,16 +24,10 @@ export default async function ValesPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-400 dark:to-white">
-            Vales
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400">
-            Gestiona los anticipos de sueldo para los trabajadores.
-          </p>
-        </div>
-      </div>
+      <DashboardBanner 
+        title="Gestión de Vales"
+        subtitle="Administra los anticipos de sueldo para los trabajadores de todas las sedes."
+      />
 
       <ValesClient 
         initialAdelantos={(adelantos || []) as any[]} 
