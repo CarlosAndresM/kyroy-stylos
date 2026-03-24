@@ -1126,7 +1126,7 @@ export function DashboardClient() {
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-black uppercase text-rose-400 italic">1. SELECCIONAR FACTURA:</label>
                             <ComboboxSearch
-                                options={(specificData?.facturas || []).map((f: any) => ({
+                                options={(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => ({
                                     label: `#${f.FC_NUMERO_FACTURA} - ${f.cliente_display}`,
                                     value: f.FC_IDFACTURA_PK.toString()
                                 }))}
@@ -1136,6 +1136,12 @@ export function DashboardClient() {
                                 className="w-full h-10 border-2 border-rose-200 rounded-none font-black text-xs uppercase focus:border-orange-400"
                             />
                         </div>
+
+                        {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0 && (
+                            <div className="mx-6 p-3 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold uppercase rounded-lg italic">
+                                No hay facturas PENDIENTES. Si desea agregar productos a una factura PAGADA, cámbiela primero a PENDIENTE (desde el Registro de Ventas).
+                            </div>
+                        )}
 
                         {apLoadingInvoice && (
                             <div className="flex items-center justify-center py-4 gap-2 text-[10px] font-black text-rose-400 italic animate-pulse">
