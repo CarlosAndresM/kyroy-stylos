@@ -15,7 +15,7 @@ export async function getTechnicians(): Promise<ApiResponse> {
       `SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE, r.RL_NOMBRE 
        FROM KS_TRABAJADORES t 
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK 
-       WHERE r.RL_NOMBRE IN ('TECNICO', 'CAJERO') AND t.TR_ACTIVO = TRUE`
+       WHERE r.RL_NOMBRE IN ('TECNICO', 'ADMINISTRADOR_PUNTO') AND t.TR_ACTIVO = TRUE`
     );
     return { success: true, data: rows, error: null };
   } catch (error) {

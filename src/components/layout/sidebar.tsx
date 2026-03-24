@@ -45,25 +45,25 @@ const NAV_ITEMS = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Ventas (Facturas)',
     href: '/dashboard/ventas',
     icon: Receipt,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Trabajadores',
     href: '/dashboard/trabajadores',
     icon: Briefcase,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Vales',
     href: '/dashboard/vales',
     icon: Wallet,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Usuarios Admin',
@@ -75,19 +75,19 @@ const NAV_ITEMS = [
     title: 'Clientes',
     href: '/dashboard/clientes',
     icon: Users,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Servicios & Productos',
     href: '/dashboard/catalogos',
     icon: Package,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Servicio de Trabajador',
     href: '/dashboard/servicio-trabajador',
     icon: Ticket,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Sucursales',
@@ -105,13 +105,13 @@ const NAV_ITEMS = [
     title: 'Gastos',
     href: '/dashboard/gastos',
     icon: TrendingDown,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   },
   {
     title: 'Créditos',
     href: '/dashboard/creditos',
     icon: Receipt,
-    roles: ['ADMINISTRADOR_TOTAL', 'CAJERO']
+    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
   }
 ]
 

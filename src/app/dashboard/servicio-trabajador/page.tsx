@@ -27,7 +27,7 @@ async function getServiciosTrabajador() {
       FROM KS_SERVICIOS_TRABAJADOR st
       JOIN KS_TRABAJADORES t ON st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
       LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-      ORDER BY st.ST_FECHA_CREACION DESC
+      ORDER BY st.ST_FECHA DESC
     `);
     return rows;
   } catch (error) {
@@ -89,7 +89,7 @@ export default async function ServicioTrabajadorPage() {
                     <TableCell className="px-6 py-5">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-slate-900">ST-{s.ST_IDSERVICIO_TRABAJADOR_PK}</span>
-                        <span className="text-[9px] text-slate-400 font-medium tabular-nums uppercase">Creado: {format(new Date(s.ST_FECHA_CREACION), 'dd/MM/yy')}</span>
+                        <span className="text-[9px] text-slate-400 font-medium tabular-nums uppercase">Creado: {format(new Date(s.ST_FECHA), 'dd/MM/yy')}</span>
                       </div>
                     </TableCell>
                     <TableCell className="px-6 py-5 text-center">

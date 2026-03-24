@@ -99,7 +99,7 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
        FROM KS_TRABAJADORES t
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        WHERE t.TR_ACTIVO = TRUE 
-       AND r.RL_NOMBRE NOT IN ('ADMINISTRADOR_TOTAL', 'CAJERO')`
+       AND r.RL_NOMBRE NOT IN ('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO')`
     );
 
     let granTotal = 0;
@@ -299,7 +299,7 @@ export async function getPayrollWorkers(): Promise<ApiResponse<any[]>> {
       FROM KS_TRABAJADORES t
       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
       WHERE t.TR_ACTIVO = TRUE 
-      AND r.RL_NOMBRE NOT IN ('ADMINISTRADOR_TOTAL', 'CAJERO')
+      AND r.RL_NOMBRE NOT IN ('ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO')
       ORDER BY t.TR_NOMBRE ASC
     `);
     return { success: true, data: rows };

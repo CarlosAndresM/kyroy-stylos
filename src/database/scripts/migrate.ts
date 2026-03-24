@@ -4,7 +4,11 @@ import mysql from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 
 // Cargar variables de entorno
-dotenv.config();
+if (fs.existsSync('env.local')) {
+  dotenv.config({ path: 'env.local' });
+} else {
+  dotenv.config();
+}
 
 import { env } from '@/lib/env';
 

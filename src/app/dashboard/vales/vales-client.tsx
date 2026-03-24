@@ -165,7 +165,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
     if (!selectedDateStr) return null;
     const date = new Date(selectedDateStr + 'T00:00:00');
 
-    if (role === 'CAJERO') {
+    if (role === 'ADMINISTRADOR_PUNTO') {
       const day = date.getDate();
       const monthStart = startOfMonth(date);
       const monthEnd = endOfMonth(date);
@@ -210,7 +210,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
 
     for (let i = 0; i < cuotas; i++) {
       let date: Date;
-      if (adelanto.RL_NOMBRE === 'CAJERO') {
+      if (adelanto.RL_NOMBRE === 'ADMINISTRADOR_PUNTO') {
         const startIsSecondHalf = startDate.getDate() > 15;
         const totalQuincenas = i + (startIsSecondHalf ? 1 : 0);
         const monthOffset = Math.floor(totalQuincenas / 2);
@@ -533,7 +533,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
               </div>
 
               <div className="space-y-1.5">
-                <Label>{selectedRole === 'CAJERO' ? 'Inicio de Cobro (Quincena)' : 'Inicio de Cobro (Semana)'}</Label>
+                <Label>{selectedRole === 'ADMINISTRADOR_PUNTO' ? 'Inicio de Cobro (Quincena)' : 'Inicio de Cobro (Semana)'}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -547,7 +547,7 @@ export function ValesClient({ initialAdelantos, trabajadores }: ValesClientProps
                       {fechaInicioCobro ? (
                         format(new Date(fechaInicioCobro + 'T00:00:00'), "PPP", { locale: es })
                       ) : (
-                        <span>{selectedRole === 'CAJERO' ? 'Seleccionar quincena...' : 'Seleccionar semana...'}</span>
+                        <span>{selectedRole === 'ADMINISTRADOR_PUNTO' ? 'Seleccionar quincena...' : 'Seleccionar semana...'}</span>
                       )}
                     </Button>
                   </PopoverTrigger>

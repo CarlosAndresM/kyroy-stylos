@@ -112,7 +112,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
       GS_DESCRIPCION: '',
       GS_VALOR: 0,
       GS_FECHA: new Date(),
-      SC_IDSUCURSAL_FK: user?.role === 'CAJERO' ? user?.sucursalId : null
+      SC_IDSUCURSAL_FK: user?.role === 'ADMINISTRADOR_PUNTO' ? user?.sucursalId : null
     })
     setIsModalOpen(true)
   }
@@ -341,7 +341,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
                 <Select
                   value={formData.SC_IDSUCURSAL_FK?.toString() || 'general'}
                   onValueChange={val => setFormData({ ...formData, SC_IDSUCURSAL_FK: val === 'general' ? null : Number(val) })}
-                  disabled={user?.role === 'CAJERO'}
+                  disabled={user?.role === 'ADMINISTRADOR_PUNTO'}
                 >
                   <SelectTrigger className="rounded-xl border-slate-200 font-bold h-11 focus:ring-0 focus:border-[#FF7E5F]">
                     <SelectValue placeholder="General" />

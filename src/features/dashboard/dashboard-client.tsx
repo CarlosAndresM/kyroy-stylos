@@ -144,7 +144,7 @@ export function DashboardClient() {
             if (userRes.success) {
                 setUser(userRes.data)
                 // If cajero and has sucursal, set it
-                if (userRes.data.role === 'CAJERO' && userRes.data.sucursalId) {
+                if (userRes.data.role === 'ADMINISTRADOR_PUNTO' && userRes.data.sucursalId) {
                     setSelectedSede(userRes.data.sucursalId)
                 }
             }
@@ -407,7 +407,7 @@ export function DashboardClient() {
                         className="bg-transparent font-bold text-xs uppercase pr-8 outline-none cursor-pointer text-slate-700 h-8"
                         value={selectedSede}
                         onChange={(e) => setSelectedSede(Number(e.target.value))}
-                        disabled={user?.role === 'CAJERO' && user?.sucursalId}
+                        disabled={user?.role === 'ADMINISTRADOR_PUNTO' && user?.sucursalId}
                     >
                         <option value="-1">GENERAL (TODAS)</option>
                         {sedes.map(s => (

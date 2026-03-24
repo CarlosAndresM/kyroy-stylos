@@ -21,7 +21,7 @@ export default async function TrabajadoresPage() {
 
   // Filtrar roles permitidos para TRABAJADORES (Cajero y Técnico)
   const roles = (rolesRes.success ? rolesRes.data : [])?.filter(
-    (r: any) => r.RL_NOMBRE === 'CAJERO' || r.RL_NOMBRE === 'TECNICO'
+    (r: any) => r.RL_NOMBRE === 'ADMINISTRADOR_PUNTO' || r.RL_NOMBRE === 'TECNICO'
   );
 
   const sedes = sedesRes.success ? sedesRes.data : [];
