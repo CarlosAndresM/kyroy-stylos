@@ -38,84 +38,110 @@ function useIsMobile() {
   return isMobile
 }
 
-const NAV_ITEMS = [
+const NAV_GROUPS = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+    label: 'Dashboard',
+    items: [
+      {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: LayoutDashboard,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+    ]
   },
   {
-    title: 'Ventas (Facturas)',
-    href: '/dashboard/ventas',
-    icon: Receipt,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+    label: 'Administración',
+    items: [
+      {
+        title: 'Usuarios Admin',
+        href: '/dashboard/usuarios-admin',
+        icon: Shield,
+        roles: ['ADMINISTRADOR_TOTAL']
+      },
+      {
+        title: 'Sucursales',
+        href: '/dashboard/sedes',
+        icon: MapPin,
+        roles: ['ADMINISTRADOR_TOTAL']
+      },
+      {
+        title: 'Gastos',
+        href: '/dashboard/gastos',
+        icon: TrendingDown,
+        roles: ['ADMINISTRADOR_TOTAL']
+      },
+      {
+        title: 'Nomina Tecnicos',
+        href: '/dashboard/nomina',
+        icon: History,
+        roles: ['ADMINISTRADOR_TOTAL']
+      },
+      {
+        title: 'Nomina Administrador',
+        href: '/dashboard/nomina-admin',
+        icon: History,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+    ]
   },
   {
-    title: 'Trabajadores',
-    href: '/dashboard/trabajadores',
-    icon: Briefcase,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+    label: 'Trabajador',
+    items: [
+      {
+        title: 'Trabajadores',
+        href: '/dashboard/trabajadores',
+        icon: Briefcase,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Vales',
+        href: '/dashboard/vales',
+        icon: Wallet,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Servicio de Trabajador',
+        href: '/dashboard/servicio-trabajador',
+        icon: Ticket,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+    ]
   },
   {
-    title: 'Vales',
-    href: '/dashboard/vales',
-    icon: Wallet,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
-  },
-  {
-    title: 'Usuarios Admin',
-    href: '/dashboard/usuarios-admin',
-    icon: Shield,
-    roles: ['ADMINISTRADOR_TOTAL']
-  },
-  {
-    title: 'Clientes',
-    href: '/dashboard/clientes',
-    icon: Users,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
-  },
-  {
-    title: 'Servicios & Productos',
-    href: '/dashboard/catalogos',
-    icon: Package,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
-  },
-  {
-    title: 'Servicio de Trabajador',
-    href: '/dashboard/servicio-trabajador',
-    icon: Ticket,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
-  },
-  {
-    title: 'Sucursales',
-    href: '/dashboard/sedes',
-    icon: MapPin,
-    roles: ['ADMINISTRADOR_TOTAL']
-  },
-  {
-    title: 'Nomina Tecnicos',
-    href: '/dashboard/nomina',
-    icon: History,
-    roles: ['ADMINISTRADOR_TOTAL']
-  },
-  {
-    title: 'Gastos',
-    href: '/dashboard/gastos',
-    icon: TrendingDown,
-    roles: ['ADMINISTRADOR_TOTAL']
-  },
-  {
-    title: 'Créditos',
-    href: '/dashboard/creditos',
-    icon: Receipt,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
-  },
-  {
-    title: 'Solicitudes',
-    href: '/dashboard/solicitudes',
-    icon: ClipboardList,
-    roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+    label: 'Cliente',
+    items: [
+      {
+        title: 'Clientes',
+        href: '/dashboard/clientes',
+        icon: Users,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Ventas (Facturas)',
+        href: '/dashboard/ventas',
+        icon: Receipt,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Servicios & Productos',
+        href: '/dashboard/catalogos',
+        icon: Package,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Créditos',
+        href: '/dashboard/creditos',
+        icon: Receipt,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+      {
+        title: 'Solicitudes',
+        href: '/dashboard/solicitudes',
+        icon: ClipboardList,
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
+      },
+    ]
   }
 ]
 
@@ -141,7 +167,11 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
     setIsMobileOpen(false)
   }, [pathname])
 
-  const filteredNavItems = NAV_ITEMS.filter(item => item.roles.includes(role))
+  // Filtrar grupos y sus items según el rol
+  const filteredGroups = NAV_GROUPS.map(group => ({
+    ...group,
+    items: group.items.filter(item => item.roles.includes(role))
+  })).filter(group => group.items.length > 0)
 
   // En móvil, el sidebar se esconde/muestra como drawer
   const sidebarVisible = isMobile ? isMobileOpen : true
@@ -208,41 +238,52 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar"> {/* Reduced py-6 to py-4, space-y-2 to space-y-1 */}
-          {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 relative overflow-hidden", // Reduced gap-4 to gap-3, px-4 to px-3, py-3 to py-2
-                  isActive
-                    ? "bg-gradient-to-r from-[#FF7E5F]/20 to-[#FEB47B]/10 text-white shadow-sm"
-                    : "hover:bg-white/5 text-slate-400 hover:text-white"
-                )}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF7E5F] rounded-r-full shadow-[0_0_10px_rgba(255,126,95,0.5)]" />
-                )}
-                <item.icon className={cn(
-                  "size-4.5 transition-transform group-hover:scale-110 duration-200", // Slightly reduced size
-                  isActive ? "text-[#FF7E5F]" : "text-slate-500 group-hover:text-slate-300"
-                )} />
-                {!isCollapsed && (
-                  <span className={cn(
-                    "text-sm font-medium transition-colors", // Reduced font size to text-sm
-                    isActive ? "text-white" : "text-slate-400 group-hover:text-white"
-                  )}>
-                    {item.title}
-                  </span>
-                )}
-                {isActive && !isCollapsed && (
-                  <ChevronRight className="ml-auto size-3.5 text-[#FF7E5F]/50" />
-                )}
-              </Link>
-            )
-          })}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-6 custom-scrollbar"> {/* Aumentado space-y para separar grupos */}
+          {filteredGroups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              {!isCollapsed && (
+                <h3 className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  {group.label}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 relative overflow-hidden",
+                        isActive
+                          ? "bg-gradient-to-r from-[#FF7E5F]/20 to-[#FEB47B]/10 text-white shadow-sm"
+                          : "hover:bg-white/5 text-slate-400 hover:text-white"
+                      )}
+                    >
+                      {isActive && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF7E5F] rounded-r-full shadow-[0_0_10px_rgba(255,126,95,0.5)]" />
+                      )}
+                      <item.icon className={cn(
+                        "size-4.5 transition-transform group-hover:scale-110 duration-200",
+                        isActive ? "text-[#FF7E5F]" : "text-slate-500 group-hover:text-slate-300"
+                      )} />
+                      {!isCollapsed && (
+                        <span className={cn(
+                          "text-sm font-medium transition-colors",
+                          isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                        )}>
+                          {item.title}
+                        </span>
+                      )}
+                      {isActive && !isCollapsed && (
+                        <ChevronRight className="ml-auto size-3.5 text-[#FF7E5F]/50" />
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
 

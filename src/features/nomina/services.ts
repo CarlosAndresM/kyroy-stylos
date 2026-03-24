@@ -93,17 +93,20 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
     );
     const nominaId = nominaResult.insertId;
 
-    // 4. Obtener todos los trabajadores activos que NO sean administrativos
+    // 4. Obtener todos los trabajadores activos que coincidan con el rol solicitado (o TECNICO por defecto)
+    const roleName = (data as any).role || 'TECNICO';
+
     const [workers]: any = await (connection as any).execute(
       `SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE, t.TR_SUELDO_BASE 
        FROM KS_TRABAJADORES t
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        WHERE t.TR_ACTIVO = TRUE 
-       AND r.RL_NOMBRE = 'TECNICO'`
+       AND r.RL_NOMBRE = ?`,
+      [roleName]
     );
 
-    console.log(`[Nomina] Procesando periodo: ${data.startDate.toISOString()} a ${data.endDate.toISOString()}`);
-    console.log(`[Nomina] Técnicos activos encontrados: ${workers.length}`);
+    console.log(`[Nomina] Procesando periodo: ${data.startDate.toISOString()} a ${data.endDate.toISOString()} para rol: ${roleName}`);
+    console.log(`[Nomina] Trabajadores activos encontrados: ${workers.length}`);
 
     let granTotal = 0;
 
@@ -333,16 +336,16 @@ export async function deleteNomina(nominaId: number): Promise<ApiResponse> {
 /**
  * Obtener todos los trabajadores seleccionables para nómina (Excluyendo administrativos)
  */
-export async function getPayrollWorkers(): Promise<ApiResponse<any[]>> {
+export async function getPayrollWorkers(role: string = 'TECNICO'): Promise<ApiResponse<any[]>> {
   try {
     const [rows]: any = await db.execute(`
       SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE
       FROM KS_TRABAJADORES t
       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
       WHERE t.TR_ACTIVO = TRUE 
-      AND r.RL_NOMBRE = 'TECNICO'
+      AND r.RL_NOMBRE = ?
       ORDER BY t.TR_NOMBRE ASC
-    `);
+    `, [role]);
     return { success: true, data: rows };
   } catch (error) {
     return { success: false, data: null, error: "Error al obtener trabajadores para nómina" };

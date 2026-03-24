@@ -153,7 +153,7 @@ export default function NominaClient() {
 
   return (
     <div className="space-y-6">
-      <DashboardBanner 
+      <DashboardBanner
         title={<>Gestión <span className="text-[#FF7E5F]">Nómina</span> Técnicos</>}
         subtitle="Cálculo semanal de comisiones y sueldos para técnicos."
         extra={
@@ -245,7 +245,12 @@ export default function NominaClient() {
                     <TableCell className="text-right font-medium text-xs text-orange-600 tracking-tighter">
                       - $ {(item.ND_DEDUCCIONES_ADELANTOS || 0).toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-right font-black text-sm text-slate-900 px-6">$ {item.ND_TOTAL_NETO.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-black text-sm text-slate-900 px-6">
+                      $ {Math.max(0, Number(item.ND_TOTAL_NETO || 0)).toLocaleString()}
+                      {Number(item.ND_TOTAL_NETO) < 0 && (
+                        <div className="text-[9px] text-red-500 font-bold uppercase mt-1">Saldo Negativo: $ {Math.abs(Number(item.ND_TOTAL_NETO)).toLocaleString()}</div>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900">
                         <Info className="h-4 w-4" />
@@ -282,7 +287,7 @@ export default function NominaClient() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 md:p-6 shadow-sm mb-6">
           <div className="flex flex-col">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total acumulado de la semana</span>
-            <span className="text-2xl font-black text-slate-900 dark:text-white">$ {nominaData.reduce((acc, curr) => acc + curr.ND_TOTAL_NETO, 0).toLocaleString()}</span>
+            <span className="text-2xl font-black text-slate-900 dark:text-white">$ {nominaData.reduce((acc, curr) => acc + Math.max(0, Number(curr.ND_TOTAL_NETO || 0)), 0).toLocaleString()}</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 md:gap-3">

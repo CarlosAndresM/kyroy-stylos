@@ -24,7 +24,7 @@ export const CustomToast = ({ id, title, description, variant, duration = 4000 }
     }, 10)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [duration])
 
   const variants = {
     success: {
@@ -81,8 +81,9 @@ export const CustomToast = ({ id, title, description, variant, duration = 4000 }
       <button
         type="button"
         onClick={(e) => {
-          e.stopPropagation();
-          sonnerToast.dismiss(id);
+          e.preventDefault() // <-- Añadido por seguridad
+          e.stopPropagation()
+          sonnerToast.dismiss(id)
         }}
         className="absolute top-2 right-2 p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all z-[110] cursor-pointer pointer-events-auto"
         aria-label="Cerrar notificación"
@@ -100,4 +101,30 @@ export const CustomToast = ({ id, title, description, variant, duration = 4000 }
       </div>
     </div>
   )
+}
+
+// ============================================================================
+// WRAPPER: Usa estas funciones en el resto de tu app en lugar de llamar a Sonner directamente
+// ============================================================================
+export const notify = {
+  success: (title: string, description?: string, duration?: number) => {
+    sonnerToast.custom((t) => (
+      <CustomToast id={t} title={title} description={description} variant="success" duration={duration} />
+    ))
+  },
+  error: (title: string, description?: string, duration?: number) => {
+    sonnerToast.custom((t) => (
+      <CustomToast id={t} title={title} description={description} variant="error" duration={duration} />
+    ))
+  },
+  info: (title: string, description?: string, duration?: number) => {
+    sonnerToast.custom((t) => (
+      <CustomToast id={t} title={title} description={description} variant="info" duration={duration} />
+    ))
+  },
+  warning: (title: string, description?: string, duration?: number) => {
+    sonnerToast.custom((t) => (
+      <CustomToast id={t} title={title} description={description} variant="warning" duration={duration} />
+    ))
+  },
 }
