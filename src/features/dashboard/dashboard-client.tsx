@@ -398,13 +398,13 @@ export function DashboardClient() {
                 </div>
 
                 {/* Branch Selector */}
-                <div className="flex items-center gap-2 p-1 bg-rose-50/50 dark:bg-slate-900 border-2 border-rose-100 shadow-sm rounded-none self-start w-full sm:w-auto">
-                    <div className="px-3 py-1.5 flex items-center gap-2 text-[10px] font-black uppercase text-rose-400 italic">
-                        <MapPin className="size-3 text-[#ff86a2]" />
+                <div className="flex items-center gap-2 p-1.5 bg-white/50 dark:bg-slate-900 border border-slate-200 shadow-sm rounded-2xl self-start w-full sm:w-auto backdrop-blur-sm">
+                    <div className="px-3 py-1.5 flex items-center gap-2 text-[10px] font-bold uppercase text-slate-500 tracking-wider">
+                        <MapPin className="size-3.5 text-[#FF7E5F]" />
                         Sucursal:
                     </div>
                     <select
-                        className="bg-transparent font-black text-xs uppercase pr-8 outline-none cursor-pointer text-slate-700"
+                        className="bg-transparent font-bold text-xs uppercase pr-8 outline-none cursor-pointer text-slate-700 h-8"
                         value={selectedSede}
                         onChange={(e) => setSelectedSede(Number(e.target.value))}
                         disabled={user?.role === 'CAJERO' && user?.sucursalId}
@@ -418,15 +418,15 @@ export function DashboardClient() {
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col gap-3 xl:flex-row xl:gap-4 xl:items-center justify-between bg-white dark:bg-slate-900 p-3 md:p-4 border-2 border-rose-100 shadow-sm rounded-none">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center justify-between bg-white/50 dark:bg-slate-900 p-4 border border-slate-200 shadow-sm rounded-2xl backdrop-blur-sm">
                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     {/* Selector de Tipo de Filtro */}
-                    <div className="flex items-center bg-rose-50/50 dark:bg-slate-800 p-1 border-2 border-rose-100">
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                         <button
                             onClick={() => setFilterType('DIA')}
                             className={cn(
-                                "px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all italic",
-                                filterType === 'DIA' ? "bg-[#f97316] text-white" : "text-rose-300 hover:text-[#f97316]"
+                                "px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg",
+                                filterType === 'DIA' ? "bg-[#FF7E5F] text-white shadow-md shadow-coral-500/20" : "text-slate-500 hover:text-slate-700"
                             )}
                         >
                             POR DÍA
@@ -435,8 +435,8 @@ export function DashboardClient() {
                             <button
                                 onClick={() => setFilterType('PERIODO')}
                                 className={cn(
-                                    "px-4 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all italic",
-                                    filterType === 'PERIODO' ? "bg-[#f97316] text-white" : "text-rose-300 hover:text-[#f97316]"
+                                    "px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg",
+                                    filterType === 'PERIODO' ? "bg-[#FF7E5F] text-white shadow-md shadow-coral-500/20" : "text-slate-500 hover:text-slate-700"
                                 )}
                             >
                                 POR PERIODO
@@ -444,33 +444,33 @@ export function DashboardClient() {
                         )}
                     </div>
 
-                    <div className="h-8 w-px bg-rose-100 hidden md:block" />
+                    <div className="h-6 w-px bg-slate-200 hidden md:block" />
 
                     {/* Mostramos el filtro correspondiente */}
                     {filterType === 'DIA' ? (
-                        <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border-2 border-rose-100 shadow-sm">
-                            <Button variant="ghost" size="icon" onClick={() => navigateDay('prev')} className="h-8 w-8 rounded-none hover:bg-rose-50 text-rose-300">
+                        <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <Button variant="ghost" size="icon" onClick={() => navigateDay('prev')} className="h-9 w-9 rounded-none hover:bg-slate-50 text-slate-400">
                                 <ChevronLeft className="size-4" />
                             </Button>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant="ghost" className="h-8 px-4 rounded-none font-black text-[10px] uppercase tracking-tighter flex gap-2 border-x border-rose-50 text-slate-700">
-                                        <CalendarIcon className="size-3.5 text-[#ff86a2]" />
+                                    <Button variant="ghost" className="h-9 px-4 rounded-none font-bold text-[11px] uppercase tracking-tight flex gap-2 border-x border-slate-100 text-slate-700 hover:bg-slate-50">
+                                        <CalendarIcon className="size-4 text-[#FF7E5F]" />
                                         {format(currentDate, "EEEE, d 'de' MMMM", { locale: es })}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 border-2 border-rose-200 shadow-xl" align="start">
+                                <PopoverContent className="w-auto p-0 border border-slate-200 rounded-2xl shadow-xl" align="start">
                                     <Calendar mode="single" selected={currentDate} onSelect={(d) => d && setCurrentDate(d)} />
                                 </PopoverContent>
                             </Popover>
-                            <Button variant="ghost" size="icon" onClick={() => navigateDay('next')} className="h-8 w-8 rounded-none hover:bg-rose-50 text-rose-300">
+                            <Button variant="ghost" size="icon" onClick={() => navigateDay('next')} className="h-9 w-9 rounded-none hover:bg-slate-50 text-slate-400">
                                 <ChevronRight className="size-4" />
                             </Button>
                         </div>
                     ) : periods.length > 0 ? (
-                        <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border-2 border-rose-100 shadow-sm w-[260px] max-w-full">
-                            <div className="px-3 text-[10px] font-black text-rose-300 border-r border-rose-50 mr-2 shrink-0 uppercase">VER:</div>
-                            <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl shadow-sm w-[280px] max-w-full overflow-hidden">
+                            <div className="px-3 text-[10px] font-bold text-slate-400 border-r border-slate-100 mr-2 shrink-0 uppercase tracking-wider">VER:</div>
+                            <div className="flex-1 min-w-0 pr-2">
                                 <ComboboxSearch
                                     options={periods.map(p => ({
                                         label: `${format(new Date(p.NM_FECHA_INICIO), 'dd MMM', { locale: es }).toUpperCase()} - ${format(new Date(p.NM_FECHA_FIN), 'dd MMM', { locale: es }).toUpperCase()}`,
@@ -479,7 +479,7 @@ export function DashboardClient() {
                                     value={selectedPeriod}
                                     onValueChange={(val) => val && setSelectedPeriod(val.toString())}
                                     placeholder="BUSCAR..."
-                                    className="bg-transparent border-none shadow-none h-6 font-black text-[10px] w-full px-0 hover:bg-transparent justify-start text-slate-700"
+                                    className="bg-transparent border-none shadow-none h-9 font-bold text-[11px] w-full px-0 hover:bg-transparent justify-start text-slate-700"
                                 />
                             </div>
                         </div>
@@ -487,24 +487,24 @@ export function DashboardClient() {
                 </div>
 
                 {/* View Switcher */}
-                <div className="flex items-center bg-[#f97316] p-1 shadow-md">
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shadow-sm">
                     <button
                         onClick={() => setViewMode('GENERAL')}
                         className={cn(
-                            "px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2",
-                            viewMode === 'GENERAL' ? "bg-white text-[#f97316]" : "text-white hover:text-white/80"
+                            "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg flex items-center gap-2",
+                            viewMode === 'GENERAL' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
-                        <BarChart3 className="size-3.5" /> GENERAL
+                        <BarChart3 className="size-4 text-[#FF7E5F]" /> GENERAL
                     </button>
                     <button
                         onClick={() => setViewMode('ESPECIFICO')}
                         className={cn(
-                            "px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2",
-                            viewMode === 'ESPECIFICO' ? "bg-white text-[#f97316]" : "text-white hover:text-white/80"
+                            "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg flex items-center gap-2",
+                            viewMode === 'ESPECIFICO' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
-                        <LayoutList className="size-3.5" /> ESPECÍFICO
+                        <LayoutList className="size-4 text-[#FF7E5F]" /> ESPECÍFICO
                     </button>
                 </div>
             </div>
@@ -544,17 +544,17 @@ export function DashboardClient() {
                                 color: 'from-red-500 to-rose-400'
                             },
                         ].map((stat, i) => (
-                            <Card key={i} className="border-2 border-rose-100 rounded-none shadow-md overflow-hidden relative group bg-white dark:bg-slate-900">
-                                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.05] group-hover:opacity-[0.1] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
+                            <Card key={i} className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 transition-all hover:shadow-md">
+                                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
                                 <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
-                                    <CardTitle className="text-[10px] font-black text-rose-300 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
-                                    <div className={cn("p-2 border-2 border-rose-100 shadow-sm bg-gradient-to-br", stat.color)}>
+                                    <CardTitle className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.title}</CardTitle>
+                                    <div className={cn("p-2.5 rounded-xl shadow-lg shadow-coral-500/10 bg-gradient-to-br", stat.color)}>
                                         <stat.icon className="size-4 text-white" />
                                     </div>
                                 </CardHeader>
                                 <CardContent className="relative z-10">
-                                    <div className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{stat.value}</div>
-                                    <div className="text-[9px] font-bold text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{stat.value}</div>
+                                    <div className="text-[10px] font-medium text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
                                 </CardContent>
                             </Card>
                         ))}
@@ -616,28 +616,30 @@ export function DashboardClient() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                         {/* Top Technicians Chart */}
-                        <Card className="border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 p-6">
-                            <h3 className="text-sm font-black uppercase mb-6 flex items-center gap-2 tracking-tighter text-slate-700">
-                                <Zap className="size-4 text-[#FF7E5F]" /> Técnicos con mayor servicios
-                            </h3>
-                            <div className="h-[300px] w-full">
+                        <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2">
+                                <Zap className="size-4 text-[#FF7E5F]" />
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Técnicos con mayor servicios</h3>
+                            </div>
+                            <div className="p-6 h-[300px] w-full">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={chartsData?.topTechs || []} layout="vertical" margin={{ left: 40, right: 20 }}>
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F5F9" />
                                         <XAxis type="number" hide />
                                         <YAxis
                                             dataKey="name"
                                             type="category"
-                                            tick={{ fontSize: 10, fontWeight: 900, fill: '#64748B' }}
+                                            tick={{ fontSize: 10, fontWeight: 700, fill: '#64748B' }}
                                             width={100}
                                         />
                                         <RechartsTooltip
                                             cursor={{ fill: 'transparent' }}
-                                            contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: 0, padding: 8 }}
-                                            itemStyle={{ color: '#fff', fontSize: 10, fontWeight: 900 }}
+                                            contentStyle={{ backgroundColor: '#fff', border: '1px solid #E2E8F0', borderRadius: '12px', padding: '8px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            itemStyle={{ color: '#0F172A', fontSize: 10, fontWeight: 700 }}
                                         />
-                                        <Bar dataKey="count" radius={[0, 4, 4, 0]} label={{ position: 'right', fill: '#FF7E5F', fontSize: 10, fontWeight: 900 }}>
+                                        <Bar dataKey="count" radius={[0, 8, 8, 0]} label={{ position: 'right', fill: '#64748B', fontSize: 10, fontWeight: 700 }}>
                                             {(chartsData?.topTechs || []).map((entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                             ))}
@@ -648,11 +650,12 @@ export function DashboardClient() {
                         </Card>
 
                         {/* Top Services Pie */}
-                        <Card className="border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 p-6">
-                            <h3 className="text-sm font-black uppercase mb-6 flex items-center gap-2 tracking-tighter text-slate-700">
-                                <Users className="size-4 text-emerald-500" /> Top Servicios
-                            </h3>
-                            <div className="h-[300px] w-full flex items-center">
+                        <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2">
+                                <Users className="size-4 text-emerald-500" />
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Top Servicios</h3>
+                            </div>
+                            <div className="p-6 h-[300px] w-full flex items-center">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
@@ -674,9 +677,9 @@ export function DashboardClient() {
                                 <div className="w-1/3 space-y-2">
                                     {(chartsData?.topServices || []).map((s: any, i: number) => (
                                         <div key={i} className="flex items-center gap-2">
-                                            <div className="size-2" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                                            <span className="text-[9px] font-black uppercase truncate">{s.name}</span>
-                                            <span className="text-[9px] font-black ml-auto">{s.count}</span>
+                                            <div className="size-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                            <span className="text-[10px] font-bold text-slate-600 uppercase truncate">{s.name}</span>
+                                            <span className="text-[10px] font-black text-slate-400 ml-auto tabular-nums">{s.count}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -684,131 +687,133 @@ export function DashboardClient() {
                         </Card>
 
                         {/* Top Products */}
-                        <Card className="lg:col-span-2 border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 p-6">
-                            <h3 className="text-sm font-black uppercase mb-6 flex items-center gap-2 tracking-tighter text-slate-700">
-                                <Wallet className="size-4 text-blue-500" /> Productos Utilizados
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <Card className="lg:col-span-2 border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2">
+                                <Wallet className="size-4 text-blue-500" />
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Productos Utilizados</h3>
+                            </div>
+                            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                 {(chartsData?.topProducts || []).map((p: any, i: number) => (
-                                    <div key={i} className="border-2 border-rose-100 p-3 bg-rose-50/30 relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 p-1 bg-[#ff86a2] text-white text-[8px] font-black">#{i + 1}</div>
-                                        <p className="text-[10px] font-black uppercase mb-1 truncate pr-4">{p.name}</p>
-                                        <p className="text-xl font-black text-[#FF7E5F]">{p.count}</p>
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase">Unidades</p>
+                                    <div key={i} className="border border-slate-100 p-4 bg-slate-50/50 rounded-xl relative overflow-hidden group hover:border-[#FF7E5F]/30 transition-all">
+                                        <div className="absolute top-0 right-0 p-1 bg-slate-200/50 text-slate-500 text-[8px] font-black rounded-bl-lg">#{i + 1}</div>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1 truncate pr-4">{p.name}</p>
+                                        <p className="text-2xl font-black text-slate-900 group-hover:text-[#FF7E5F] transition-colors">{p.count}</p>
+                                        <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest leading-none">Unidades</p>
                                     </div>
                                 ))}
                                 {(chartsData?.topProducts || []).length === 0 && (
-                                    <p className="col-span-1 md:col-span-5 text-center text-slate-400 italic text-xs py-8 uppercase font-bold">Sin productos registrados en este periodo</p>
+                                    <p className="col-span-full text-center text-slate-400 italic text-sm py-10 font-medium tracking-wide">Sin productos registrados en este periodo</p>
                                 )}
                             </div>
                         </Card>
+                    </div>
                     </div>
                 </div>
             ) : (
                 <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
                     {/* Facturas Table */}
-                    <Card className="border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 overflow-hidden p-0 py-0 gap-0">
-                        <div className="bg-[#ff86a2] p-3 flex items-center justify-between border-b-2 border-rose-100">
-                            <h3 className="text-xs font-black uppercase text-white tracking-widest flex items-center gap-2">
-                                <LayoutList className="size-4" /> VENTAS
+                    <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                        <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between backdrop-blur-sm">
+                            <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
+                                <LayoutList className="size-4" /> Registro de Ventas
                             </h3>
                             <Button
                                 onClick={handleNewInvoice}
-                                className="h-7 px-3 bg-[#f97316] text-white hover:bg-[#ea580c] rounded-none border-2 border-[#f97316] font-black text-[9px] uppercase italic gap-1 shadow-sm"
+                                className="h-9 px-4 bg-[#FF7E5F] text-white hover:bg-[#FF7E5F]/90 rounded-xl border-none font-bold text-xs shadow-md shadow-coral-500/10 active:scale-95 transition-all"
                             >
-                                <Plus className="size-3" /> Agregar Factura
+                                <Plus className="size-4 mr-2" /> Nueva Factura
                             </Button>
                         </div>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-rose-50 dark:bg-slate-800 border-b-2 border-rose-100">
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase w-[110px]">Factura</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase w-[80px]">Fecha</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Sucursal</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Cliente</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Teléfono</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Servicios</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-right w-[110px]">Total</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-center w-[100px]">Estado</TableHead>
-                                        <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-right w-[60px]">Acción</TableHead>
+                                <TableHeader className="bg-slate-50/30">
+                                    <TableRow className="hover:bg-transparent border-b border-slate-100">
+                                        <TableHead className="px-6 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider w-[120px]">Factura</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider w-[100px] text-center">Fecha</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider">Sucursal</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider">Cliente</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center">Teléfono</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider">Detalle Servicios</TableHead>
+                                        <TableHead className="px-6 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider text-right w-[120px]">Total</TableHead>
+                                        <TableHead className="px-4 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider text-center w-[120px]">Estado</TableHead>
+                                        <TableHead className="px-6 py-4 font-bold text-slate-500 text-[10px] uppercase tracking-wider text-right w-[100px]">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {isLoading ? (
                                         Array.from({ length: 5 }).map((_, i) => (
                                             <TableRow key={`ventas-skeleton-${i}`} className="animate-in fade-in zoom-in-95 duration-500">
-                                                <TableCell colSpan={10}>
-                                                    <Skeleton className="h-8 w-full rounded-none" />
+                                                <TableCell colSpan={10} className="px-6 py-4">
+                                                    <Skeleton className="h-8 w-full rounded-lg" />
                                                 </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
                                         <>
                                             {(specificData?.facturas || []).map((f: any) => (
-                                                <TableRow key={f.FC_IDFACTURA_PK} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors group animate-in fade-in duration-700">
-                                                    <TableCell className="text-[11px] font-bold">{f.FC_NUMERO_FACTURA}</TableCell>
-                                                    <TableCell className="text-[10px] font-medium text-slate-500">
-                                                        {format(new Date(f.FC_FECHA), "dd/MM", { locale: es })}
+                                                <TableRow key={f.FC_IDFACTURA_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100/50 group">
+                                                    <TableCell className="px-6 py-4 text-xs font-bold text-slate-900">{f.FC_NUMERO_FACTURA}</TableCell>
+                                                    <TableCell className="px-4 py-4 text-[10px] font-medium text-slate-500 text-center tabular-nums">
+                                                        {format(new Date(f.FC_FECHA), "dd/MM/yyyy", { locale: es })}
                                                     </TableCell>
-                                                    <TableCell>
-                                                        <span className="text-[10px] font-black uppercase text-slate-500 italic bg-slate-100 px-1.5 py-0.5 border border-slate-200">
+                                                    <TableCell className="px-4 py-4">
+                                                        <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg whitespace-nowrap">
                                                             {f.sucursal_nombre}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-[11px] font-black uppercase">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                    <TableCell className="text-[10px] font-bold text-slate-500 whitespace-nowrap">{f.FC_CLIENTE_TELEFONO || '--'}</TableCell>
-                                                    <TableCell className="text-[11px] italic text-slate-500 max-w-[250px] truncate">
+                                                    <TableCell className="px-4 py-4 text-xs font-bold text-slate-700 uppercase">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                    <TableCell className="px-4 py-4 text-[10px] font-medium text-slate-400 text-center tabular-nums">{f.FC_CLIENTE_TELEFONO || '--'}</TableCell>
+                                                    <TableCell className="px-4 py-4 text-[11px] font-medium text-slate-500 max-w-[300px] truncate italic group-hover:whitespace-normal group-hover:overflow-visible transition-all">
                                                         {f.servicios || '--'}
                                                         {f.productos && (
-                                                            <span className="text-rose-400"> + {f.productos}</span>
+                                                            <span className="text-[#FF7E5F] font-bold"> + {f.productos}</span>
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="text-[11px] font-black text-right">
-                                                        <span className={cn(
-                                                            "text-sm font-black tracking-tight",
-                                                            f.FC_ESTADO === 'CANCELADO' ? "text-slate-300 line-through" : "text-slate-900 dark:text-white"
+                                                    <TableCell className="px-6 py-4 text-center">
+                                                        <div className={cn(
+                                                            "text-sm font-black tabular-nums text-right",
+                                                            f.FC_ESTADO === 'CANCELADO' ? "text-slate-300 line-through" : "text-slate-900"
                                                         )}>
                                                             $ {Number(f.FC_TOTAL).toLocaleString('es-CO')}
-                                                        </span>
+                                                        </div>
                                                     </TableCell>
-                                                    <TableCell className="text-center">
+                                                    <TableCell className="px-4 py-4 text-center">
                                                         <span className={cn(
-                                                            "px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter shadow-sm border",
-                                                            f.FC_ESTADO === 'PAGADO' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-                                                                f.FC_ESTADO === 'PENDIENTE' ? "bg-orange-50 text-orange-600 border-orange-200" :
-                                                                    "bg-red-50 text-red-600 border-red-200"
+                                                            "px-2.5 py-1 rounded-full text-[10px] font-bold tracking-tight border",
+                                                            f.FC_ESTADO === 'PAGADO' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                                f.FC_ESTADO === 'PENDIENTE' ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                                    "bg-rose-50 text-rose-600 border-rose-100"
                                                         )}>
                                                             {f.FC_ESTADO}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <div className="flex justify-end gap-1.5 transition-opacity">
+                                                    <TableCell className="px-6 py-4 text-right">
+                                                        <div className="flex justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
                                                             <button
                                                                 onClick={() => handleOpenInvoice(f, true)}
-                                                                className="p-1.5 hover:bg-blue-50 text-blue-500 text-opacity-40 hover:text-opacity-100 rounded-lg transition-all"
+                                                                className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"
                                                                 title="Ver detalles"
                                                             >
-                                                                <Eye className="size-3.5" />
+                                                                <Eye className="size-4" />
                                                             </button>
                                                             {(f.FC_ESTADO === 'PENDIENTE' || user?.role === 'ADMINISTRADOR_TOTAL') && (
                                                                 <>
                                                                     <button
                                                                         onClick={() => handleOpenInvoice(f, false)}
-                                                                        className="p-1.5 hover:bg-amber-50 text-amber-500 text-opacity-40 hover:text-opacity-100 rounded-lg transition-all"
+                                                                        className="p-2 hover:bg-amber-50 text-amber-400 hover:text-amber-600 rounded-xl transition-all"
                                                                         title="Editar factura"
                                                                     >
-                                                                        <Pencil className="size-3.5" />
+                                                                        <Pencil className="size-4" />
                                                                     </button>
                                                                     <button
                                                                         onClick={() => {
                                                                             setInvoiceToDelete(f)
                                                                             setIsAdminDeleteAuthOpen(true)
                                                                         }}
-                                                                        className="p-1.5 hover:bg-red-50 text-red-500 text-opacity-40 hover:text-opacity-100 rounded-lg transition-all"
+                                                                        className="p-2 hover:bg-rose-50 text-rose-400 hover:text-rose-600 rounded-xl transition-all"
                                                                         title="Eliminar factura"
                                                                     >
-                                                                        <Trash2 className="size-3.5" />
+                                                                        <Trash2 className="size-4" />
                                                                     </button>
                                                                 </>
                                                             )}
@@ -818,7 +823,7 @@ export function DashboardClient() {
                                             ))}
                                             {(specificData?.facturas || []).length === 0 && (
                                                 <TableRow>
-                                                    <TableCell colSpan={9} className="text-center p-8 text-slate-400 font-bold uppercase text-[10px]">Sin movimientos registrados</TableCell>
+                                                    <TableCell colSpan={9} className="text-center py-20 text-slate-400 font-medium italic text-sm">Sin movimientos registrados en este periodo</TableCell>
                                                 </TableRow>
                                             )}
                                         </>
@@ -830,46 +835,46 @@ export function DashboardClient() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
                         {/* Créditos Table */}
-                        <Card className="border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 overflow-hidden p-0 py-0 gap-0">
-                            <div className="bg-[#ff86a2] p-3 border-b-2 border-rose-100">
-                                <h3 className="text-xs font-black uppercase text-white tracking-widest flex items-center gap-2">
-                                    <CreditCard className="size-4" /> CREDITOS
+                        <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100 mb-0">
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
+                                    <CreditCard className="size-4" /> Créditos Pendientes
                                 </h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <Table>
-                                    <TableHeader className="bg-rose-50 dark:bg-slate-800 border-b-2 border-rose-100">
-                                        <TableRow className="hover:bg-transparent">
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase w-[80px]">Fecha</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Factura</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Cliente</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-right">Pendiente</TableHead>
+                                    <TableHeader className="bg-slate-50/30 font-bold">
+                                        <TableRow className="hover:bg-transparent border-b border-slate-100">
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 w-[100px]">Fecha</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Factura</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Cliente</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 text-right">Pendiente</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {isLoading ? (
                                             Array.from({ length: 3 }).map((_, i) => (
-                                                <TableRow key={`creditos-skeleton-${i}`} className="animate-in fade-in zoom-in-95 duration-500">
-                                                    <TableCell colSpan={4}>
-                                                        <Skeleton className="h-8 w-full rounded-none" />
+                                                <TableRow key={`creditos-skeleton-${i}`}>
+                                                    <TableCell colSpan={4} className="p-4">
+                                                        <Skeleton className="h-8 w-full rounded-lg" />
                                                     </TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (
                                             <>
                                                 {(specificData?.creditos || []).map((c: any) => (
-                                                    <TableRow key={c.CR_IDCREDITO_PK} className="animate-in fade-in duration-700">
-                                                        <TableCell className="text-[9px] font-bold text-slate-400">
-                                                            {format(new Date(c.CR_FECHA), "dd/MM", { locale: es })}
+                                                    <TableRow key={c.CR_IDCREDITO_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                        <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
+                                                            {format(new Date(c.CR_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
-                                                        <TableCell className="text-[10px] font-bold">{c.FC_NUMERO_FACTURA}</TableCell>
-                                                        <TableCell className="text-[10px] font-black uppercase">{c.cliente_display}</TableCell>
-                                                        <TableCell className="text-[11px] font-black text-right text-red-600">$ {Number(c.CR_VALOR_PENDIENTE).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900">{c.FC_NUMERO_FACTURA}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase">{c.cliente_display}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-right text-rose-500 tabular-nums">$ {Number(c.CR_VALOR_PENDIENTE).toLocaleString('es-CO')}</TableCell>
                                                     </TableRow>
                                                 ))}
                                                 {(specificData?.creditos || []).length === 0 && (
                                                     <TableRow>
-                                                        <TableCell colSpan={4} className="text-center p-4 text-slate-400 font-bold uppercase text-[10px]">Sin créditos</TableCell>
+                                                        <TableCell colSpan={4} className="text-center py-10 text-slate-400 font-medium italic text-xs">Sin créditos pendientes</TableCell>
                                                     </TableRow>
                                                 )}
                                             </>
@@ -880,42 +885,42 @@ export function DashboardClient() {
                         </Card>
 
                         {/* Vales Table */}
-                        <Card className="border-2 border-rose-100 rounded-none shadow-md bg-white dark:bg-slate-900 overflow-hidden p-0 py-0 gap-0">
-                            <div className="bg-[#ff86a2] p-3 border-b-2 border-rose-100">
-                                <h3 className="text-xs font-black uppercase text-white tracking-widest flex items-center gap-2">
-                                    <Wallet className="size-4" /> VALES
+                        <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
+                                    <Wallet className="size-4" /> Vales Generados
                                 </h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <Table>
-                                    <TableHeader className="bg-rose-50 dark:bg-slate-800 border-b-2 border-rose-100">
-                                        <TableRow className="hover:bg-transparent">
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase w-[80px]">Fecha</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Trabajador</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Valor</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-center">Estado</TableHead>
+                                    <TableHeader className="bg-slate-50/30">
+                                        <TableRow className="hover:bg-transparent border-b border-slate-100">
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 w-[100px]">Fecha</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Trabajador</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Valor</TableHead>
+                                            <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 text-center">Estado</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {isLoading ? (
                                             Array.from({ length: 3 }).map((_, i) => (
-                                                <TableRow key={`vales-skeleton-${i}`} className="animate-in fade-in zoom-in-95 duration-500">
-                                                    <TableCell colSpan={4}>
-                                                        <Skeleton className="h-8 w-full rounded-none" />
+                                                <TableRow key={`vales-skeleton-${i}`}>
+                                                    <TableCell colSpan={4} className="p-4">
+                                                        <Skeleton className="h-8 w-full rounded-lg" />
                                                     </TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (
                                             <>
                                                 {(specificData?.vales || []).map((v: any) => (
-                                                    <TableRow key={v.VL_IDVALE_PK} className="animate-in fade-in duration-700">
-                                                        <TableCell className="text-[9px] font-bold text-slate-400">
-                                                            {format(new Date(v.VL_FECHA), "dd/MM", { locale: es })}
+                                                    <TableRow key={v.VL_IDVALE_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                        <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
+                                                            {format(new Date(v.VL_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
-                                                        <TableCell className="text-[10px] font-black uppercase">{v.trabajador_nombre}</TableCell>
-                                                        <TableCell className="text-[11px] font-black">$ {Number(v.VL_VALOR_TOTAL).toLocaleString('es-CO')}</TableCell>
-                                                        <TableCell className="text-center">
-                                                            <span className="px-1.5 py-0.5 text-[8px] font-black uppercase border bg-slate-50">
+                                                        <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">{v.trabajador_nombre}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {Number(v.VL_VALOR_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-center">
+                                                            <span className="px-2 py-0.5 text-[9px] font-bold uppercase border border-slate-200 bg-slate-50 text-slate-500 rounded-full">
                                                                 {v.VL_ESTADO}
                                                             </span>
                                                         </TableCell>
@@ -923,7 +928,7 @@ export function DashboardClient() {
                                                 ))}
                                                 {(specificData?.vales || []).length === 0 && (
                                                     <TableRow>
-                                                        <TableCell colSpan={4} className="text-center p-4 text-slate-400 font-bold uppercase text-[10px]">Sin vales</TableCell>
+                                                        <TableCell colSpan={4} className="text-center py-10 text-slate-400 font-medium italic text-xs">Sin vales registrados</TableCell>
                                                     </TableRow>
                                                 )}
                                             </>
@@ -934,15 +939,13 @@ export function DashboardClient() {
                         </Card>
 
                         {/* PRODUCTOS Table */}
-                        <Card className="border-2 border-kyroy-border rounded-none shadow-md bg-white dark:bg-slate-900 overflow-hidden lg:col-span-2 p-0 py-0 gap-0">
-                            <div className="bg-[#ff86a2] p-3 flex items-center justify-between border-b-2 border-kyroy-border">
-                                <h3 className="text-xs font-black uppercase text-white tracking-widest flex items-center gap-2">
-                                    <Package2 className="size-4" /> PRODUCTOS
+                        <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden lg:col-span-2">
+                            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider flex items-center gap-2">
+                                    <Package2 className="size-4" /> Productos en Facturas
                                 </h3>
                                 <Button
                                     size="sm"
-                                    variant="outline"
-                                    className="h-7 px-3 bg-[#f97316] text-white hover:bg-[#ea580c] rounded-none border-2 border-[#f97316] font-black text-[9px] uppercase italic gap-1 shadow-sm"
                                     onClick={() => {
                                         setApSelectedInvoiceId('')
                                         setApInvoiceDetails(null)
@@ -951,78 +954,79 @@ export function DashboardClient() {
                                         setApValue(0)
                                         setIsAddProductModalOpen(true)
                                     }}
+                                    className="h-9 px-4 bg-[#FF7E5F] text-white hover:bg-[#FF7E5F]/90 rounded-xl border-none font-bold text-xs shadow-md shadow-coral-500/10 active:scale-95 transition-all"
                                 >
-                                    <Plus className="size-3" /> Agregar Producto
+                                    <Plus className="size-4 mr-2" /> Asociar Producto
                                 </Button>
                             </div>
                             <div className="overflow-x-auto">
                                 <Table>
-                                    <TableHeader className="bg-rose-50 dark:bg-slate-800 border-b-2 border-kyroy-border">
-                                        <TableRow className="hover:bg-transparent">
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Factura</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Fecha</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Producto</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-right">Valor</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Técnico</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase">Servicio Asociado</TableHead>
-                                            <TableHead className="font-black text-[#ff86a2] text-[10px] uppercase text-right w-[60px]">Acción</TableHead>
+                                    <TableHeader className="bg-slate-50/30">
+                                        <TableRow className="hover:bg-transparent border-b border-slate-100 text-center">
+                                            <TableHead className="px-6 py-3 font-bold text-slate-500 text-[10px] uppercase w-[120px]">Factura</TableHead>
+                                            <TableHead className="px-4 py-3 font-bold text-slate-500 text-[10px] uppercase w-[100px] text-center">Fecha</TableHead>
+                                            <TableHead className="px-4 py-3 font-bold text-slate-500 text-[10px] uppercase">Producto</TableHead>
+                                            <TableHead className="px-4 py-3 font-bold text-slate-500 text-[10px] uppercase text-right">Valor</TableHead>
+                                            <TableHead className="px-4 py-3 font-bold text-slate-500 text-[10px] uppercase">Técnico</TableHead>
+                                            <TableHead className="px-4 py-3 font-bold text-slate-500 text-[10px] uppercase">Servicio Asociado</TableHead>
+                                            <TableHead className="px-6 py-3 font-bold text-slate-500 text-[10px] uppercase text-right w-[100px]">Acción</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {isLoading ? (
                                             Array.from({ length: 5 }).map((_, i) => (
-                                                <TableRow key={`skeleton-${i}`} className="animate-in fade-in zoom-in-95 duration-500" >
-                                                    <TableCell colSpan={7}>
-                                                        <Skeleton className="h-8 w-full rounded-none" />
+                                                <TableRow key={`skeleton-${i}`}>
+                                                    <TableCell colSpan={7} className="p-4">
+                                                        <Skeleton className="h-8 w-full rounded-lg" />
                                                     </TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (
                                             <>
                                                 {(specificData?.productos || []).map((p: any) => (
-                                                    <TableRow key={p.FP_IDFACTURA_PRODUCTO_PK} className="hover:bg-slate-50 transition-colors animate-in fade-in duration-700">
-                                                        <TableCell className="text-[10px] font-black uppercase tracking-tighter">#{p.FC_NUMERO_FACTURA}</TableCell>
-                                                        <TableCell className="text-[10px] font-medium text-slate-500">
-                                                            {format(new Date(p.FC_FECHA), 'dd MMM', { locale: es })}
+                                                    <TableRow key={p.FP_IDFACTURA_PRODUCTO_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
+                                                        <TableCell className="px-6 py-3 text-xs font-bold text-slate-900 group-hover:text-[#FF7E5F]">#{p.FC_NUMERO_FACTURA}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 text-center tabular-nums">
+                                                            {format(new Date(p.FC_FECHA), 'dd/MM/yyyy', { locale: es })}
                                                         </TableCell>
-                                                        <TableCell className="text-[11px] font-black uppercase text-slate-900">{p.producto_nombre}</TableCell>
-                                                        <TableCell className="text-[11px] font-black text-right text-slate-900 dark:text-white">
+                                                        <TableCell className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">{p.producto_nombre}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-xs font-black text-right text-slate-900 tabular-nums">
                                                             $ {Number(p.FP_VALOR).toLocaleString('es-CO')}
                                                         </TableCell>
-                                                        <TableCell className="text-[10px] font-bold uppercase text-slate-600">{p.tecnico_nombre}</TableCell>
-                                                        <TableCell className="text-[10px] font-black uppercase">
+                                                        <TableCell className="px-4 py-3 text-[11px] font-bold uppercase text-slate-500 italic">{p.tecnico_nombre}</TableCell>
+                                                        <TableCell className="px-4 py-3">
                                                             {p.servicio_nombre ? (
-                                                                <span className="bg-slate-100 px-1.5 py-0.5 border border-slate-200 italic text-slate-500">
+                                                                <span className="bg-slate-100 text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-lg border border-slate-200">
                                                                     {p.servicio_nombre}
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-slate-300 italic">SIN ASOCIAR</span>
+                                                                <span className="text-slate-300 italic text-[10px]">SIN ASOCIACIÓN</span>
                                                             )}
                                                         </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <div className="flex justify-end gap-1 font-black">
+                                                        <TableCell className="px-6 py-3 text-right">
+                                                            <div className="flex justify-end gap-1 font-black opacity-40 group-hover:opacity-100 transition-opacity">
                                                                 <button
                                                                     onClick={() => handleOpenInvoice({ ...p, FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)}
-                                                                    className="p-1.5 hover:bg-blue-50 text-blue-400 hover:text-blue-600 rounded-lg transition-all"
+                                                                    className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"
                                                                     title="Ver detalles"
                                                                 >
-                                                                    <Eye className="size-3.5" />
+                                                                    <Eye className="size-4" />
                                                                 </button>
                                                                 {(p.FC_ESTADO === 'PENDIENTE' || user?.role === 'ADMINISTRADOR_TOTAL') && (
                                                                     <>
                                                                         <button
                                                                             onClick={() => handleEditProductAction(p)}
-                                                                            className="p-1.5 hover:bg-amber-50 text-amber-400 hover:text-amber-600 rounded-lg transition-all"
+                                                                            className="p-1.5 hover:bg-amber-50 text-amber-500 hover:text-amber-600 rounded-xl transition-all"
                                                                             title="Editar este producto"
                                                                         >
-                                                                            <Pencil className="size-3.5" />
+                                                                            <Pencil className="size-4" />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDeleteProductAction(p)}
-                                                                            className="p-1.5 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all"
+                                                                            className="p-1.5 hover:bg-rose-50 text-rose-500 hover:text-rose-600 rounded-xl transition-all"
                                                                             title="Eliminar este producto"
                                                                         >
-                                                                            <Trash2 className="size-3.5" />
+                                                                            <Trash2 className="size-4" />
                                                                         </button>
                                                                     </>
                                                                 )}
@@ -1032,7 +1036,7 @@ export function DashboardClient() {
                                                 ))}
                                                 {(specificData?.productos || []).length === 0 && (
                                                     <TableRow>
-                                                        <TableCell colSpan={7} className="text-center p-8 text-slate-400 font-bold uppercase text-[10px]">Sin productos registrados</TableCell>
+                                                        <TableCell colSpan={7} className="text-center py-20 text-slate-400 font-medium italic text-sm">Sin productos registrados en este periodo</TableCell>
                                                     </TableRow>
                                                 )}
                                             </>
