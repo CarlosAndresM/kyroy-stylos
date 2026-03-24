@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/sidebar'
-import { Bell, Search, User } from 'lucide-react'
+import { UserProfileDropdown } from '@/components/layout/user-profile-dropdown'
+import { Bell, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cookies } from 'next/headers'
@@ -53,15 +54,7 @@ export default async function DashboardLayout({
             
             <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1 md:mx-2" />
 
-            <div className="flex items-center gap-2 md:gap-3 pl-1 md:pl-2 group cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded-full transition-colors">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-none">{userName}</p>
-                <p className="text-xs text-slate-500 font-medium">{userRole}</p>
-              </div>
-              <div className="size-9 md:size-10 rounded-full bg-gradient-to-br from-[#FF7E5F] to-[#FEB47B] flex items-center justify-center border-2 border-white dark:border-slate-800 shadow-sm">
-                <User className="size-5 md:size-6 text-white" />
-              </div>
-            </div>
+            <UserProfileDropdown userName={userName} userRole={userRole} />
           </div>
         </header>
 
