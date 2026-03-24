@@ -9,12 +9,13 @@ const PDFDownloadLink = lazy(() =>
   import("@react-pdf/renderer").then((mod) => ({ default: mod.PDFDownloadLink }))
 );
 
-const fmt = (n: number) => {
+const fmt = (n: any) => {
+  const val = Number(n) || 0;
   return new Intl.NumberFormat('es-CO', { 
     style: 'currency', 
     currency: 'COP', 
     maximumFractionDigits: 0 
-  }).format(n);
+  }).format(val);
 };
 
 export function VolantePago({ data }: { data: any }) {
@@ -24,14 +25,14 @@ export function VolantePago({ data }: { data: any }) {
   const handlePrint = () => { window.print(); };
 
   const devengos = [
-    { desc: 'Sueldo Base', val: data.ND_BASE },
-    { desc: 'Comisiones (SVC/PRD)', val: data.ND_COMISIONES },
-    { desc: 'Bonificaciones / Otros', val: data.ND_BONOS },
+    { desc: 'Sueldo Base', val: Number(data.ND_BASE || 0) },
+    { desc: 'Comisiones (SVC/PRD)', val: Number(data.ND_COMISIONES || 0) },
+    { desc: 'Bonificaciones / Otros', val: Number(data.ND_BONOS || 0) },
   ].filter(i => i.val > 0);
 
   const deducciones = [
-    { desc: 'Servicio Trabajador (Cuota)', val: data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR },
-    { desc: 'Vales / Adelantos (Cuota)', val: data.ND_DEDUCCIONES_ADELANTOS },
+    { desc: 'Servicio Trabajador (Cuota)', val: Number(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0) },
+    { desc: 'Vales / Adelantos (Cuota)', val: Number(data.ND_DEDUCCIONES_ADELANTOS || 0) },
   ].filter(i => i.val > 0);
 
   return (
@@ -68,7 +69,6 @@ export function VolantePago({ data }: { data: any }) {
             </div>
             <div>
               <h2 className="text-xl font-black uppercase tracking-tighter italic">kairos Stylos</h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Santiago de Cali, Atlántico</p>
             </div>
           </div>
           <div className="text-right">
@@ -115,7 +115,9 @@ export function VolantePago({ data }: { data: any }) {
                <tfoot>
                  <tr className="font-bold border-t-2 border-slate-200">
                    <td className="pt-3 text-slate-400 uppercase text-[10px]">Subtotal Devengado</td>
-                   <td className="pt-3 text-right text-slate-900">{fmt(data.ND_BASE + data.ND_COMISIONES + data.ND_BONOS)}</td>
+                   <td className="pt-3 text-right text-slate-900">
+                      {fmt(Number(data.ND_BASE || 0) + Number(data.ND_COMISIONES || 0) + Number(data.ND_BONOS || 0))}
+                   </td>
                  </tr>
                </tfoot>
              </table>
@@ -141,7 +143,9 @@ export function VolantePago({ data }: { data: any }) {
                <tfoot>
                  <tr className="font-bold border-t-2 border-slate-200">
                    <td className="pt-3 text-slate-400 uppercase text-[10px]">Subtotal Deducciones</td>
-                   <td className="pt-3 text-right text-red-600">-{fmt(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR + data.ND_DEDUCCIONES_ADELANTOS)}</td>
+                   <td className="pt-3 text-right text-red-600">
+                      -{fmt(Number(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0) + Number(data.ND_DEDUCCIONES_ADELANTOS || 0))}
+                   </td>
                  </tr>
                </tfoot>
              </table>
@@ -151,7 +155,7 @@ export function VolantePago({ data }: { data: any }) {
         {/* Neto Final */}
         <div className="mx-8 mb-8 p-6 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-xl">
            <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Neto Pagado</span>
-           <span className="text-3xl font-black italic tracking-tighter">{fmt(data.ND_TOTAL_NETO)}</span>
+           <span className="text-3xl font-black italic tracking-tighter">{fmt(Number(data.ND_TOTAL_NETO || 0))}</span>
         </div>
 
 

@@ -45,9 +45,9 @@ export function WorkerClient({ initialWorkers, roles, sedes, currentRole, sucurs
     return initialWorkers.filter(w => {
       // Búsqueda general
       const searchMatch = !searchTerm ||
-        w.TR_NOMBRE.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (w.TR_NOMBRE || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (w.TR_TELEFONO && w.TR_TELEFONO.includes(searchTerm)) ||
-        w.RL_NOMBRE.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (w.RL_NOMBRE || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (w.SC_NOMBRE || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       if (!searchMatch) return false;

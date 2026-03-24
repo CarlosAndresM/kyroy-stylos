@@ -71,9 +71,10 @@ export async function getInvoiceById(id: number): Promise<ApiResponse> {
       success: true,
       data: {
         ...invoice,
-        services,
-        products,
-        payments,
+        FC_TOTAL: Number(invoice.FC_TOTAL || 0),
+        services: (services || []).map((s: any) => ({ ...s, FD_VALOR: Number(s.FD_VALOR || 0) })),
+        products: (products || []).map((p: any) => ({ ...p, FP_VALOR: Number(p.FP_VALOR || 0) })),
+        payments: (payments || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.PF_VALOR || 0) })),
         isVale: vales.length > 0
       },
       error: null
@@ -505,8 +506,12 @@ export async function getInvoicesByFilter(filters: { sucursalId?: number, date?:
 
     query += ` ORDER BY f.FC_FECHA DESC`;
 
-    const [rows] = await (db as any).execute(query, params);
-    return { success: true, data: rows, error: null };
+    const [rows]: any = await (db as any).execute(query, params);
+    const normalized = rows.map((r: any) => ({
+      ...r,
+      FC_TOTAL: Number(r.FC_TOTAL || 0)
+    }));
+    return { success: true, data: normalized, error: null };
   } catch (error) {
     console.error("Error fetching invoices:", error);
     return { success: false, data: null, error: "Error al obtener facturas" };

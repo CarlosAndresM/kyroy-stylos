@@ -37,7 +37,12 @@ export async function getCredits(all: boolean = false): Promise<ApiResponse> {
     query += " ORDER BY c.CR_FECHA DESC ";
 
     const [rows]: any = await db.execute(query);
-    return { success: true, data: rows, error: null };
+    const normalized = (rows || []).map((r: any) => ({
+      ...r,
+      CR_VALOR_PENDIENTE: Number(r.CR_VALOR_PENDIENTE || 0),
+      FC_TOTAL: Number(r.FC_TOTAL || 0)
+    }));
+    return { success: true, data: normalized, error: null };
   } catch (error) {
     console.error("Error fetching credits:", error);
     return { success: false, data: null, error: "Error al obtener créditos" };
@@ -120,7 +125,11 @@ export async function getCreditHistory(creditId: number): Promise<ApiResponse> {
       "SELECT AB_IDABONO_PK, AB_VALOR, AB_FECHA, AB_EVIDENCIA_URL FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ? ORDER BY AB_FECHA DESC",
       [creditId]
     );
-    return { success: true, data: rows, error: null };
+    const normalized = (rows || []).map((r: any) => ({
+      ...r,
+      AB_VALOR: Number(r.AB_VALOR || 0)
+    }));
+    return { success: true, data: normalized, error: null };
   } catch (error) {
     console.error("Error fetching credit history:", error);
     return { success: false, data: null, error: "Error al obtener historial de abonos" };

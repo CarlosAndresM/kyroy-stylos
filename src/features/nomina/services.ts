@@ -332,7 +332,15 @@ export async function getNominaByRange(startDate: Date, endDate: Date, type: str
       success: true,
       data: {
         ...nomina,
-        details
+        details: details.map((d: any) => ({
+          ...d,
+          ND_BASE: Number(d.ND_BASE || 0),
+          ND_COMISIONES: Number(d.ND_COMISIONES || 0),
+          ND_BONOS: Number(d.ND_BONOS || 0),
+          ND_DEDUCCIONES_SERVICIOS_TRABAJADOR: Number(d.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0),
+          ND_DEDUCCIONES_ADELANTOS: Number(d.ND_DEDUCCIONES_ADELANTOS || 0),
+          ND_TOTAL_NETO: Number(d.ND_TOTAL_NETO || 0),
+        }))
       }
     };
   } catch (error) {
@@ -509,7 +517,13 @@ export async function getNominaAudit(workerId: number, startDate: Date, endDate:
       [workerId, startDate, endDate]
     );
 
-    return { success: true, data: rows };
+    const mapped = (rows || []).map((r: any) => ({
+      ...r,
+      PF_TOTAL_ITEM: Number(r.PF_TOTAL_ITEM || 0),
+      PF_COMISION_VALOR: Number(r.PF_COMISION_VALOR || 0)
+    }));
+
+    return { success: true, data: mapped };
   } catch (error) {
     console.error("Error getNominaAudit:", error);
     return { success: false, error: "Error al obtener auditoría" };

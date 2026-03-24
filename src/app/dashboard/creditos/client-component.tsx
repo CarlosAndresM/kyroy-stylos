@@ -165,13 +165,16 @@ export default function CreditsPage() {
     }
   }
 
-  const filteredCredits = credits.filter(c =>
-    c.FC_NUMERO_FACTURA.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.FC_CLIENTE_NOMBRE.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.FC_CLIENTE_TELEFONO.includes(searchTerm)
-  )
+  const filteredCredits = React.useMemo(() => {
+    return credits.filter(c => {
+      return !searchTerm ||
+        (c.FC_NUMERO_FACTURA || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.FC_CLIENTE_NOMBRE || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.FC_CLIENTE_TELEFONO || "").includes(searchTerm);
+    });
+  }, [credits, searchTerm])
 
-  const totalDebt = credits.reduce((acc, curr) => acc + Number(curr.CR_VALOR_PENDIENTE), 0)
+  const totalDebt = credits.reduce((acc, curr) => acc + Number(curr.CR_VALOR_PENDIENTE || 0), 0)
 
   if (!mounted) return null
 

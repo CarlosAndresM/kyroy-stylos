@@ -211,9 +211,9 @@ export async function getDashboardCharts(sucursalId: number, dateFrom: string, d
     return {
       success: true,
       data: {
-        topTechs,
-        topServices,
-        topProducts
+        topTechs: (topTechs || []).map((t: any) => ({ ...t, total: Number(t.total || 0), count: Number(t.count || 0) })),
+        topServices: (topServices || []).map((s: any) => ({ ...s, count: Number(s.count || 0) })),
+        topProducts: (topProducts || []).map((p: any) => ({ ...p, count: Number(p.count || 0) }))
       },
       error: null
     };
@@ -373,13 +373,13 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
     return {
       success: true,
       data: {
-        facturas,
-        creditos,
-        vales,
-        productos,
-        abonos,
-        adelantos,
-        pagos
+        facturas: (facturas || []).map((f: any) => ({ ...f, FC_TOTAL: Number(f.FC_TOTAL || 0) })),
+        creditos: (creditos || []).map((c: any) => ({ ...c, CR_VALOR_PENDIENTE: Number(c.CR_VALOR_PENDIENTE || 0) })),
+        vales: (vales || []).map((v: any) => ({ ...v, ST_VALOR: Number(v.ST_VALOR || 0) })),
+        productos: (productos || []).map((p: any) => ({ ...p, FP_VALOR: Number(p.FP_VALOR || 0) })),
+        abonos: (abonos || []).map((a: any) => ({ ...a, AB_VALOR: Number(a.AB_VALOR || 0), cr_valor_pendiente: Number(a.cr_valor_pendiente || 0) })),
+        adelantos: (adelantos || []).map((a: any) => ({ ...a, AD_MONTO: Number(a.AD_MONTO || 0) })),
+        pagos: (pagos || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.PF_VALOR || 0) }))
       },
       error: null
     };
