@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   User,
   LogOut,
-  Headphones,
   ChevronDown,
   Loader2
 } from 'lucide-react'
@@ -45,11 +44,6 @@ export function UserProfileDropdown({ userName, userRole }: UserProfileDropdownP
     }
   }
 
-  const handleSupport = () => {
-    const message = encodeURIComponent(`Hola, soy ${userName} y necesito soporte técnico.`)
-    window.open(`https://api.whatsapp.com/send?phone=573150473763&text=${message}`, '_blank')
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -75,22 +69,7 @@ export function UserProfileDropdown({ userName, userRole }: UserProfileDropdownP
           </div>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
 
-        <DropdownMenuItem
-          onClick={handleSupport}
-          className="flex items-center gap-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-[#FF7E5F] transition-colors group"
-        >
-          <div className="size-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-            <Headphones className="size-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold">Support </span>
-            <span className="text-[10px] text-slate-400 font-medium">Asistencia técnica</span>
-          </div>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-1" />
 
         <DropdownMenuItem
           onClick={handleLogout}

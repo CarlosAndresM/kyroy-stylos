@@ -94,14 +94,41 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
 
     const isUpdate = !!data.FC_IDFACTURA_PK;
     let invoiceId = data.FC_IDFACTURA_PK;
-    
+
+    // Auto-resolve invoice status:
+    // If payments cover the full total and include methods like CREDITO or SERVICIO DE TRABAJADOR,
+    // treat the invoice as PAGADO (sale was made, payment mechanism may be deferred internally).
+    // This mirrors how CREDITO works — the service was delivered, money will be collected later.
+    if (data.payments && data.payments.length > 0) {
+      const totalPagado = data.payments.reduce((sum, p) => sum + (Number(p.PF_VALOR) || 0), 0);
+      const invoiceTotal = data.FC_TOTAL || 0;
+      const tolerance = 1; // 1 peso tolerance for rounding
+
+      // Fetch method names to check
+      const [methodRows2]: any = await (connection as any).execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO");
+      const getMethodName = (id: number) => methodRows2.find((m: any) => m.MP_IDMETODO_PK === id)?.MP_NOMBRE?.toUpperCase() || '';
+
+      // Methods that mean "the sale is complete even if cash not received"
+      const deferredMethods = ['CREDITO', 'VALE', 'SERVICIO DE TRABAJADOR'];
+
+      const allMethodsAreValid = data.payments.every(p => {
+        const name = getMethodName(p.MP_IDMETODO_FK);
+        return name !== '' // known method
+      });
+
+      if (allMethodsAreValid && Math.abs(totalPagado - invoiceTotal) <= tolerance) {
+        // All payments accounted for → force PAGADO regardless of what the frontend sent
+        data.FC_ESTADO = 'PAGADO';
+      }
+    }
+
     // 0.1 Check for duplicate invoice number IF provided
     if (data.FC_NUMERO_FACTURA) {
-      const checkQuery = isUpdate 
-        ? "SELECT 1 FROM KS_FACTURAS WHERE FC_NUMERO_FACTURA = ? AND FC_IDFACTURA_PK != ?" 
+      const checkQuery = isUpdate
+        ? "SELECT 1 FROM KS_FACTURAS WHERE FC_NUMERO_FACTURA = ? AND FC_IDFACTURA_PK != ?"
         : "SELECT 1 FROM KS_FACTURAS WHERE FC_NUMERO_FACTURA = ?";
       const checkParams = isUpdate ? [data.FC_NUMERO_FACTURA, invoiceId] : [data.FC_NUMERO_FACTURA];
-      
+
       const [existing]: any = await (connection as any).execute(checkQuery, checkParams);
       if (existing.length > 0) {
         throw new Error(`El número de factura "${data.FC_NUMERO_FACTURA}" ya está en uso.`);
@@ -151,11 +178,11 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       // Limpiar detalles de servicios y productos (Safe to clear and re-insert)
       await (connection as any).execute("DELETE FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
       await (connection as any).execute("DELETE FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-      
+
       // Para pagos y deudas, seremos más quirúrgicos para no perder trazabilidad de abonos previos
       // 1. Identificar qué métodos de pago ya no están presentes para borrarlos
       const newMethodIds = data.payments.map(p => p.MP_IDMETODO_FK);
-      
+
       // Borrar pagos que ya no están en el nuevo envío
       await (connection as any).execute(
         `DELETE FROM KS_PAGOS_FACTURA WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK NOT IN (${newMethodIds.length > 0 ? newMethodIds.join(',') : '-1'})`,
@@ -169,19 +196,19 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       const valeMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
 
       if (!newMethodIds.includes(valeMethodId)) {
-          const [vRows]: any = await (connection as any).execute("SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-          for(const v of vRows) {
-              await (connection as any).execute("DELETE FROM KS_SERVICIO_TRABAJADOR_CUOTAS WHERE ST_IDSERVICIO_TRABAJADOR_FK = ?", [v.ST_IDSERVICIO_TRABAJADOR_PK]);
-          }
-          await (connection as any).execute("DELETE FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+        const [vRows]: any = await (connection as any).execute("SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+        for (const v of vRows) {
+          await (connection as any).execute("DELETE FROM KS_SERVICIO_TRABAJADOR_CUOTAS WHERE ST_IDSERVICIO_TRABAJADOR_FK = ?", [v.ST_IDSERVICIO_TRABAJADOR_PK]);
+        }
+        await (connection as any).execute("DELETE FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
       }
 
       if (!newMethodIds.includes(creditMethodId)) {
-          const [cRows]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-          for(const c of cRows) {
-              await (connection as any).execute("DELETE FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ?", [c.CR_IDCREDITO_PK]);
-          }
-          await (connection as any).execute("DELETE FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+        const [cRows]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
+        for (const c of cRows) {
+          await (connection as any).execute("DELETE FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ?", [c.CR_IDCREDITO_PK]);
+        }
+        await (connection as any).execute("DELETE FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
       }
 
     } else {
@@ -218,10 +245,10 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
     // 1.1 Si es Vale de técnico, registrar en KS_VALES y sus Cuotas
     const isValeInPayments = data.payments.some(p => p.MP_IDMETODO_FK === valeMethodId);
     if ((data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale) || isValeInPayments) {
-      const valeTotal = isValeInPayments 
+      const valeTotal = isValeInPayments
         ? data.payments.find(p => p.MP_IDMETODO_FK === valeMethodId)?.PF_VALOR || 0
         : data.FC_TOTAL;
-      
+
       const numCuotas = data.VL_NUMERO_CUOTAS || 1;
       const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
       const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
@@ -308,39 +335,39 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
         // 4.1 Si es Vale de técnico, registrar o actualizar
         const isVale = payment.MP_IDMETODO_FK === valeMethodId;
         if ((data.FC_TIPO_CLIENTE === 'TECNICO' && data.isVale) || isVale) {
-            const valeTotal = payment.MP_IDMETODO_FK === valeMethodId ? payment.PF_VALOR : data.FC_TOTAL;
-            const [existingVale]: any = await (connection as any).execute(
-              "SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?",
-              [invoiceId]
+          const valeTotal = payment.MP_IDMETODO_FK === valeMethodId ? payment.PF_VALOR : data.FC_TOTAL;
+          const [existingVale]: any = await (connection as any).execute(
+            "SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?",
+            [invoiceId]
+          );
+
+          if (existingVale.length > 0) {
+            const valeId = existingVale[0].ST_IDSERVICIO_TRABAJADOR_PK;
+            await (connection as any).execute(
+              "UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ? WHERE ST_IDSERVICIO_TRABAJADOR_PK = ?",
+              [valeTotal, valeId]
             );
+          } else {
+            const numCuotas = data.VL_NUMERO_CUOTAS || 1;
+            const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
+            const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
 
-            if (existingVale.length > 0) {
-              const valeId = existingVale[0].ST_IDSERVICIO_TRABAJADOR_PK;
-              await (connection as any).execute(
-                "UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ? WHERE ST_IDSERVICIO_TRABAJADOR_PK = ?",
-                [valeTotal, valeId]
-              );
-            } else {
-              const numCuotas = data.VL_NUMERO_CUOTAS || 1;
-              const valorCuota = Math.round((valeTotal / numCuotas) * 100) / 100;
-              const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA;
-
-              const [vRes]: any = await (connection as any).execute(
-                `INSERT INTO KS_SERVICIOS_TRABAJADOR (ST_VALOR_TOTAL, ST_NUMERO_CUOTAS, ST_VALOR_CUOTA, ST_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, ST_FECHA_INICIO_COBRO)
+            const [vRes]: any = await (connection as any).execute(
+              `INSERT INTO KS_SERVICIOS_TRABAJADOR (ST_VALOR_TOTAL, ST_NUMERO_CUOTAS, ST_VALOR_CUOTA, ST_ESTADO, FC_IDFACTURA_FK, TR_IDTRABAJADOR_FK, ST_FECHA_INICIO_COBRO)
                  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-                [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
-              );
-              const vId = vRes.insertId;
-              for (let i = 1; i <= numCuotas; i++) {
-                const fCuota = new Date(fechaInicio);
-                fCuota.setDate(fCuota.getDate() + (i - 1) * 7);
-                await (connection as any).execute(
-                  `INSERT INTO KS_SERVICIO_TRABAJADOR_CUOTAS (STC_NUMERO_CUOTA, STC_VALOR_CUOTA, STC_ESTADO, STC_FECHA_COBRO, ST_IDSERVICIO_TRABAJADOR_FK)
+              [valeTotal, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
+            );
+            const vId = vRes.insertId;
+            for (let i = 1; i <= numCuotas; i++) {
+              const fCuota = new Date(fechaInicio);
+              fCuota.setDate(fCuota.getDate() + (i - 1) * 7);
+              await (connection as any).execute(
+                `INSERT INTO KS_SERVICIO_TRABAJADOR_CUOTAS (STC_NUMERO_CUOTA, STC_VALOR_CUOTA, STC_ESTADO, STC_FECHA_COBRO, ST_IDSERVICIO_TRABAJADOR_FK)
                    VALUES (?, ?, ?, ?, ?)`,
-                  [i, valorCuota, 'PENDIENTE', fCuota, vId]
-                );
-              }
+                [i, valorCuota, 'PENDIENTE', fCuota, vId]
+              );
             }
+          }
         }
 
         // 4.2 Si es crédito, registrar o actualizar
@@ -419,7 +446,7 @@ export async function deleteInvoice(invoiceId: number): Promise<ApiResponse> {
 
     // 3. Eliminar créditos y sus abonos
     const [oldCredits]: any = await (connection as any).execute("SELECT CR_IDCREDITO_PK FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
-    for(const c of oldCredits) {
+    for (const c of oldCredits) {
       await (connection as any).execute("DELETE FROM KS_CREDITO_ABONOS WHERE CR_IDCREDITO_FK = ?", [c.CR_IDCREDITO_PK]);
     }
     await connection.execute(`DELETE FROM KS_CREDITOS WHERE FC_IDFACTURA_FK = ?`, [invoiceId]);
@@ -522,10 +549,10 @@ export async function getNextInvoiceNumber(): Promise<ApiResponse> {
  * Agregar un producto a una factura existente y asociarlo opcionalmente a un servicio
  */
 export async function addProductToInvoice(
-  invoiceId: number, 
-  productId: number, 
-  technicianId: number, 
-  value: number, 
+  invoiceId: number,
+  productId: number,
+  technicianId: number,
+  value: number,
   detailId?: number
 ): Promise<ApiResponse> {
   const connection = await db.getConnection();

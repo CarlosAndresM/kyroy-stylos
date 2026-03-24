@@ -72,6 +72,7 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
     );
 
     // 5b. Deuda Total Generada Hoy (Para mostrar en las tarjetas de CREDITO y SERVICIO DE TRABAJADOR)
+    // Extraemos estos valores independientes del breakdown de PAGADO
     const [deudaNueva]: any = await db.execute(
       `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total
        FROM KS_PAGOS_FACTURA pf
@@ -98,7 +99,8 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params
     );
 
-    // Process breakdown (ONLY PAGADO for cards 4-8 to match 'Ventas Hoy')
+    // Process breakdown (ONLY PAGADO for EFECTIVO, TRANSF, DATAFONO)
+    // Para CREDITO y SERVICIO DE TRABAJADOR, usamos la dudaNueva que cuenta PENDIENTE + PAGADO
     const metodos: Record<string, number> = {
       'EFECTIVO': 0,
       'TRANSFERENCIA': 0,
@@ -111,9 +113,13 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       const metodo = row.metodo.toUpperCase();
       if (metodo === 'EFECTIVO') metodos['EFECTIVO'] += Number(row.total || 0);
       else if (metodo === 'DATAFONO' || metodo === 'TARJETA') metodos['DATAFONO'] += Number(row.total || 0);
-      else if (metodo === 'CREDITO') metodos['CREDITO'] += Number(row.total || 0);
+      else if (metodo === 'TRANSFERENCIA') metodos['TRANSFERENCIA'] += Number(row.total || 0);
+    });
+
+    (deudaNueva || []).forEach((row: any) => {
+      const metodo = row.metodo.toUpperCase();
+      if (metodo === 'CREDITO') metodos['CREDITO'] += Number(row.total || 0);
       else if (metodo === 'SERVICIO DE TRABAJADOR') metodos['SERVICIO DE TRABAJADOR'] += Number(row.total || 0);
-      else metodos['TRANSFERENCIA'] += Number(row.total || 0);
     });
 
     // 7. Adelantos (Vales Reales) en el periodo
