@@ -86,17 +86,15 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params
     );
 
-    // 6. Servicios en el periodo
+    // 6. Servicios de Trabajador (Periodo)
     const [valesResult]: any = await db.execute(
       `SELECT SUM(st.ST_VALOR_TOTAL) as total, COUNT(*) as count 
        FROM KS_SERVICIOS_TRABAJADOR st
        JOIN KS_TRABAJADORES t ON st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(st.ST_FECHA) BETWEEN ? AND ? 
-       AND r.RL_NOMBRE != 'ADMINISTRADOR_TOTAL'
-       ${sucursalFilter ? 'AND (f.FC_IDFACTURA_PK IS NULL OR f.' + sucursalFilter.trim().substring(4) + ')' : ''}`,
-      params
+       WHERE DATE(st.ST_FECHA) BETWEEN ? AND ?
+       ${sucursalId !== -1 ? 'AND (f.SC_IDSUCURSAL_FK = ? OR (f.FC_IDFACTURA_PK IS NULL AND t.SC_IDSUCURSAL_FK = ?))' : ''}`,
+      sucursalId !== -1 ? [dateFrom, dateTo, sucursalId, sucursalId] : [dateFrom, dateTo]
     );
 
     // Process breakdown (ONLY PAGADO for EFECTIVO, TRANSF, DATAFONO)
@@ -129,8 +127,7 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
        JOIN KS_TRABAJADORES t ON ad.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        WHERE DATE(ad.AD_FECHA) BETWEEN ? AND ? 
-       AND ad.AD_ESTADO != 'ANULADO'
-       AND r.RL_NOMBRE != 'ADMINISTRADOR_TOTAL'`,
+       AND ad.AD_ESTADO != 'ANULADO'`,
       [dateFrom, dateTo]
     );
 
@@ -282,29 +279,38 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
       sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
     );
 
-    // 2. Créditos
+    // 2. Créditos (Pagos registrados hoy)
     const [creditos]: any = await db.execute(
-      `SELECT c.*, f.FC_NUMERO_FACTURA, f.FC_CLIENTE_TELEFONO, f.FC_FECHA, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display
-       FROM KS_CREDITOS c
-       JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+      `SELECT pf.*, f.FC_NUMERO_FACTURA, f.FC_FECHA as CR_FECHA, 
+       COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display,
+       pf.PF_VALOR as CR_VALOR_PENDIENTE,
+       pf.PF_IDPAGO_PK as CR_IDCREDITO_PK
+       FROM KS_PAGOS_FACTURA pf
+       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
        LEFT JOIN KS_TRABAJADORES t ON f.TR_IDCLIENTE_FK = t.TR_IDTRABAJADOR_PK
-       WHERE DATE(c.CR_FECHA) BETWEEN ? AND ? ${sucursalFilter}
-       ORDER BY c.CR_FECHA DESC`,
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ?
+       AND mp.MP_NOMBRE = 'CREDITO'
+       ${sucursalFilter}
+       ORDER BY f.FC_FECHA DESC`,
       sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
     );
 
-    // 3. Servicios Propios (Técnicos)
+    // 3. Servicios de Trabajador (Pagos registrados hoy)
     const [vales]: any = await db.execute(
-      `SELECT st.*, t.TR_NOMBRE as trabajador_nombre, f.FC_NUMERO_FACTURA
-       FROM KS_SERVICIOS_TRABAJADOR st
-       JOIN KS_TRABAJADORES t ON st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
-       LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE DATE(st.ST_FECHA) BETWEEN ? AND ? 
-       AND r.RL_NOMBRE != 'ADMINISTRADOR_TOTAL'
-       ${sucursalId !== -1 ? 'AND (f.SC_IDSUCURSAL_FK = ? OR (f.FC_IDFACTURA_PK IS NULL AND t.SC_IDSUCURSAL_FK = ?))' : ''}
-       ORDER BY st.ST_FECHA DESC`,
-      sucursalId !== -1 ? [...baseParams, sucursalId, sucursalId] : baseParams
+      `SELECT pf.*, f.FC_NUMERO_FACTURA, f.FC_FECHA as ST_FECHA, 
+       COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as trabajador_nombre,
+       'PAGADO' as ST_ESTADO, pf.PF_VALOR as ST_VALOR,
+       pf.PF_IDPAGO_PK as ST_IDSERVICIO_TRABAJADOR_PK
+       FROM KS_PAGOS_FACTURA pf
+       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
+       LEFT JOIN KS_TRABAJADORES t ON f.TR_IDCLIENTE_FK = t.TR_IDTRABAJADOR_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ?
+       AND (mp.MP_NOMBRE = 'SERVICIO DE TRABAJADOR' OR mp.MP_NOMBRE = 'VALE')
+       ${sucursalFilter}
+       ORDER BY f.FC_FECHA DESC`,
+      sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
     );
 
     // 4. Productos detallados
@@ -347,8 +353,7 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
        FROM KS_ADELANTOS a
        JOIN KS_TRABAJADORES t ON a.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
-       WHERE DATE(a.AD_FECHA) BETWEEN ? AND ? 
-       AND r.RL_NOMBRE != 'ADMINISTRADOR_TOTAL'
+       WHERE DATE(a.AD_FECHA) BETWEEN ? AND ?
        ${adelantoFilter}
        ORDER BY a.AD_FECHA DESC`,
       sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams

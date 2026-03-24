@@ -193,7 +193,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       // (Si están, los actualizaremos en el loop de inserción más abajo)
       const [methodRows]: any = await (connection as any).execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO");
       const creditMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
-      const valeMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
+      const valeMethodId = methodRows.find((m: any) => m.MP_NOMBRE.toUpperCase() === 'VALE' || m.MP_NOMBRE.toUpperCase() === 'SERVICIO DE TRABAJADOR')?.MP_IDMETODO_PK;
 
       if (!newMethodIds.includes(valeMethodId)) {
         const [vRows]: any = await (connection as any).execute("SELECT ST_IDSERVICIO_TRABAJADOR_PK FROM KS_SERVICIOS_TRABAJADOR WHERE FC_IDFACTURA_FK = ?", [invoiceId]);
@@ -240,7 +240,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
     const [methodRows]: any = await (connection as any).execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO");
     const methods = methodRows as { MP_IDMETODO_PK: number, MP_NOMBRE: string }[];
     const creditMethodId = methods.find(m => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
-    const valeMethodId = methods.find(m => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
+    const valeMethodId = methods.find(m => m.MP_NOMBRE.toUpperCase() === 'VALE' || m.MP_NOMBRE.toUpperCase() === 'SERVICIO DE TRABAJADOR')?.MP_IDMETODO_PK;
 
     // 1.1 Si es Vale de técnico, registrar en KS_VALES y sus Cuotas
     const isValeInPayments = data.payments.some(p => p.MP_IDMETODO_FK === valeMethodId);

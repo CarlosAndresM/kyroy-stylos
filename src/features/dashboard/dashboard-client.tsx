@@ -1013,15 +1013,15 @@ export function DashboardClient() {
                                         ) : (
                                             <>
                                                 {(specificData?.vales || []).map((v: any) => (
-                                                    <TableRow key={v.VL_IDVALE_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                    <TableRow key={v.ST_IDSERVICIO_TRABAJADOR_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
                                                         <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
-                                                            {format(new Date(v.VL_FECHA), "dd/MM/yyyy", { locale: es })}
+                                                            {format(new Date(v.ST_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">{v.trabajador_nombre}</TableCell>
-                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {Number(v.VL_VALOR_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {Number(v.ST_VALOR_TOTAL).toLocaleString('es-CO')}</TableCell>
                                                         <TableCell className="px-4 py-3 text-center">
                                                             <span className="px-2 py-0.5 text-[9px] font-bold uppercase border border-slate-200 bg-slate-50 text-slate-500 rounded-full">
-                                                                {v.VL_ESTADO}
+                                                                {v.ST_ESTADO}
                                                             </span>
                                                         </TableCell>
                                                     </TableRow>

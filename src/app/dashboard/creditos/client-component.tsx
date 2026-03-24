@@ -505,7 +505,7 @@ export default function CreditsPage() {
                               </Button>
                             )}
                             <span className="text-lg font-black text-slate-900 dark:text-white">
-                              $ {Number(abono.AB_MONTO).toLocaleString()}
+                              $ {Number(abono.AB_VALOR).toLocaleString()}
                             </span>
                           </div>
                         </TableCell>

@@ -28,14 +28,13 @@ export async function getConfigForDate(date: Date): Promise<ApiResponse<NominaCo
       "SELECT * FROM KS_NOMINA_CONFIG WHERE NC_FECHA_INICIO <= ? ORDER BY NC_FECHA_INICIO DESC LIMIT 1",
       [date]
     ) as any;
-
     if (!rows || rows.length === 0) {
       return {
-        success: true,
-        data: { NC_IDCONFIG_PK: 0, NC_PORCENTAJE_SERVICIO: 50, NC_PORCENTAJE_PRODUCTO: 100, NC_FECHA_INICIO: new Date('2024-01-01') }
+        success: false,
+        data: null,
+        error: "No existe una configuración de nómina vigente para esta fecha. Por favor, agregue una en el botón de Parametrizar."
       };
     }
-
     return { success: true, data: rows[0] };
   } catch (error) {
     console.error("Error getConfigForDate:", error);
@@ -64,6 +63,40 @@ export async function saveNominaConfig(data: NominaConfigData): Promise<ApiRespo
 }
 
 /**
+ * Borrar una configuración de nómina
+ */
+export async function deleteNominaConfig(id: number): Promise<ApiResponse> {
+  try {
+    await db.execute("DELETE FROM KS_NOMINA_CONFIG WHERE NC_IDCONFIG_PK = ?", [id]);
+    revalidatePath("/dashboard/nomina");
+    return { success: true, message: "Configuración eliminada" };
+  } catch (error) {
+    return { success: false, error: "Error al eliminar configuración" };
+  }
+}
+
+/**
+ * Actualizar una configuración de nómina existente
+ */
+export async function updateNominaConfig(id: number, data: NominaConfigData): Promise<ApiResponse> {
+  try {
+    const validated = nominaConfigSchema.parse(data);
+
+    await db.execute(
+      `UPDATE KS_NOMINA_CONFIG 
+       SET NC_PORCENTAJE_SERVICIO = ?, NC_PORCENTAJE_PRODUCTO = ?, NC_FECHA_INICIO = ?
+       WHERE NC_IDCONFIG_PK = ?`,
+      [validated.NC_PORCENTAJE_SERVICIO, validated.NC_PORCENTAJE_PRODUCTO, validated.NC_FECHA_INICIO, id]
+    );
+
+    revalidatePath("/dashboard/nomina");
+    return { success: true, message: "Configuración actualizada correctamente" };
+  } catch (error) {
+    return { success: false, error: "Error al actualizar configuración" };
+  }
+}
+
+/**
  * Procesar la nómina semanal para un rango de fechas.
  */
 export async function procesarNominaSemanal(data: { startDate: Date, endDate: Date, role?: string }): Promise<ApiResponse> {
@@ -71,9 +104,13 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
   try {
     await connection.beginTransaction();
 
-    // 1. Obtener la configuración vigente para el inicio del periodo
+    // 1. Obtener el rol y la configuración vigente para el inicio del periodo
+    const roleName = (data as any).role || 'TECNICO';
     const configRes = await getConfigForDate(data.startDate);
-    const config = configRes.data!;
+    if (!configRes.success || !configRes.data) {
+      return { success: false, error: configRes.error || "No existe una configuración de nómina para esta fecha." };
+    }
+    const config = configRes.data;
 
     // 2. Eliminar cualquier nómina existente en este rango y tipo que NO esté CONFIRMADA
     const [existing]: any = await (connection as any).execute(
@@ -82,6 +119,7 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
     );
 
     if (existing.length > 0) {
+      await (connection as any).execute("DELETE FROM KS_NOMINA_DETALLES WHERE NM_IDNOMINA_FK = ?", [existing[0].NM_IDNOMINA_PK]);
       await (connection as any).execute("DELETE FROM KS_NOMINAS WHERE NM_IDNOMINA_PK = ?", [existing[0].NM_IDNOMINA_PK]);
     }
 
@@ -92,9 +130,7 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
     );
     const nominaId = nominaResult.insertId;
 
-    // 4. Obtener todos los trabajadores activos que coincidan con el rol solicitado (o TECNICO por defecto)
-    const roleName = (data as any).role || 'TECNICO';
-
+    // 4. Obtener todos los trabajadores activos que coincidan con el rol solicitado
     const [workers]: any = await (connection as any).execute(
       `SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE
        FROM KS_TRABAJADORES t
@@ -130,7 +166,7 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
         [worker.TR_IDTRABAJADOR_PK, data.startDate, data.endDate]
       );
       const prdTotal = Number(products[0].total || 0);
-      const prdDeduct = prdTotal * (config.NC_PORCENTAJE_PRODUCTO / 100);
+      const prdComm = prdTotal * (config.NC_PORCENTAJE_PRODUCTO / 100);
 
       // 4.3. Obtener cuotas de servicios para este periodo
       const [vales]: any = await (connection as any).execute(
@@ -161,16 +197,16 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
       }
 
       // 4.5. Calcular totales
-      const totalComm = svcComm - prdDeduct;
+      const totalEarnings = svcComm + prdComm;
       const basePay = 0; // Se elimina el sueldo base para técnicos
-      const netPay = basePay + totalComm - valesDeduct - adelantosTotalDeduct;
+      const netPay = basePay + totalEarnings - valesDeduct - adelantosTotalDeduct;
 
       // 4.6. Insertar detalle
       await (connection as any).execute(
         `INSERT INTO KS_NOMINA_DETALLES 
          (NM_IDNOMINA_FK, TR_IDTRABAJADOR_FK, ND_BASE, ND_COMISIONES, ND_BONOS, ND_DEDUCCIONES_SERVICIOS_TRABAJADOR, ND_DEDUCCIONES_ADELANTOS, ND_TOTAL_NETO)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nominaId, worker.TR_IDTRABAJADOR_PK, basePay, totalComm, 0, valesDeduct, adelantosTotalDeduct, netPay]
+        [nominaId, worker.TR_IDTRABAJADOR_PK, basePay, totalEarnings, 0, valesDeduct, adelantosTotalDeduct, netPay]
       );
 
       granTotal += netPay;

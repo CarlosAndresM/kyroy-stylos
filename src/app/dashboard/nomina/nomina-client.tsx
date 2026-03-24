@@ -22,7 +22,8 @@ import {
   Trash2,
   RefreshCw,
   Lock,
-  Plus
+  Plus,
+  Edit2
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -33,7 +34,9 @@ import {
   saveNominaConfig,
   getNominaByRange,
   deleteNomina,
-  getPayrollWorkers
+  getPayrollWorkers,
+  updateNominaConfig,
+  deleteNominaConfig
 } from "@/features/nomina/services";
 
 import { toast } from "@/lib/toast-helper";
@@ -61,6 +64,7 @@ export default function NominaClient() {
   const [prdPercent, setPrdPercent] = useState("");
   const [configStartDate, setConfigStartDate] = useState("");
   const [showConfigForm, setShowConfigForm] = useState(false);
+  const [editingConfigId, setEditingConfigId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchNomina();
@@ -134,18 +138,49 @@ export default function NominaClient() {
   };
 
   const handleSaveConfig = async () => {
-    const res = await saveNominaConfig({
+    const configDate = new Date(configStartDate);
+    configDate.setHours(12, 0, 0, 0); // Evitar problemas de zona horaria
+
+    const payload = {
       NC_PORCENTAJE_SERVICIO: parseFloat(svcPercent),
       NC_PORCENTAJE_PRODUCTO: parseFloat(prdPercent),
-      NC_FECHA_INICIO: new Date(configStartDate)
-    });
+      NC_FECHA_INICIO: configDate
+    };
+
+    const res = editingConfigId 
+      ? await updateNominaConfig(editingConfigId, payload)
+      : await saveNominaConfig(payload);
 
     if (res.success) {
       toast.success(res.message || "Configuración guardada");
       fetchConfigs();
       setShowConfigForm(false);
+      setEditingConfigId(null);
+      setSvcPercent("");
+      setPrdPercent("");
+      setConfigStartDate("");
     } else {
       toast.error(res.error || "Error al guardar");
+    }
+  };
+
+  const handleEditConfig = (cfg: any) => {
+    setEditingConfigId(cfg.NC_IDCONFIG_PK);
+    setSvcPercent(cfg.NC_PORCENTAJE_SERVICIO.toString());
+    setPrdPercent(cfg.NC_PORCENTAJE_PRODUCTO.toString());
+    setConfigStartDate(format(new Date(cfg.NC_FECHA_INICIO), 'yyyy-MM-dd'));
+    setShowConfigForm(true);
+  };
+
+  const handleDeleteConfig = async (id: number) => {
+    if (!confirm("¿Está seguro de eliminar esta configuración? Esto afectará los cálculos de las nóminas que aún no se han procesado.")) return;
+    
+    const res = await deleteNominaConfig(id);
+    if (res.success) {
+      toast.success(res.message || "Configuración eliminada");
+      fetchConfigs();
+    } else {
+      toast.error(res.error || "No se pudo eliminar");
     }
   };
 
@@ -359,9 +394,10 @@ export default function NominaClient() {
                   <TableHeader className="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-slate-500">Vigencia Desde</TableHead>
-                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% SVC</TableHead>
-                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% PRD</TableHead>
-                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-right text-slate-500">Estado</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% COMISIÓN SVC</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% COMISIÓN PRD</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">Estado</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-right text-slate-500 pr-6">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -376,7 +412,7 @@ export default function NominaClient() {
                         <TableCell className="py-4 px-4 text-[12px] font-black text-center text-slate-900">
                           {cfg.NC_PORCENTAJE_PRODUCTO}%
                         </TableCell>
-                        <TableCell className="py-4 px-4 text-right">
+                        <TableCell className="py-4 px-4 text-center">
                           {idx === 0 ? (
                             <span className="inline-flex bg-emerald-600 text-white text-[9px] px-2 py-0.5 font-black uppercase tracking-tighter shadow-sm">
                               Vigente
@@ -384,6 +420,22 @@ export default function NominaClient() {
                           ) : (
                             <span className="text-[9px] font-bold text-slate-400 uppercase italic opacity-50 text-xs">Antiguo</span>
                           )}
+                        </TableCell>
+                        <TableCell className="py-4 px-4 text-right pr-6">
+                          <div className="flex justify-end items-center gap-1.5">
+                            <button 
+                              onClick={() => handleEditConfig(cfg)}
+                              className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
+                            >
+                              <Edit2 className="size-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteConfig(cfg.NC_IDCONFIG_PK)}
+                              className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -406,13 +458,17 @@ export default function NominaClient() {
             {showConfigForm && (
               <div className="absolute top-0 right-0 bottom-0 w-[400px] z-50 bg-white dark:bg-slate-900 border-l border-slate-200 shadow-xl animate-in slide-in-from-right duration-300 h-full p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nuevo Registro de Vigencia</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    {editingConfigId ? 'Editar Registro de Vigencia' : 'Nuevo Registro de Vigencia'}
+                  </h4>
                 </div>
 
                 <div className="p-3 bg-emerald-100/50 border-l-4 border-emerald-500 flex gap-2">
                   <Info className="h-4 w-4 text-emerald-600 shrink-0" />
                   <p className="text-[10px] text-emerald-800 font-medium leading-tight">
-                    Al agregar una nueva vigencia, se aplicar&aacute; a los sueldos calculados desde la fecha seleccionada en adelante.
+                    {editingConfigId 
+                      ? 'Est&aacute; actualizando los par&aacute;metros de una vigencia existente. Esto afectar&aacute; los c&aacute;lculos futuros.' 
+                      : 'Al agregar una nueva vigencia, se aplicar&aacute; a los sueldos calculados desde la fecha seleccionada en adelante.'}
                   </p>
                 </div>
 
@@ -430,7 +486,7 @@ export default function NominaClient() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Descuento PRD (%)</Label>
+                    <Label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Comisi&oacute;n PRD (%)</Label>
                     <div className="relative">
                       <Input
                         type="number"
