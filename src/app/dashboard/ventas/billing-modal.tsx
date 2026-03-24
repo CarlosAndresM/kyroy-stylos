@@ -110,11 +110,38 @@ export function BillingModal({
   const [adminPassword, setAdminPassword] = React.useState('')
   const [isVerifyingAdmin, setIsVerifyingAdmin] = React.useState(false)
   const [pendingStatusChange, setPendingStatusChange] = React.useState<string | null>(null)
+  const [uploadingPhysical, setUploadingPhysical] = React.useState(false)
+  const physicalInvoiceInputRef = React.useRef<HTMLInputElement>(null)
 
   const isEditing = !!invoice
-  const isPaid = isViewOnly || ((invoice?.FC_ESTADO === 'PAGADO' || invoice?.FC_ESTADO === 'CANCELADO') && sessionUser?.role !== 'ADMINISTRADOR_TOTAL')
 
-  const cleanupTempFiles = async (urls?: string[]) => {
+  const form = useForm<InvoiceFormData>({
+    resolver: zodResolver(invoiceSchema),
+    defaultValues: {
+      FC_CLIENTE_NOMBRE: '',
+      FC_CLIENTE_TELEFONO: '',
+      FC_TIPO_CLIENTE: 'CLIENTE',
+      TR_IDCLIENTE_FK: null,
+      isVale: false,
+      VL_NUMERO_CUOTAS: 1,
+      VL_FECHA_INICIO_COBRO: new Date(),
+      FC_FECHA: new Date(),
+      SC_IDSUCURSAL_FK: sessionUser?.sucursal_id || 1,
+      TR_IDCAJERO_FK: sessionUser?.id || 1,
+      services: [{ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, products: [] }],
+      products: [],
+      payments: [],
+      FC_ESTADO: 'PENDIENTE',
+      FC_TOTAL: 0,
+      FC_EVIDENCIA_FISICA_URL: null
+    }
+  })
+
+  const currentStatus = useWatch({ control: form.control, name: "FC_ESTADO" })
+  const isLockedByStatus = (currentStatus === 'PAGADO' || currentStatus === 'CANCELADO') && sessionUser?.role !== 'ADMINISTRADOR_TOTAL'
+  const isPaid = isViewOnly || isLockedByStatus
+
+  const cleanupTempFiles = React.useCallback(async (urls?: string[]) => {
     const filesToDelete = urls || uploadedTempFiles.current
     for (const url of filesToDelete) {
       try {
@@ -124,10 +151,7 @@ export function BillingModal({
       }
     }
     if (!urls) uploadedTempFiles.current = []
-  }
-
-  const [uploadingPhysical, setUploadingPhysical] = React.useState(false)
-  const physicalInvoiceInputRef = React.useRef<HTMLInputElement>(null)
+  }, [])
 
   const handlePhysicalInvoiceUpload = async (file: File) => {
     setUploadingPhysical(true)
@@ -191,28 +215,6 @@ export function BillingModal({
       setUploadingIndexes(prev => prev.filter(i => i !== index))
     }
   }
-
-  const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceSchema),
-    defaultValues: {
-      FC_CLIENTE_NOMBRE: '',
-      FC_CLIENTE_TELEFONO: '',
-      FC_TIPO_CLIENTE: 'CLIENTE',
-      TR_IDCLIENTE_FK: null,
-      isVale: false,
-      VL_NUMERO_CUOTAS: 1,
-      VL_FECHA_INICIO_COBRO: new Date(),
-      FC_FECHA: new Date(),
-      SC_IDSUCURSAL_FK: sessionUser?.sucursal_id || 1,
-      TR_IDCAJERO_FK: sessionUser?.id || 1,
-      services: [{ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, products: [] }],
-      products: [],
-      payments: [],
-      FC_ESTADO: 'PENDIENTE',
-      FC_TOTAL: 0,
-      FC_EVIDENCIA_FISICA_URL: null
-    }
-  })
 
   // Cargar datos si estamos editando
   React.useEffect(() => {
@@ -323,7 +325,8 @@ export function BillingModal({
     }
   }, [balance, watchedPayments, form])
 
-  // Si cambia el total y solo hay un pago de crédito/vale, lo actualizamos automáticamente
+  // Auto-balancing removed as per user request to allow manual payment adjustment
+  /*
   React.useEffect(() => {
     if (watchedPayments.length === 1) {
       const methodId = watchedPayments[0].MP_IDMETODO_FK
@@ -332,15 +335,16 @@ export function BillingModal({
          form.setValue('payments.0.PF_VALOR', total)
       }
     }
-  }, [total, paymentMethods, form]) // Solo cuando cambia el total y hay un solo pago
+  }, [total, paymentMethods, form])
+  */
 
   // Mapeo para comboboxes
   const technicianOptions = technicians
     .filter(t => t.RL_NOMBRE === 'TECNICO')
     .map(t => ({ label: t.TR_NOMBRE, value: t.TR_IDTRABAJADOR_PK }))
-  
+
   const workerOptions = technicians.map(t => ({ label: t.TR_NOMBRE, value: t.TR_IDTRABAJADOR_PK }))
-  
+
   const serviceOptions = services.map(s => ({ label: s.SV_NOMBRE, value: s.SV_IDSERVICIO_PK }))
   const productOptions = products.map(p => ({ label: p.PR_NOMBRE, value: p.PR_IDPRODUCTO_PK }))
 
@@ -372,12 +376,14 @@ export function BillingModal({
     }
   }
 
-  // Auto-distribuciÃƒÂ³n si solo hay uno seleccionado
+  // Auto-distribución removed for manual control
+  /*
   React.useEffect(() => {
     if (watchedPayments.length === 1) {
       form.setValue(`payments.0.PF_VALOR`, total)
     }
   }, [total, watchedPayments.length, form])
+  */
 
   // Limpiar VALE si cambia a CLIENTE
   React.useEffect(() => {
@@ -403,7 +409,9 @@ export function BillingModal({
       const alreadyHasVale = currentPayments.find(p => p.MP_IDMETODO_FK === valeMethod.MP_IDMETODO_PK)
 
       if (!alreadyHasVale) {
-        form.setValue("payments", [{ MP_IDMETODO_FK: valeMethod.MP_IDMETODO_PK, PF_VALOR: total, PF_EVIDENCIA_URL: '' }])
+        // We add it but with 0 or the current total if it's the only one, but the user wants manual control. 
+        // Let's just add it with 0 and let them balance it.
+        form.setValue("payments", [{ MP_IDMETODO_FK: valeMethod.MP_IDMETODO_PK, PF_VALOR: 0, PF_EVIDENCIA_URL: '' }])
       }
     } else if (!isValeValue && clientType === 'TECNICO') {
       const valeMethod = paymentMethods.find(m => m.MP_NOMBRE?.toUpperCase() === 'VALE')
@@ -609,8 +617,8 @@ export function BillingModal({
                         <Select value={field.value} onValueChange={handleStatusChange}>
                           <SelectTrigger className={cn(
                             field.value === 'PAGADO' ? "border-green-300 bg-green-50 text-green-700" :
-                            field.value === 'CANCELADO' ? "border-red-300 bg-red-50 text-red-600" :
-                            "border-amber-300 bg-amber-50 text-amber-700"
+                              field.value === 'CANCELADO' ? "border-red-300 bg-red-50 text-red-600" :
+                                "border-amber-300 bg-amber-50 text-amber-700"
                           )}>
                             <SelectValue />
                           </SelectTrigger>
@@ -826,7 +834,7 @@ export function BillingModal({
                                 <button type="button" disabled={uploadingIndexes.includes(idx) || isPaid} onClick={(e) => { e.stopPropagation(); fileInputRefs.current[`${idx}`]?.click() }}
                                   className={cn("p-1.5 rounded border text-xs transition-all",
                                     uploadingIndexes.includes(idx) ? "border-slate-200 text-slate-300" :
-                                    payment.PF_EVIDENCIA_URL ? "border-green-300 bg-green-50 text-green-600" : "border-slate-200 hover:border-slate-300 text-slate-400")}>
+                                      payment.PF_EVIDENCIA_URL ? "border-green-300 bg-green-50 text-green-600" : "border-slate-200 hover:border-slate-300 text-slate-400")}>
                                   {uploadingIndexes.includes(idx) ? <Loader2 className="size-3.5 animate-spin" /> : <Camera className="size-3.5" />}
                                 </button>
                                 {payment.PF_EVIDENCIA_URL && (
@@ -844,8 +852,8 @@ export function BillingModal({
                     {/* Balance */}
                     <div className={cn("p-3 rounded-lg border",
                       Math.abs(totalPaid - total) < 0.01 && total > 0 ? "bg-green-50 border-green-200" :
-                      totalPaid > total ? "bg-amber-50 border-amber-200" :
-                      "bg-slate-50 border-slate-200")}>
+                        totalPaid > total ? "bg-amber-50 border-amber-200" :
+                          "bg-slate-50 border-slate-200")}>
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-semibold text-slate-500">Total venta</span>
                         <span className="font-black text-slate-900">$ {total.toLocaleString('es-CO')}</span>
@@ -876,8 +884,8 @@ export function BillingModal({
                   disabled={isLoading || uploadingPhysical || uploadingIndexes.length > 0 || Math.abs(totalPaid - total) > 0.01 || total <= 0}
                   className="flex-[2] bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white shadow-lg shadow-[#FF7E5F]/20">
                   {isLoading ? <><Loader2 className="size-4 animate-spin mr-2" />Guardando...</> :
-                   (uploadingPhysical || uploadingIndexes.length > 0) ? 'Subiendo imagen...' :
-                   isEditing ? 'Guardar cambios' : 'Registrar venta'}
+                    (uploadingPhysical || uploadingIndexes.length > 0) ? 'Subiendo imagen...' :
+                      isEditing ? 'Guardar cambios' : 'Registrar venta'}
                 </Button>
               )}
             </div>

@@ -523,33 +523,6 @@ export async function addProductToInvoice(
       [value, invoiceId]
     );
 
-    // 3. Si la factura tiene un CRÉDITO asociado, incrementar el valor pendiente del crédito
-    // Y también sincronizar el registro de pago correspondiente
-    const [methodRows]: any = await connection.execute("SELECT MP_IDMETODO_PK FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) = 'CREDITO'");
-    const creditMethodId = methodRows[0]?.MP_IDMETODO_PK;
-    
-    if (creditMethodId) {
-      await connection.execute(
-        "UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE + ? WHERE FC_IDFACTURA_FK = ?",
-        [value, invoiceId]
-      );
-      await connection.execute(
-        "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
-        [value, invoiceId, creditMethodId]
-      );
-    }
-    
-    // Lo mismo para VALES si aplica
-    const [valeMethRows]: any = await connection.execute("SELECT MP_IDMETODO_PK FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) = 'VALE'");
-    const valeMethodId = valeMethRows[0]?.MP_IDMETODO_PK;
-    if (valeMethodId) {
-      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL + ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
-      await connection.execute(
-        "UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?",
-        [value, invoiceId, valeMethodId]
-      );
-    }
-
     await connection.commit();
     revalidatePath("/dashboard");
     return { success: true, data: null, error: null };
@@ -599,20 +572,6 @@ export async function updateProductInInvoice(
       [oldValue, value, invoiceId]
     );
 
-    // 4. Si tiene crédito/vale, ajustar también su valor pendiente y registros de pago
-    const [mRows]: any = await connection.execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) IN ('CREDITO', 'VALE')");
-    const creditMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
-    const valeMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
-
-    if (creditMethodId) {
-      await connection.execute("UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
-      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, creditMethodId]);
-    }
-    if (valeMethodId) {
-      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL - ? + ? WHERE FC_IDFACTURA_FK = ?", [oldValue, value, invoiceId]);
-      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? + ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [oldValue, value, invoiceId, valeMethodId]);
-    }
-
     await connection.commit();
     revalidatePath("/dashboard");
     return { success: true, data: null, error: null };
@@ -648,20 +607,6 @@ export async function deleteProductFromInvoice(productInvoiceId: number): Promis
 
     // 3. Ajustar total
     await connection.execute("UPDATE KS_FACTURAS SET FC_TOTAL = FC_TOTAL - ? WHERE FC_IDFACTURA_PK = ?", [value, invoiceId]);
-
-    // 4. Ajustar crédito/vale si existe
-    const [mRows]: any = await connection.execute("SELECT MP_IDMETODO_PK, MP_NOMBRE FROM KS_METODOS_PAGO WHERE UPPER(MP_NOMBRE) IN ('CREDITO', 'VALE')");
-    const creditMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'CREDITO')?.MP_IDMETODO_PK;
-    const valeMethodId = mRows.find((m:any) => m.MP_NOMBRE.toUpperCase() === 'VALE')?.MP_IDMETODO_PK;
-
-    if (creditMethodId) {
-      await connection.execute("UPDATE KS_CREDITOS SET CR_VALOR_PENDIENTE = CR_VALOR_PENDIENTE - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
-      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, creditMethodId]);
-    }
-    if (valeMethodId) {
-      await connection.execute("UPDATE KS_SERVICIOS_TRABAJADOR SET ST_VALOR_TOTAL = ST_VALOR_TOTAL - ? WHERE FC_IDFACTURA_FK = ?", [value, invoiceId]);
-      await connection.execute("UPDATE KS_PAGOS_FACTURA SET PF_VALOR = PF_VALOR - ? WHERE FC_IDFACTURA_FK = ? AND MP_IDMETODO_FK = ?", [value, invoiceId, valeMethodId]);
-    }
 
     await connection.commit();
     revalidatePath("/dashboard");
