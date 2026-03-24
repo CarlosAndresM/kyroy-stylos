@@ -1,0 +1,170 @@
+'use client';
+
+import React, { Suspense, lazy } from 'react';
+import { Button } from "@/components/ui/button";
+import { Printer, Download, Receipt } from "lucide-react";
+import { VolantePDF } from "./volante-pdf";
+
+const PDFDownloadLink = lazy(() =>
+  import("@react-pdf/renderer").then((mod) => ({ default: mod.PDFDownloadLink }))
+);
+
+const fmt = (n: number) => {
+  return new Intl.NumberFormat('es-CO', { 
+    style: 'currency', 
+    currency: 'COP', 
+    maximumFractionDigits: 0 
+  }).format(n);
+};
+
+export function VolantePago({ data }: { data: any }) {
+  const [isClient, setIsClient] = React.useState(false);
+  React.useEffect(() => { setIsClient(true); }, []);
+
+  const handlePrint = () => { window.print(); };
+
+  const devengos = [
+    { desc: 'Sueldo Base', val: data.ND_BASE },
+    { desc: 'Comisiones (SVC/PRD)', val: data.ND_COMISIONES },
+    { desc: 'Bonificaciones / Otros', val: data.ND_BONOS },
+  ].filter(i => i.val > 0);
+
+  const deducciones = [
+    { desc: 'Servicio Trabajador (Cuota)', val: data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR },
+    { desc: 'Vales / Adelantos (Cuota)', val: data.ND_DEDUCCIONES_ADELANTOS },
+  ].filter(i => i.val > 0);
+
+  return (
+    <div className="space-y-6 max-w-3xl mx-auto">
+      {/* Actions */}
+      <div className="flex justify-end gap-3 print:hidden">
+        <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl">
+          <Printer className="h-4 w-4" /> Imprimir
+        </Button>
+
+        {isClient && (
+          <Suspense fallback={<Button disabled size="sm" className="gap-2 rounded-xl bg-emerald-400"><Download className="h-4 w-4" /> Cargando...</Button>}>
+            <PDFDownloadLink
+              document={<VolantePDF data={data} logoUrl="/LOGO.png" />}
+              fileName={`Volante_${data.TR_NOMBRE}_${data.periodoRange.replace(/ /g, '_')}.pdf`}
+            >
+              {({ loading }) => (
+                <Button variant="default" size="sm" className="gap-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-white shadow-lg shadow-emerald-500/20" disabled={loading}>
+                  <Download className="h-4 w-4" /> {loading ? 'Generando...' : 'Descargar PDF'}
+                </Button>
+              )}
+            </PDFDownloadLink>
+          </Suspense>
+        )}
+      </div>
+
+      {/* Volante Card */}
+      <div className="bg-white border rounded-xl shadow-sm text-slate-900 font-sans print:border-black print:shadow-none overflow-hidden">
+        {/* Cabecera */}
+        <div className="p-8 border-b bg-slate-50 flex justify-between items-start">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-white rounded-xl shadow-sm border">
+               <img src="/LOGO.png" alt="kairos Stylos" className="h-12 w-auto object-contain" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-tighter italic">kairos Stylos</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Santiago de Cali, Atlántico</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <h3 className="text-xs font-black uppercase tracking-widest text-[#FF7E5F]">Comprobante de Nómina</h3>
+            <p className="text-[10px] font-medium text-slate-400">VP-{data.ND_IDDETALLE_PK?.toString().padStart(5, '0')}</p>
+          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 p-8 gap-x-12 border-b bg-white/50">
+          <div className="space-y-1.5">
+             <InfoRow label="Colaborador" value={data.TR_NOMBRE} bold />
+             <InfoRow label="Cargo" value={data.RL_NOMBRE || '---'} />
+             <InfoRow label="Sucursal" value={data.SC_NOMBRE || 'Global'} />
+          </div>
+          <div className="space-y-1.5">
+             <InfoRow label="Periodo" value={data.periodoRange} bold />
+             <InfoRow label="ID Trabajador" value={`#${data.TR_IDTRABAJADOR_FK}`} />
+             <InfoRow label="Fecha Proceso" value={new Date().toLocaleDateString('es-CO')} />
+          </div>
+        </div>
+
+        {/* Conceptos Table */}
+        <div className="p-8 space-y-8">
+          <div>
+             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 flex items-center gap-2">
+               <Receipt className="size-3" /> Devengado
+             </h4>
+             <table className="w-full text-xs">
+               <thead>
+                 <tr className="border-b text-slate-400">
+                   <th className="text-left font-bold pb-2 uppercase tracking-tighter">Descripción</th>
+                   <th className="text-right font-bold pb-2 uppercase tracking-tighter w-40">Total</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-100">
+                 {devengos.map((d, i) => (
+                   <tr key={i} className="hover:bg-slate-50/50">
+                     <td className="py-2.5 font-medium text-slate-600">{d.desc}</td>
+                     <td className="py-2.5 text-right font-bold text-slate-900">{fmt(d.val)}</td>
+                   </tr>
+                 ))}
+               </tbody>
+               <tfoot>
+                 <tr className="font-bold border-t-2 border-slate-200">
+                   <td className="pt-3 text-slate-400 uppercase text-[10px]">Subtotal Devengado</td>
+                   <td className="pt-3 text-right text-slate-900">{fmt(data.ND_BASE + data.ND_COMISIONES + data.ND_BONOS)}</td>
+                 </tr>
+               </tfoot>
+             </table>
+          </div>
+
+          <div>
+             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Deducido</h4>
+             <table className="w-full text-xs">
+               <thead>
+                 <tr className="border-b text-slate-400">
+                   <th className="text-left font-bold pb-2 uppercase tracking-tighter">Descripción</th>
+                   <th className="text-right font-bold pb-2 uppercase tracking-tighter w-40">Total</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-100">
+                 {deducciones.map((d, i) => (
+                   <tr key={i} className="hover:bg-slate-50/50">
+                     <td className="py-2.5 font-medium text-slate-600">{d.desc}</td>
+                     <td className="py-2.5 text-right font-bold text-red-600">-{fmt(d.val)}</td>
+                   </tr>
+                 ))}
+               </tbody>
+               <tfoot>
+                 <tr className="font-bold border-t-2 border-slate-200">
+                   <td className="pt-3 text-slate-400 uppercase text-[10px]">Subtotal Deducciones</td>
+                   <td className="pt-3 text-right text-red-600">-{fmt(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR + data.ND_DEDUCCIONES_ADELANTOS)}</td>
+                 </tr>
+               </tfoot>
+             </table>
+          </div>
+        </div>
+
+        {/* Neto Final */}
+        <div className="mx-8 mb-8 p-6 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-xl">
+           <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Neto Pagado</span>
+           <span className="text-3xl font-black italic tracking-tighter">{fmt(data.ND_TOTAL_NETO)}</span>
+        </div>
+
+
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, bold }: { label: string, value: string, bold?: boolean }) {
+  return (
+    <div className="flex flex-col">
+       <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none mb-1">{label}</span>
+       <span className={`${bold ? 'font-black text-slate-900' : 'font-bold text-slate-600'} text-xs uppercase tracking-tight`}>{value}</span>
+    </div>
+  );
+}

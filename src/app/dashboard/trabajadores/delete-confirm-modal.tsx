@@ -43,13 +43,13 @@ export function DeleteConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px] border-2 border-kyroy-border rounded-none shadow-[10px_10px_0px_0px_rgba(255,134,162,0.2)] p-0 overflow-hidden bg-white">
+      <DialogContent className="sm:max-w-[425px] border-2 border-kairos-border rounded-none shadow-[10px_10px_0px_0px_rgba(255,134,162,0.2)] p-0 overflow-hidden bg-white">
         <DialogHeader className="bg-gradient-to-r from-red-500 to-rose-600 p-6 border-b-2 border-red-700">
           <DialogTitle className="text-xl font-black text-white uppercase italic tracking-widest flex items-center gap-2">
             <AlertCircle className="size-5" /> ¿ELIMINAR TRABAJADOR?
           </DialogTitle>
           <DialogDescription className="text-white/80 font-bold uppercase text-[10px] tracking-widest italic pt-1">
-             Esta acci&oacute;n es irreversible y requiere autorizaci&oacute;n.
+            Esta acci&oacute;n es irreversible y requiere autorizaci&oacute;n.
           </DialogDescription>
         </DialogHeader>
 
@@ -66,7 +66,7 @@ export function DeleteConfirmModal({
               id="admin-password"
               type="password"
               placeholder="CONFIRME SU IDENTIDAD"
-              className="rounded-none border-2 border-kyroy-border focus:border-red-500 h-11 font-black shadow-sm bg-rose-50/10 transition-all text-sm"
+              className="rounded-none border-2 border-kairos-border focus:border-red-500 h-11 font-black shadow-sm bg-rose-50/10 transition-all text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
@@ -81,12 +81,12 @@ export function DeleteConfirmModal({
           </div>
         </div>
 
-        <DialogFooter className="p-4 bg-slate-50 border-t-2 border-kyroy-border gap-2">
+        <DialogFooter className="p-4 bg-slate-50 border-t-2 border-kairos-border gap-2">
           <Button
             type="button"
             variant="ghost"
             onClick={onClose}
-            className="rounded-none border-2 border-kyroy-border font-black uppercase text-xs h-11 px-6 hover:bg-white text-slate-400"
+            className="rounded-none border-2 border-kairos-border font-black uppercase text-xs h-11 px-6 hover:bg-white text-slate-400"
           >
             CANCELAR
           </Button>

@@ -17,14 +17,14 @@ export default function Header() {
           <div className="relative w-12 h-12 flex-shrink-0">
             <Image
               src="/LOGO.png"
-              alt="Kyroy Stilos Logo"
+              alt="kairos Stylos Logo"
               fill
               className="object-contain"
               priority
             />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-foreground font-brand">Kyroy Stilos</h1>
+            <h1 className="text-lg font-bold text-foreground font-brand">kairos Stylos</h1>
             <p className="text-xs text-muted-foreground">by Karen Ovalle</p>
           </div>
         </div>

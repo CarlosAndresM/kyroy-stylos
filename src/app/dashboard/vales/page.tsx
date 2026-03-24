@@ -5,7 +5,7 @@ import { ValesClient } from '@/app/dashboard/vales/vales-client';
 import { DashboardBanner } from '@/components/layout/dashboard-banner';
 
 export const metadata: Metadata = {
-  title: 'Vales | Kyros Stilos',
+  title: 'Vales | kairos Stylos',
   description: 'Gestión de vales (anticipos) a trabajadores',
 };
 

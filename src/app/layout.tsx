@@ -9,8 +9,8 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 const _playfair = Playfair_Display({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Kyroy Stilos | Salón de Belleza",
-  description: "Kyroy Stilos by Karen Ovalle - Servicios de uñas, cabello y depilación de calidad premium",
+  title: "kairos Stylos | Salón de Belleza",
+  description: "kairos Stylos by Karen Ovalle - Servicios de uñas, cabello y depilación de calidad premium",
   generator: "v0.app",
   icons: {
     icon: "/favicon.ico",

@@ -18,7 +18,7 @@ import { DashboardBanner } from "@/components/layout/dashboard-banner";
 import { ServicioTrabajadorClient } from "./servicio-trabajador-client";
 
 export const metadata: Metadata = {
-  title: "Servicios de Trabajador | Kyroy Stilos",
+  title: "Servicios de Trabajador | kairos Stylos",
   description: "Gestión de deudas y créditos de personal",
 };
 

@@ -21,7 +21,9 @@ import {
   ChevronRight,
   UserCog,
   FileText,
-  Save
+  Save,
+  FileDown,
+  Receipt
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, setDate, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -30,7 +32,8 @@ import {
   confirmarNomina,
   getNominaByRange,
   deleteNomina,
-  getPayrollWorkers
+  getPayrollWorkers,
+  getNominaAudit
 } from "@/features/nomina/services";
 import { toast } from "@/lib/toast-helper";
 import { cn } from "@/lib/utils";
@@ -42,6 +45,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { VolantePago } from '@/components/nomina/volante-pago';
 import { NumericFormat } from 'react-number-format';
 
 function getQuincenas(month: Date) {
@@ -81,6 +85,7 @@ export default function NominaAdminClient() {
   // Para Volantes
   const [showVolante, setShowVolante] = useState<any>(null);
 
+
   useEffect(() => {
     fetchNomina();
   }, [startDate, endDate]);
@@ -95,10 +100,10 @@ export default function NominaAdminClient() {
     const res = await getPayrollWorkers('ADMINISTRADOR_PUNTO');
     if (res.success) {
       setAdmins(res.data || []);
-      // Pre-poblar con el sueldo base si no hay nada
+      // Pre-poblar salarios manuales
       const salaries: Record<number, string> = {};
       res.data?.forEach((a: any) => {
-        salaries[a.TR_IDTRABAJADOR_PK] = a.TR_SUELDO_BASE?.toString() || "0";
+        salaries[a.TR_IDTRABAJADOR_PK] = "0";
       });
       setManualSalaries(salaries);
     }
@@ -169,6 +174,24 @@ export default function NominaAdminClient() {
       toast.error(res.error || "Ocurrió un error");
     }
     setLoading(false);
+  };
+
+
+
+  const handleDownloadZip = () => {
+    const startSimple = format(startDate, 'yyyy-MM-dd');
+    const endSimple = format(endDate, 'yyyy-MM-dd');
+    const url = `/api/nomina/zip-volantes?startDate=${startSimple}&endDate=${endSimple}&type=ADMINISTRADOR_PUNTO`;
+    
+    toast.info("Generando archivo ZIP de volantes, por favor espere...");
+    
+    // Trigger download without navigating
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', '');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const currentRangeLabel = `${format(startDate, "dd MMM", { locale: es })} - ${format(endDate, "dd MMM yyyy", { locale: es })}`;
@@ -356,15 +379,19 @@ export default function NominaAdminClient() {
                           $ {Math.max(0, Number(item.ND_TOTAL_NETO || 0)).toLocaleString('es-CO')}
                         </TableCell>
                         <TableCell className="px-6 text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2 border-[#FF7E5F]/30 text-[#FF7E5F] hover:bg-[#FF7E5F]/10 font-bold"
-                            onClick={() => setShowVolante(item)}
-                          >
-                            <FileText className="size-3.5" />
-                            VOLANTE
-                          </Button>
+                          <div className="flex justify-end gap-1">
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 gap-2 border-[#FF7E5F]/30 text-[#FF7E5F] hover:bg-[#FF7E5F]/10 font-bold"
+                              onClick={() => setShowVolante(item)}
+                              title="Ver Volante de Pago"
+                            >
+                              <Receipt className="size-3.5" />
+                              VOLANTE
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -407,6 +434,17 @@ export default function NominaAdminClient() {
                 )}>
                   {nominaBatch.NM_ESTADO}
                 </span>
+ 
+                {nominaBatch && (
+                  <Button
+                    variant="outline"
+                    onClick={handleDownloadZip}
+                    className="border-emerald-600/30 text-emerald-600 hover:bg-emerald-50 rounded-xl gap-2 font-bold px-6"
+                  >
+                    <FileDown className="size-4" />
+                    DESCARGAR ZIP
+                  </Button>
+                )}
 
                 {nominaBatch.NM_ESTADO !== 'CONFIRMADA' && (
                   <>
@@ -443,60 +481,22 @@ export default function NominaAdminClient() {
 
       {/* Modal Volante */}
       <Dialog open={!!showVolante} onOpenChange={() => setShowVolante(null)}>
-        <DialogContent className="max-w-md bg-white dark:bg-slate-900 rounded-2xl overflow-hidden p-0 border border-slate-200 shadow-2xl">
-          <DialogHeader className="p-6 bg-slate-950 text-white">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-slate-50">
+          <DialogHeader className="p-6 bg-white border-b sticky top-0 z-10">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-black uppercase tracking-tighter italic">Volante de Pago</DialogTitle>
-              <div className="px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest">{activeQuincena.label}</div>
+              <DialogTitle className="text-2xl font-black uppercase tracking-tighter italic">Comprobante de Pago</DialogTitle>
+              <div className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold uppercase tracking-widest">{activeQuincena.label}</div>
             </div>
           </DialogHeader>
 
           {showVolante && (
-            <div className="p-8 space-y-6">
-              <div className="flex justify-between items-start border-b border-slate-100 pb-4">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Colaborador</p>
-                  <p className="text-lg font-black text-slate-900 uppercase">{showVolante.TR_NOMBRE}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fecha Proceso</p>
-                  <p className="text-sm font-bold text-slate-600">{format(new Date(), "dd/MM/yyyy")}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500 font-medium">Sueldo Base Periodo</span>
-                  <span className="font-black text-slate-900">$ {showVolante.ND_BASE.toLocaleString('es-CO')}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500 font-medium">Deducciones Servicios (Préstamos)</span>
-                  <span className="font-bold text-red-600">- $ {(showVolante.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0).toLocaleString('es-CO')}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500 font-medium">Deducciones Vales (Adelantos)</span>
-                  <span className="font-bold text-red-600">- $ {(showVolante.ND_DEDUCCIONES_ADELANTOS || 0).toLocaleString('es-CO')}</span>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-slate-100">
-                <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-inner">
-                  <span className="text-xs font-black uppercase tracking-widest text-[#FF7E5F]">Neto Recibido</span>
-                  <span className="text-2xl font-black text-slate-900">$ {Math.max(0, showVolante.ND_TOTAL_NETO).toLocaleString('es-CO')}</span>
-                </div>
-              </div>
-
-              <div className="pt-8 text-center">
-                <Button onClick={() => window.print()} className="w-full gap-2 bg-slate-900 text-white rounded-xl">
-                  <FileText className="size-4" />
-                  IMPRIMIR VOLANTE
-                </Button>
-                <p className="mt-4 text-[9px] text-slate-400 uppercase font-medium tracking-[0.2em]">Kyroy Stilos by Karen Ovalle - Documento Informativo</p>
-              </div>
+            <div className="p-8">
+              <VolantePago data={{ ...showVolante, periodoRange: currentRangeLabel }} />
             </div>
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

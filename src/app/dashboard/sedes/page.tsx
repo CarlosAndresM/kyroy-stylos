@@ -4,7 +4,7 @@ import { SedesClient } from "./sedes-client";
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Sucursales | Kyroy Stilos",
+  title: "Sucursales | kairos Stylos",
   description: "Administración de sedes y sucursales",
 };
 
@@ -14,7 +14,7 @@ export default async function SedesPage() {
 
   return (
     <div className="space-y-6 pb-6">
-      <DashboardBanner 
+      <DashboardBanner
         title="Sucursales"
         subtitle="Gestión de puntos de venta y locales físicos."
       />

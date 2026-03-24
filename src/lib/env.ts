@@ -5,7 +5,7 @@ const envSchema = z.object({
   DB_HOST: z.string().default("localhost"),
   DB_USER: z.string().default("root"),
   DB_PASSWORD: z.string().default(""),
-  DB_NAME: z.string().default("kyros_stylos"),
+  DB_NAME: z.string().default("kairos_stylos"),
   DB_PORT: z.string().default("3306"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });

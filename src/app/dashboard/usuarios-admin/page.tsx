@@ -3,7 +3,7 @@ import { getTrabajadores, getRoles, getSedes } from "@/features/trabajadores/ser
 import AdminClient from "@/app/dashboard/usuarios-admin/admin-client";
 
 export const metadata: Metadata = {
-  title: "Administradores | Kyros Stilos",
+  title: "Administradores | kairos Stylos",
   description: "Gestión de usuarios administradores",
 };
 

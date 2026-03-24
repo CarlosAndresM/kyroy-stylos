@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import CreditsClient from "./client-component";
 
 export const metadata: Metadata = {
-  title: "Créditos | Kyroy Stilos",
+  title: "Créditos | kairos Stylos",
   description: "Gestión de cuentas por cobrar y créditos de clientes",
 };
 

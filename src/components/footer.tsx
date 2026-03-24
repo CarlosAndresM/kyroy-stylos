@@ -12,13 +12,13 @@ export default function Footer() {
               <div className="relative w-12 h-12 flex-shrink-0">
                 <Image
                   src="/LOGO.png"
-                  alt="Kyroy Stilos Logo"
+                  alt="kaiross Stylos Logo"
                   fill
                   className="object-contain"
                 />
               </div>
               <div>
-                <h3 className="font-bold font-brand">Kyroy Stilos</h3>
+                <h3 className="font-bold font-brand">kaiross Stylos</h3>
                 <p className="text-xs text-white/60">by Karen Ovalle</p>
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/60">
-          <p>&copy; 2025 Kyroy Stilos. Todos los derechos reservados.</p>
+          <p>&copy; 2025 kaiross Stylos. Todos los derechos reservados.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">
               Privacidad

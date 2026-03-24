@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Paleta de colores Kyroy Stilos - DISEÑO CENTRALIZADO */
+  /* Paleta de colores kairos Stylos - DISEÑO CENTRALIZADO */
   --brand-pink: #FF7E5F;       /* Coral Principal */
   --brand-pink-light: #fff7ed; /* naranja muy claro (orange-50) */
   --brand-orange: #FEB47B;      /* Melocotón/Naranja suave */
@@ -111,13 +111,13 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Kyroy Stilos Design Tokens */
-  --color-kyroy-pink: var(--brand-pink);
-  --color-kyroy-pink-light: var(--brand-pink-light);
-  --color-kyroy-orange: var(--brand-orange);
-  --color-kyroy-orange-hover: var(--brand-orange-hover);
-  --color-kyroy-border: var(--brand-border);
-  --color-kyroy-text: var(--brand-text);
+  /* kairos Stylos Design Tokens */
+  --color-kairos-pink: var(--brand-pink);
+  --color-kairos-pink-light: var(--brand-pink-light);
+  --color-kairos-orange: var(--brand-orange);
+  --color-kairos-orange-hover: var(--brand-orange-hover);
+  --color-kairos-border: var(--brand-border);
+  --color-kairos-text: var(--brand-text);
 }
 
 @layer base {

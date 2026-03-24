@@ -23,7 +23,9 @@ import {
   RefreshCw,
   Lock,
   Plus,
-  Edit2
+  Edit2,
+  FileDown,
+  Receipt
 } from "lucide-react";
 import { format, startOfWeek, endOfWeek, addDays, isSameDay } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -36,7 +38,8 @@ import {
   deleteNomina,
   getPayrollWorkers,
   updateNominaConfig,
-  deleteNominaConfig
+  deleteNominaConfig,
+  getNominaAudit
 } from "@/features/nomina/services";
 
 import { toast } from "@/lib/toast-helper";
@@ -46,6 +49,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import { VolantePago } from '@/components/nomina/volante-pago';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -65,6 +69,8 @@ export default function NominaClient() {
   const [configStartDate, setConfigStartDate] = useState("");
   const [showConfigForm, setShowConfigForm] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<number | null>(null);
+  const [showVolante, setShowVolante] = useState<any>(null);
+
 
   useEffect(() => {
     fetchNomina();
@@ -147,7 +153,7 @@ export default function NominaClient() {
       NC_FECHA_INICIO: configDate
     };
 
-    const res = editingConfigId 
+    const res = editingConfigId
       ? await updateNominaConfig(editingConfigId, payload)
       : await saveNominaConfig(payload);
 
@@ -174,7 +180,7 @@ export default function NominaClient() {
 
   const handleDeleteConfig = async (id: number) => {
     if (!confirm("¿Está seguro de eliminar esta configuración? Esto afectará los cálculos de las nóminas que aún no se han procesado.")) return;
-    
+
     const res = await deleteNominaConfig(id);
     if (res.success) {
       toast.success(res.message || "Configuración eliminada");
@@ -182,6 +188,23 @@ export default function NominaClient() {
     } else {
       toast.error(res.error || "No se pudo eliminar");
     }
+  };
+
+
+
+  const handleDownloadZip = () => {
+    const startSimple = format(startDate, 'yyyy-MM-dd');
+    const endSimple = format(endDate, 'yyyy-MM-dd');
+    const url = `/api/nomina/zip-volantes?startDate=${startSimple}&endDate=${endSimple}&type=TECNICO`;
+    
+    toast.info("Generando archivo ZIP de volantes, por favor espere...");
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', '');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const currentRangeLabel = `${format(startDate, "dd MMM", { locale: es })} - ${format(endDate, "dd MMM yyyy", { locale: es })}`;
@@ -241,6 +264,16 @@ export default function NominaClient() {
             SIGUIENTE
           </Button>
           <div className="w-px h-6 bg-slate-200 mx-2" />
+          {nominaBatch && (
+            <Button
+              variant="outline"
+              onClick={handleDownloadZip}
+              className="border-emerald-600/30 text-emerald-600 hover:bg-emerald-50 rounded-xl gap-2 font-bold"
+            >
+              <FileDown className="size-4" />
+              DESCARGAR VOLANTES (ZIP)
+            </Button>
+          )}
           <Button
             disabled={loading}
             onClick={handleProcesar}
@@ -284,10 +317,17 @@ export default function NominaClient() {
                         <div className="text-[9px] text-red-500 font-bold uppercase mt-1">Saldo Negativo: $ {Math.abs(Number(item.ND_TOTAL_NETO)).toLocaleString('es-CO')}</div>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-400 hover:text-slate-900">
-                        <Info className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="px-6 text-right">
+                      <div className="flex justify-end gap-1">
+
+                        <button
+                          onClick={() => setShowVolante(item)}
+                          title="Ver Volante de Pago"
+                          className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-full transition-all"
+                        >
+                          <Receipt className="size-4" />
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -423,13 +463,13 @@ export default function NominaClient() {
                         </TableCell>
                         <TableCell className="py-4 px-4 text-right pr-6">
                           <div className="flex justify-end items-center gap-1.5">
-                            <button 
+                            <button
                               onClick={() => handleEditConfig(cfg)}
                               className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
                             >
                               <Edit2 className="size-3.5" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteConfig(cfg.NC_IDCONFIG_PK)}
                               className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
                             >
@@ -466,8 +506,8 @@ export default function NominaClient() {
                 <div className="p-3 bg-emerald-100/50 border-l-4 border-emerald-500 flex gap-2">
                   <Info className="h-4 w-4 text-emerald-600 shrink-0" />
                   <p className="text-[10px] text-emerald-800 font-medium leading-tight">
-                    {editingConfigId 
-                      ? 'Est&aacute; actualizando los par&aacute;metros de una vigencia existente. Esto afectar&aacute; los c&aacute;lculos futuros.' 
+                    {editingConfigId
+                      ? 'Est&aacute; actualizando los par&aacute;metros de una vigencia existente. Esto afectar&aacute; los c&aacute;lculos futuros.'
                       : 'Al agregar una nueva vigencia, se aplicar&aacute; a los sueldos calculados desde la fecha seleccionada en adelante.'}
                   </p>
                 </div>
@@ -522,6 +562,24 @@ export default function NominaClient() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Modal Volante */}
+      <Dialog open={!!showVolante} onOpenChange={() => setShowVolante(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none bg-slate-50">
+          <DialogHeader className="p-6 bg-white border-b sticky top-0 z-10">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl font-black uppercase tracking-tighter italic">Comprobante de Pago</DialogTitle>
+              <div className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-bold uppercase tracking-widest">Nomina Semanal</div>
+            </div>
+          </DialogHeader>
+
+          {showVolante && (
+            <div className="p-8">
+              <VolantePago data={{ ...showVolante, periodoRange: currentRangeLabel }} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

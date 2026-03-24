@@ -6,7 +6,7 @@ import { getCurrentUserSession } from "@/features/dashboard/services";
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Clientes | Kyroy Stilos",
+  title: "Clientes | kairos Stylos",
   description: "Listado dinámico de clientes",
 };
 
@@ -20,7 +20,7 @@ export default async function ClientesPage() {
 
   return (
     <div className="space-y-6 pb-6">
-      <DashboardBanner 
+      <DashboardBanner
         title="Directorio de Clientes"
         subtitle="Historial dinámico de clientes generado desde facturación."
       />

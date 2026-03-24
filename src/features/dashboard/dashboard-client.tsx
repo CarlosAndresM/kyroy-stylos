@@ -392,7 +392,7 @@ export function DashboardClient() {
                     <>¡Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B]">{user?.username || 'Admin'}</span>! 👋</>
                 }
                 subtitle={
-                    <>Resumen de {filterType === 'DIA' ? `el día ${format(currentDate, 'd MMM', { locale: es })}` : 'el periodo seleccionado'} en <span className="text-[#FF7E5F] font-black italic">Kyroy Stilos</span>.</>
+                    <>Resumen de {filterType === 'DIA' ? `el día ${format(currentDate, 'd MMM', { locale: es })}` : 'el periodo seleccionado'} en <span className="text-[#FF7E5F] font-black italic">kairos Stylos</span>.</>
                 }
                 extra={
                     !(user?.role === 'ADMINISTRADOR_PUNTO' && user?.branchId) ? (
@@ -854,7 +854,7 @@ export function DashboardClient() {
                                             ) : (
                                                 <>
                                                     {(specificData?.facturas || []).map((f: any) => (
-                                                        <TableRow key={f.FC_IDFACTURA_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-100/50 group">
+                                                        <TableRow key={f.FC_IDFACTURA_PK} className="transition-colors border-b border-slate-100/50 group">
                                                             <TableCell className="px-6 py-4 text-xs font-bold text-slate-900">{f.FC_NUMERO_FACTURA}</TableCell>
                                                             <TableCell className="px-4 py-4 text-[10px] font-medium text-slate-500 text-center tabular-nums">
                                                                 {format(new Date(f.FC_FECHA), "dd/MM/yyyy", { locale: es })}
@@ -866,7 +866,7 @@ export function DashboardClient() {
                                                             </TableCell>
                                                             <TableCell className="px-4 py-4 text-xs font-bold text-slate-700 uppercase">{f.cliente_display || 'GENERAL'}</TableCell>
                                                             <TableCell className="px-4 py-4 text-[10px] font-medium text-slate-400 text-center tabular-nums">{f.FC_CLIENTE_TELEFONO || '--'}</TableCell>
-                                                            <TableCell className="px-4 py-4 text-[11px] font-medium text-slate-500 max-w-[300px] truncate italic group-hover:whitespace-normal group-hover:overflow-visible transition-all">
+                                                            <TableCell className="px-4 py-4 text-[11px] font-medium text-slate-500 max-w-[300px] truncate italic transition-all">
                                                                 {f.servicios || '--'}
                                                                 {f.productos && (
                                                                     <span className="text-[#FF7E5F] font-bold"> + {f.productos}</span>
@@ -891,7 +891,7 @@ export function DashboardClient() {
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell className="px-6 py-4 text-right">
-                                                                <div className="flex justify-end gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                                                                <div className="flex justify-end gap-1.5 transition-opacity">
                                                                     <button
                                                                         onClick={() => handleOpenInvoice(f, true)}
                                                                         className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"
@@ -963,7 +963,7 @@ export function DashboardClient() {
                                         ) : (
                                             <>
                                                 {(specificData?.creditos || []).map((c: any) => (
-                                                    <TableRow key={c.CR_IDCREDITO_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                    <TableRow key={c.CR_IDCREDITO_PK} className="transition-colors border-b border-slate-50">
                                                         <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
                                                             {format(new Date(c.CR_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
@@ -1013,7 +1013,7 @@ export function DashboardClient() {
                                         ) : (
                                             <>
                                                 {(specificData?.vales || []).map((v: any) => (
-                                                    <TableRow key={v.ST_IDSERVICIO_TRABAJADOR_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                    <TableRow key={v.ST_IDSERVICIO_TRABAJADOR_PK} className="transition-colors border-b border-slate-50">
                                                         <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
                                                             {format(new Date(v.ST_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
@@ -1067,7 +1067,7 @@ export function DashboardClient() {
                                         ) : (
                                             <>
                                                 {(specificData?.adelantos || []).map((v: any) => (
-                                                    <TableRow key={v.AD_IDADELANTO_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50">
+                                                    <TableRow key={v.AD_IDADELANTO_PK} className="transition-colors border-b border-slate-50">
                                                         <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
                                                             {format(new Date(v.AD_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
@@ -1143,8 +1143,8 @@ export function DashboardClient() {
                                         ) : (
                                             <>
                                                 {(specificData?.productos || []).map((p: any) => (
-                                                    <TableRow key={p.FP_IDFACTURA_PRODUCTO_PK} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
-                                                        <TableCell className="px-6 py-3 text-xs font-bold text-slate-900 group-hover:text-[#FF7E5F]">#{p.FC_NUMERO_FACTURA}</TableCell>
+                                                    <TableRow key={p.FP_IDFACTURA_PRODUCTO_PK} className="transition-colors border-b border-slate-50 group">
+                                                        <TableCell className="px-6 py-3 text-xs font-bold text-slate-900">#{p.FC_NUMERO_FACTURA}</TableCell>
                                                         <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 text-center tabular-nums">
                                                             {format(new Date(p.FC_FECHA), 'dd/MM/yyyy', { locale: es })}
                                                         </TableCell>
@@ -1163,7 +1163,7 @@ export function DashboardClient() {
                                                             )}
                                                         </TableCell>
                                                         <TableCell className="px-6 py-3 text-right">
-                                                            <div className="flex justify-end gap-1 font-black opacity-40 group-hover:opacity-100 transition-opacity">
+                                                            <div className="flex justify-end gap-1 font-black transition-opacity">
                                                                 <button
                                                                     onClick={() => handleOpenInvoice({ ...p, FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)}
                                                                     className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-900 rounded-xl transition-all"

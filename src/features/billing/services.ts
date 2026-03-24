@@ -117,8 +117,10 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       });
 
       if (allMethodsAreValid && Math.abs(totalPagado - invoiceTotal) <= tolerance) {
-        // All payments accounted for → force PAGADO regardless of what the frontend sent
-        data.FC_ESTADO = 'PAGADO';
+        // Only force PAGADO if the user didn't explicitly set it to PENDIENTE (e.g., to add products)
+        if (data.FC_ESTADO !== 'PENDIENTE') {
+          data.FC_ESTADO = 'PAGADO';
+        }
       }
     }
 
@@ -147,7 +149,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
     // 0. Si hay evidencia física, mover de temp
     let fizUrl = data.FC_EVIDENCIA_FISICA_URL;
     if (fizUrl && fizUrl.includes('/temp/')) {
-      fizUrl = await finalizeUpload(fizUrl, data.FC_NUMERO_FACTURA || `FAC-${Date.now()}`);
+      fizUrl = await finalizeUpload(fizUrl, data.FC_NUMERO_FACTURA || `${Date.now()}`);
     }
 
     if (isUpdate) {
@@ -310,7 +312,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       if (payment.PF_VALOR > 0) {
         let finalUrl = payment.PF_EVIDENCIA_URL;
         if (finalUrl && finalUrl.includes('/temp/')) {
-          finalUrl = await finalizeUpload(finalUrl, data.FC_NUMERO_FACTURA || `FAC-${invoiceId}`);
+          finalUrl = await finalizeUpload(finalUrl, data.FC_NUMERO_FACTURA || `${invoiceId}`);
         }
 
         // Verificar si este método ya existía para esta factura

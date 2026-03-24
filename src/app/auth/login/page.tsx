@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoginForm } from '@/app/auth/login/login-form'
 
 export const metadata: Metadata = {
-  title: 'Iniciar Sesión | Kyroy Stilos',
-  description: 'Inicia sesión en tu espacio Kyroy Stilos',
+  title: 'Iniciar Sesión | kairos Stylos',
+  description: 'Inicia sesión en tu espacio kairos Stylos',
 }
 
 export default function LoginPage() {
@@ -32,39 +32,39 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md transition-all duration-500 animate-in fade-in zoom-in slide-in-from-bottom-8">
         {/* Logo/Header */}
         <div className="mb-6 flex flex-col items-center">
-             <div className="bg-white p-3 rounded-2xl shadow-2xl mb-4 border border-white/50">
-                <Image 
-                    src="/LOGO.png" 
-                    alt="Kyroy Stilos" 
-                    width={60} 
-                    height={60}
-                    className="object-contain"
-                />
-             </div>
-             <h1 className="text-white text-3xl font-black tracking-tight drop-shadow-lg italic uppercase">
-                Kyroy Stilos
-             </h1>
-             <p className="text-[#FEB47B] text-[10px] font-black tracking-[0.2em] drop-shadow-sm uppercase mt-1">by Karen Ovalle</p>
+          <div className="bg-white p-3 rounded-2xl shadow-2xl mb-4 border border-white/50">
+            <Image
+              src="/LOGO.png"
+              alt="kairos Stylos"
+              width={60}
+              height={60}
+              className="object-contain"
+            />
+          </div>
+          <h1 className="text-white text-3xl font-black tracking-tight drop-shadow-lg italic uppercase">
+            kairos Stylos
+          </h1>
+          <p className="text-[#FEB47B] text-[10px] font-black tracking-[0.2em] drop-shadow-sm uppercase mt-1">by Karen Ovalle</p>
         </div>
 
         <Card className="bg-white/95 dark:bg-slate-900/95 border-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[2.5rem] overflow-hidden">
           <CardHeader className="pt-10 pb-4 text-center">
             <CardTitle className="text-slate-900 dark:text-white text-2xl font-black tracking-tight uppercase">
-              Bienvenido a tu Espacio Kyroy
+              Bienvenido a tu Espacio kairos
             </CardTitle>
           </CardHeader>
           <CardContent className="px-8 pb-10">
             <LoginForm />
-            
+
           </CardContent>
 
         </Card>
       </div>
-      
+
       {/* Footer Info */}
       <div className="absolute bottom-6 left-0 right-0 text-center animate-in fade-in delay-700">
         <p className="text-white/60 text-xs font-semibold tracking-widest uppercase">
-          &copy; {new Date().getFullYear()} Kyroy Stilos. Todos los derechos reservados.
+          &copy; {new Date().getFullYear()} kairos Stylos. Todos los derechos reservados.
         </p>
       </div>
     </main>

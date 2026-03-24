@@ -3,11 +3,7 @@ import * as dotenv from 'dotenv';
 import fs from 'fs';
 
 // Cargar variables de entorno
-if (fs.existsSync('env.local')) {
-  dotenv.config({ path: 'env.local' });
-} else {
-  dotenv.config();
-}
+dotenv.config();
 
 const DB_CONFIG = {
   host: process.env.DB_HOST,

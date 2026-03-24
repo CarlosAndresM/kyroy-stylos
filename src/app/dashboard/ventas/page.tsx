@@ -7,7 +7,7 @@ import { BillingClient } from "@/app/dashboard/ventas/billing-client";
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Ventas | Kyroy Stilos",
+  title: "Ventas | kairos Stylos",
   description: "Gestión de facturación y ventas diarias",
 };
 
@@ -41,7 +41,7 @@ export default async function VentasPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <DashboardBanner 
+      <DashboardBanner
         title="Ventas y Facturación"
         subtitle="Gestiona los registros de ventas y cobros en tiempo real."
       />

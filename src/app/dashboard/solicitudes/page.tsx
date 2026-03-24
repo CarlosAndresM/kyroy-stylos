@@ -7,7 +7,7 @@ import { SolicitudesClient } from "@/app/dashboard/solicitudes/solicitudes-clien
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Solicitudes de Productos | Kyroy Stilos",
+  title: "Solicitudes de Productos | kairos Stylos",
   description: "Gestión de pedidos de productos entre sucursales",
 };
 

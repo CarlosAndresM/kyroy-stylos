@@ -4,11 +4,7 @@ import mysql from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 
 // Cargar variables de entorno
-if (fs.existsSync('env.local')) {
-  dotenv.config({ path: 'env.local' });
-} else {
-  dotenv.config();
-}
+dotenv.config();
 
 import { env } from '@/lib/env';
 
@@ -55,21 +51,7 @@ async function migrate() {
       }
     }
 
-    // 4. Ejecutar Seeds (DML)
-    const seedsDir = path.join(process.cwd(), 'src/database/seeds');
-    if (fs.existsSync(seedsDir)) {
-      console.log('🌱 Ejecutando seeds...');
-      const files = fs.readdirSync(seedsDir).sort();
-      for (const file of files) {
-        console.log(`- Aplicando seed: ${file}...`);
-        const sql = fs.readFileSync(path.join(seedsDir, file), 'utf8');
-        const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0);
-        for (const statement of statements) await connection.query(statement);
-        console.log(`✅ Seed ${file} aplicado.`);
-      }
-    }
-
-    console.log('✨ Base de datos actualizada correctamente.');
+    console.log('✨ Migraciones completadas.');
   } catch (error) {
     console.error('❌ Error durante la migración:', error);
     process.exit(1);

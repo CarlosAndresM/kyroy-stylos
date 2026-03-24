@@ -3,7 +3,7 @@ import NominaAdminClient from "./nomina-admin-client";
 import { LoadingGate } from "@/components/ui/loading-gate";
 
 export const metadata: Metadata = {
-  title: "Nomina Administradores | Kyroy Stilos",
+  title: "Nomina Administradores | kairos Stylos",
   description: "Cálculo de nómina y sueldos para administradores de punto",
 };
 

@@ -15,9 +15,8 @@ export default function About() {
           {/* Image */}
           <div
             ref={imageRef}
-            className={`relative order-2 md:order-1 transition-all duration-700 ${
-              imageVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
-            }`}
+            className={`relative order-2 md:order-1 transition-all duration-700 ${imageVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+              }`}
           >
             <div className="relative aspect-square">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl"></div>
@@ -33,9 +32,8 @@ export default function About() {
           {/* Content */}
           <div
             ref={contentRef}
-            className={`order-1 md:order-2 transition-all duration-700 ${
-              contentVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
-            }`}
+            className={`order-1 md:order-2 transition-all duration-700 ${contentVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-10"
+              }`}
           >
             <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 text-primary">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
@@ -48,7 +46,7 @@ export default function About() {
                 Karen Ovalle
               </span>
             </h2>
- 
+
 
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
@@ -93,9 +91,8 @@ export default function About() {
         {/* Equipo de Trabajo */}
         <div
           ref={teamRef}
-          className={`transition-all duration-700 ${
-            teamVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
+          className={`transition-all duration-700 ${teamVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
         >
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-primary/10 text-primary">
@@ -117,7 +114,7 @@ export default function About() {
             <div className="relative w-full">
               <img
                 src="/images/EQUIPODETRABAJO.jpg"
-                alt="Equipo de trabajo de Kyroy Stilos"
+                alt="Equipo de trabajo de kaiross Stylos"
                 className="w-full h-auto object-contain"
               />
             </div>

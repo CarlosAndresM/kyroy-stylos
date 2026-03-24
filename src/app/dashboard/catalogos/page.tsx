@@ -4,7 +4,7 @@ import { CatalogClient } from "@/app/dashboard/catalogos/catalog-client";
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Catálogos | Kyroy Stilos",
+  title: "Catálogos | kairos Stylos",
   description: "Gestión de servicios y productos",
 };
 
@@ -19,14 +19,14 @@ export default async function CatalogosPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      <DashboardBanner 
+      <DashboardBanner
         title="Catálogos"
         subtitle={<>Administra los <span className="text-[#FF7E5F] font-bold">servicios</span> y <span className="text-[#FF7E5F] font-bold">productos</span> ofrecidos en tus sucursales.</>}
       />
 
-      <CatalogClient 
-        initialServices={services as any[]} 
-        initialProducts={products as any[]} 
+      <CatalogClient
+        initialServices={services as any[]}
+        initialProducts={products as any[]}
       />
     </div>
   );

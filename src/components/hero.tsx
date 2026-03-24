@@ -34,7 +34,7 @@ export default function Hero() {
             
             <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-brand">
-                Kyroy Stilos
+                kairos Stylos
               </span>
             </h1>
 
@@ -46,7 +46,7 @@ export default function Hero() {
             </h2>
 
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              En Kyroy Stilos ofrecemos servicios de uñas, cabello y depilación con los más altos estándares de calidad
+              En kairos Stylos ofrecemos servicios de uñas, cabello y depilación con los más altos estándares de calidad
               y profesionalismo. Cada servicio es una experiencia de lujo y cuidado.
             </p>
 
@@ -82,7 +82,7 @@ export default function Hero() {
                 <div className="relative w-full h-full">
                   <Image
                     src="/sal-n-de-belleza-lujo-elegante-rosa-dorado.jpg"
-                    alt="Kyroy Stilos Salón de Belleza"
+                    alt="kairos Stylos Salón de Belleza"
                     fill
                     className="object-contain rounded-2xl shadow-xl"
                     priority

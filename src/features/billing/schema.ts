@@ -35,7 +35,7 @@ export const paymentDetailSchema = z.object({
 // Esquema principal de la factura
 export const invoiceSchema = z.object({
   FC_IDFACTURA_PK: z.number().optional(),
-  FC_NUMERO_FACTURA: z.string().optional().nullable(),
+  FC_NUMERO_FACTURA: z.string().regex(/^\d*$/, 'El número de factura debe ser numérico').optional().nullable(),
   FC_FECHA: z.date().default(() => new Date()),
   FC_TIPO_CLIENTE: z.enum(['CLIENTE', 'TECNICO']).default('CLIENTE'),
   TR_IDCLIENTE_FK: z.number().optional().nullable(),

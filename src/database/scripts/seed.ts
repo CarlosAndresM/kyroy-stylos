@@ -4,11 +4,7 @@ import mysql from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 
 // Cargar variables de entorno
-if (fs.existsSync('env.local')) {
-  dotenv.config({ path: 'env.local' });
-} else {
-  dotenv.config();
-}
+dotenv.config();
 
 const DB_CONFIG = {
   host: process.env.DB_HOST,
@@ -25,20 +21,20 @@ async function seed() {
 
   try {
     const seedsDir = path.join(process.cwd(), 'src/database/seeds');
-    
+
     if (!fs.existsSync(seedsDir)) {
       console.log('❌ No existe el directorio de seeds.');
       return;
     }
 
     const files = fs.readdirSync(seedsDir).sort();
-    
+
     for (const file of files) {
       if (!file.endsWith('.sql')) continue;
-      
+
       console.log(`- Aplicando seed: ${file}...`);
       const sql = fs.readFileSync(path.join(seedsDir, file), 'utf8');
-      
+
       // Separar por ; pero ignorar si está dentro de comillas (simplificado)
       const statements = sql
         .split(';')

@@ -5,7 +5,7 @@ import { getCurrentUserSession } from "@/features/dashboard/services";
 import { DashboardBanner } from "@/components/layout/dashboard-banner";
 
 export const metadata: Metadata = {
-  title: "Trabajadores | Kyros Stilos",
+  title: "Trabajadores | kairos Stylos",
   description: "Gestión de personal y técnicos",
 };
 

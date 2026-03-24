@@ -223,7 +223,7 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
             <div className="relative size-10 flex-shrink-0 animate-in fade-in zoom-in duration-500"> {/* Reduced size from 12 to 10 */}
               <Image
                 src="/LOGO.png"
-                alt="Kyroy Stilos Logo"
+                alt="kairos Stylos Logo"
                 fill
                 className="object-contain"
                 priority
@@ -232,7 +232,7 @@ export function Sidebar({ role = 'ADMINISTRADOR_TOTAL' }: SidebarProps) {
             {!isCollapsed && (
               <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
                 <span className="text-base font-bold tracking-tight text-white leading-tight"> {/* Reduced text size from lg to base */}
-                  Kyroy Stilos
+                  kairos Stylos
                 </span>
                 <span className="text-[9px] uppercase tracking-widest text-[#FF7E5F] font-black"> {/* Reduced from 10px to 9px */}
                   by Karen Ovalle

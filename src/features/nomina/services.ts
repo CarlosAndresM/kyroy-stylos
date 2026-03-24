@@ -319,9 +319,11 @@ export async function getNominaByRange(startDate: Date, endDate: Date, type: str
 
     const nomina = rows[0];
     const [details]: any = await db.query(
-      `SELECT nd.*, t.TR_NOMBRE 
+      `SELECT nd.*, t.TR_NOMBRE, t.TR_TELEFONO, s.SC_NOMBRE, r.RL_NOMBRE
        FROM KS_NOMINA_DETALLES nd
        JOIN KS_TRABAJADORES t ON nd.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
+       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
+       LEFT JOIN KS_SUCURSALES s ON t.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
        WHERE nd.NM_IDNOMINA_FK = ?`,
       [nomina.NM_IDNOMINA_PK]
     );
@@ -368,25 +370,7 @@ export async function deleteNomina(nominaId: number): Promise<ApiResponse> {
   }
 }
 
-/**
- * Obtener todos los trabajadores seleccionables para nómina (Excluyendo administrativos)
- */
-export async function getPayrollWorkers(role: string = 'TECNICO'): Promise<ApiResponse<any[]>> {
-  try {
-    const [rows]: any = await db.execute(`
-      SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE, t.TR_TELEFONO, s.SC_NOMBRE
-      FROM KS_TRABAJADORES t
-      JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
-      LEFT JOIN KS_SUCURSALES s ON t.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
-      WHERE t.TR_ACTIVO = TRUE 
-      AND r.RL_NOMBRE = ?
-      ORDER BY t.TR_NOMBRE ASC
-    `, [role]);
-    return { success: true, data: rows };
-  } catch (error) {
-    return { success: false, data: null, error: "Error al obtener trabajadores para nómina" };
-  }
-}
+
 
 /**
  * Procesar la nómina para administrativos con salarios manuales.
@@ -480,6 +464,55 @@ export async function procesarNominaAdmins(data: {
     return { success: false, error: "Error al procesar la nómina de administradores" };
   } finally {
     if (connection) connection.release();
+  }
+}
+
+/**
+ * Obtener trabajadores para nómina con su sueldo base y otros datos
+ */
+export async function getPayrollWorkers(role: string = 'TECNICO'): Promise<ApiResponse> {
+  try {
+    const [rows]: any = await db.query(
+      `SELECT t.TR_IDTRABAJADOR_PK, t.TR_NOMBRE, t.TR_TELEFONO, s.SC_NOMBRE
+       FROM KS_TRABAJADORES t
+       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
+       LEFT JOIN KS_SUCURSALES s ON t.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
+       WHERE r.RL_NOMBRE = ? AND t.TR_ACTIVO = 1`,
+      [role]
+    );
+
+    return { success: true, data: rows };
+  } catch (error) {
+    console.error("Error getPayrollWorkers:", error);
+    return { success: false, error: "Error al obtener trabajadores" };
+  }
+}
+
+/**
+ * Obtener el detalle de facturas y servicios que generaron comisiones para un trabajador
+ */
+export async function getNominaAudit(workerId: number, startDate: Date, endDate: Date): Promise<ApiResponse> {
+  try {
+    const [rows]: any = await db.query(
+      `SELECT 
+        f.FC_IDFACTURA_PK, 
+        f.FC_FECHA, 
+        pf.PF_TIPO_ITEM, 
+        pf.PF_DESCRIPCION, 
+        pf.PF_TOTAL_ITEM, 
+        pf.PF_COMISION_VALOR
+       FROM KS_PAGOS_FACTURA pf
+       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       WHERE pf.TR_IDTRABAJADOR_FK = ? 
+       AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?)
+       ORDER BY f.FC_FECHA DESC`,
+      [workerId, startDate, endDate]
+    );
+
+    return { success: true, data: rows };
+  } catch (error) {
+    console.error("Error getNominaAudit:", error);
+    return { success: false, error: "Error al obtener auditoría" };
   }
 }
 
