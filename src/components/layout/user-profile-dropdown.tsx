@@ -46,7 +46,8 @@ export function UserProfileDropdown({ userName, userRole }: UserProfileDropdownP
   }
 
   const handleSupport = () => {
-    window.open('https://wa.me/573150473763', '_blank')
+    const message = encodeURIComponent(`Hola, soy ${userName} y necesito soporte técnico.`)
+    window.open(`https://api.whatsapp.com/send?phone=573150473763&text=${message}`, '_blank')
   }
 
   return (
