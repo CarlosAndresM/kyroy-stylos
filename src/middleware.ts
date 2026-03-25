@@ -1,29 +1,47 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { decrypt } from '@/lib/jwt-utils';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Extraemos la cookie generada por la API de Login
-  const sessionUser = request.cookies.get('session_user')?.value;
+  const token = request.cookies.get('session_user')?.value;
 
   // 1. Protección del frontend (cualquier ruta bajo /dashboard)
   if (pathname.startsWith('/dashboard')) {
-    if (!sessionUser) {
-      // Redirigir al inicio o login
+    if (!token) {
+      return NextResponse.redirect(new URL('/auth/login', request.url));
+    }
+
+    const payload = await decrypt(token);
+    if (!payload) {
       return NextResponse.redirect(new URL('/auth/login', request.url));
     }
   }
 
   // 2. Protección de la API (cualquier ruta /api excepto las de auth)
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
-    if (!sessionUser) {
+    if (!token) {
       return NextResponse.json(
-        { 
-          success: false, 
-          data: null, 
-          error: 'No autorizado', 
-          meta: {} 
+        {
+          success: false,
+          data: null,
+          error: 'No autorizado',
+          meta: {}
+        },
+        { status: 401 }
+      );
+    }
+
+    const payload = await decrypt(token);
+    if (!payload) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'Token inválido',
+          meta: {}
         },
         { status: 401 }
       );
@@ -31,8 +49,9 @@ export function middleware(request: NextRequest) {
   }
 
   // 3. Comodidad: Si está logueado y abre la ruta base de la landing (sin ser una petición RSC interna de Next)
-  if (pathname === '/' && sessionUser) {
-    if (!request.headers.has('rsc') && !request.headers.has('next-router-prefetch')) {
+  if (pathname === '/' && token) {
+    const payload = await decrypt(token);
+    if (payload && !request.headers.has('rsc') && !request.headers.has('next-router-prefetch')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
@@ -48,7 +67,7 @@ export function middleware(request: NextRequest) {
  */
 export const config = {
   matcher: [
-    '/dashboard/:path*', 
+    '/dashboard/:path*',
     '/api/:path*',
     '/'
   ],

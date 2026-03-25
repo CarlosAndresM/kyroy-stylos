@@ -1,12 +1,11 @@
 import mysql from 'mysql2/promise';
 import { env } from '@/lib/env';
 
-// Singleton para el pool de conexiones para evitar fugas en desarrollo
 const globalForDb = global as unknown as {
   db: mysql.Pool | undefined;
 }
 
-export const db = globalForDb.db ?? mysql.createPool({
+const pool = globalForDb.db ?? mysql.createPool({
   host: env.DB_HOST,
   user: env.DB_USER,
   password: env.DB_PASSWORD,
@@ -19,4 +18,23 @@ export const db = globalForDb.db ?? mysql.createPool({
   keepAliveInitialDelay: 0,
 });
 
-if (process.env.NODE_ENV !== 'production') globalForDb.db = db;
+if (process.env.NODE_ENV !== 'production') globalForDb.db = pool;
+
+// --- AQUÍ ESTÁ EL TRUCO ---
+// Creamos un objeto que imita al pool pero intercepta el SQL
+export const db = {
+  ...pool,
+  execute: async (sql: string, params?: any) => {
+    // Esta regex busca nombres de tablas en MAYÚSCULAS y los pasa a minúsculas
+    const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
+      return `${op} ${table.toLowerCase()}`;
+    });
+    return pool.execute(fixedSql, params);
+  },
+  query: async (sql: string, params?: any) => {
+    const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
+      return `${op} ${table.toLowerCase()}`;
+    });
+    return pool.query(fixedSql, params);
+  }
+} as mysql.Pool;

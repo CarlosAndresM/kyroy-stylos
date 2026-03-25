@@ -1,128 +1,102 @@
-'use server'
-
 import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
-import { WorkerFormData, WorkerWithStats } from "@/features/trabajadores/schema";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { hashPassword, comparePassword, isHashed } from "@/lib/auth-utils";
+import { comparePassword, hashPassword } from "@/lib/password-utils";
+import { decrypt } from "@/lib/jwt-utils";
 
 /**
- * TRABAJADORES
+ * Obtener todos los trabajadores y sus cargos
  */
-
-export async function getTrabajadores(sucursalId?: number): Promise<ApiResponse<WorkerWithStats[]>> {
+export async function getTrabajadores(): Promise<ApiResponse> {
   try {
-    const params: any[] = [];
-    let query = `
-      SELECT 
-        t.TR_IDTRABAJADOR_PK, 
-        t.TR_NOMBRE, 
-        t.TR_TELEFONO, 
-        t.TR_ACTIVO, 
-        t.RL_IDROL_FK, 
-        r.RL_NOMBRE,
-        t.SC_IDSUCURSAL_FK,
-        s.SC_NOMBRE,
-        (
-          SELECT COUNT(*) 
-          FROM KS_FACTURA_DETALLES fd 
-          WHERE fd.TR_IDTECNICO_FK = t.TR_IDTRABAJADOR_PK
-        ) + (
-          SELECT COUNT(*) 
-          FROM KS_FACTURA_PRODUCTOS fp 
-          WHERE fp.TR_IDTECNICO_FK = t.TR_IDTRABAJADOR_PK
-        ) as servicios_count,
-        IFNULL((
-          SELECT SUM(st.ST_VALOR_TOTAL) 
-          FROM KS_SERVICIOS_TRABAJADOR st 
-          WHERE st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-        ), 0) as total_vales,
-        (
-          SELECT COUNT(*) 
-          FROM KS_SERVICIOS_TRABAJADOR st 
-          WHERE st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK AND st.ST_ESTADO = 'PENDIENTE'
-        ) as vales_pendientes
-      FROM KS_TRABAJADORES t
-      JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
-      LEFT JOIN KS_SUCURSALES s ON t.SC_IDSUCURSAL_FK = s.SC_IDSUCURSAL_PK
-      WHERE 1=1
-    `;
-
-    if (sucursalId) {
-      query += ` AND t.SC_IDSUCURSAL_FK = ?`;
-      params.push(sucursalId);
-    }
-
-    query += ` ORDER BY t.TR_NOMBRE ASC`;
-
-    const [rows] = await db.execute(query, params);
-
-
-    // Convert TINYINT (0/1) from MySQL to Boolean
-    const workers = (rows as any[]).map(t => ({
-      ...t,
-      TR_ACTIVO: !!t.TR_ACTIVO,
-      servicios_count: Number(t.servicios_count || 0),
-      total_vales: Number(t.total_vales || 0),
-      vales_pendientes: Number(t.vales_pendientes || 0)
-    }));
-
-    return { success: true, data: workers, error: null };
+    const [rows] = await db.execute(`
+      SELECT t.*, r.rl_nombre as tr_cargo_nombre, s.sc_nombre as tr_sede_nombre
+      FROM ks_trabajadores t
+      LEFT JOIN ks_roles r ON t.rl_idrol_fk = r.rl_idrol_pk
+      LEFT JOIN ks_sucursales s ON t.sc_idsucursal_fk = s.sc_idsucursal_pk
+      ORDER BY t.tr_nombre ASC
+    `);
+    return { success: true, data: rows, error: null };
   } catch (error) {
     console.error("Error fetching trabajadores:", error);
-    return { success: false, data: null, error: "Error al obtener los trabajadores" };
+    return { success: false, data: null, error: "Error al obtener la lista de trabajadores" };
   }
 }
 
-export async function saveTrabajador(data: WorkerFormData): Promise<ApiResponse> {
+/**
+ * Obtener los roles disponibles para asignar a trabajadores
+ */
+export async function getRoles(): Promise<ApiResponse> {
   try {
-    if (data.TR_IDTRABAJADOR_PK) {
+    const [rows] = await db.execute("SELECT * FROM ks_roles ORDER BY rl_nombre ASC");
+    return { success: true, data: rows, error: null };
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    return { success: false, data: null, error: "Error al obtener la lista de roles" };
+  }
+}
+
+/**
+ * Obtener las sedes (sucursales) disponibles
+ */
+export async function getSedes(): Promise<ApiResponse> {
+  try {
+    const [rows] = await db.execute("SELECT * FROM ks_sucursales ORDER BY sc_nombre ASC");
+    return { success: true, data: rows, error: null };
+  } catch (error) {
+    console.error("Error fetching sedes:", error);
+    return { success: false, data: null, error: "Error al obtener la lista de sedes" };
+  }
+}
+
+/**
+ * Guardar o actualizar un trabajador
+ */
+export async function saveWorker(formData: FormData): Promise<ApiResponse> {
+  const id = formData.get("id");
+  const nombre = formData.get("nombre") as string;
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string;
+  const cargoId = formData.get("cargoId");
+  const sedeId = formData.get("sedeId");
+  const activo = formData.get("activo") === "true" ? 1 : 0;
+
+  try {
+    if (id) {
       // Update
-      if (data.TR_PASSWORD && data.TR_PASSWORD.trim() !== '') {
-        const hashedPassword = await hashPassword(data.TR_PASSWORD);
+      if (password && password.trim() !== "") {
+        const hashedPassword = await hashPassword(password);
         await db.execute(
-          `UPDATE KS_TRABAJADORES 
-           SET TR_NOMBRE = ?, TR_TELEFONO = ?, TR_PASSWORD = ?, TR_ACTIVO = ?, RL_IDROL_FK = ?, SC_IDSUCURSAL_FK = ? 
-           WHERE TR_IDTRABAJADOR_PK = ?`,
-          [data.TR_NOMBRE, data.TR_TELEFONO || '', hashedPassword, data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null, data.TR_IDTRABAJADOR_PK] as any[]
+          "UPDATE ks_trabajadores SET tr_nombre = ?, tr_username = ?, tr_password = ?, rl_idrol_fk = ?, sc_idsucursal_fk = ?, tr_activo = ? WHERE tr_idtrabajador_pk = ?",
+          [nombre, username, hashedPassword, cargoId, sedeId, activo, id]
         );
       } else {
         await db.execute(
-          `UPDATE KS_TRABAJADORES 
-           SET TR_NOMBRE = ?, TR_TELEFONO = ?, TR_ACTIVO = ?, RL_IDROL_FK = ?, SC_IDSUCURSAL_FK = ?
-           WHERE TR_IDTRABAJADOR_PK = ?`,
-          [data.TR_NOMBRE, data.TR_TELEFONO || '', data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null, data.TR_IDTRABAJADOR_PK] as any[]
+          "UPDATE ks_trabajadores SET tr_nombre = ?, tr_username = ?, rl_idrol_fk = ?, sc_idsucursal_fk = ?, tr_activo = ? WHERE tr_idtrabajador_pk = ?",
+          [nombre, username, cargoId, sedeId, activo, id]
         );
       }
     } else {
-      // Create
-      const hashedPassword = await hashPassword(data.TR_PASSWORD || '123456');
+      // Create new
+      const hashedPassword = await hashPassword(password || "123456");
       await db.execute(
-        `INSERT INTO KS_TRABAJADORES (TR_NOMBRE, TR_TELEFONO, TR_PASSWORD, TR_ACTIVO, RL_IDROL_FK, SC_IDSUCURSAL_FK) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [data.TR_NOMBRE, data.TR_TELEFONO || '', hashedPassword, data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null] as any[]
+        "INSERT INTO ks_trabajadores (tr_nombre, tr_username, tr_password, rl_idrol_fk, sc_idsucursal_fk, tr_activo) VALUES (?, ?, ?, ?, ?, ?)",
+        [nombre, username, hashedPassword, cargoId, sedeId, activo]
       );
     }
+
     revalidatePath("/dashboard/trabajadores");
     return { success: true, data: null, error: null };
   } catch (error) {
-    console.error("Error saving trabajador:", error);
+    console.error("Error saving worker:", error);
     return { success: false, data: null, error: "Error al guardar el trabajador" };
   }
 }
 
-export async function toggleWorkerStatus(id: number, active: boolean): Promise<ApiResponse> {
-  try {
-    await db.execute("UPDATE KS_TRABAJADORES SET TR_ACTIVO = ? WHERE TR_IDTRABAJADOR_PK = ?", [active, id]);
-    revalidatePath("/dashboard/trabajadores");
-    return { success: true, data: null, error: null };
-  } catch (error) {
-    console.error("Error toggling status:", error);
-    return { success: false, data: null, error: "Error al cambiar el estado del trabajador" };
-  }
-}
-
+/**
+ * Eliminar un trabajador (con validación de contraseña admin)
+ */
 export async function deleteWorker(workerId: number, adminPassword: string): Promise<ApiResponse> {
   try {
     // 1. Get current admin from cookies
@@ -130,156 +104,120 @@ export async function deleteWorker(workerId: number, adminPassword: string): Pro
     const sessionUser = cookieStore.get("session_user");
     if (!sessionUser) return { success: false, data: null, error: "No hay sesión activa" };
 
-    const user = JSON.parse(sessionUser.value);
+    const decoded = await decrypt(sessionUser.value);
+    if (!decoded || decoded.role !== 'ADMINISTRADOR_TOTAL') {
+      return { success: false, data: null, error: "No tienes permisos de administrador para realizar esta acción" };
+    }
 
-    // 2. Verify if the provided password belongs to ANY administrator (supporting lazy migration)
-    const [adminRows] = await db.execute(
-      `SELECT T.TR_IDTRABAJADOR_PK, T.TR_PASSWORD 
-       FROM KS_TRABAJADORES T
-       JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'`
+    // 2. Verify admin password
+    const [admins]: any = await db.execute(
+      `SELECT t.tr_idtrabajador_pk, t.tr_password 
+         FROM ks_trabajadores t
+         JOIN ks_roles r ON t.rl_idrol_fk = r.rl_idrol_pk
+         WHERE r.rl_nombre = 'ADMINISTRADOR_TOTAL'`
     );
-    const admins = adminRows as any[];
-    let isAdminVerified = false;
 
+    let isValidAdmin = false;
     for (const admin of admins) {
-      if (isHashed(admin.TR_PASSWORD)) {
-        if (await comparePassword(adminPassword, admin.TR_PASSWORD)) {
-          isAdminVerified = true;
-          break;
-        }
-      } else if (adminPassword === admin.TR_PASSWORD) {
-        isAdminVerified = true;
-        // Lazy migration for admin
-        const newHash = await hashPassword(adminPassword);
-        await db.execute(
-          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
-          [newHash, admin.TR_IDTRABAJADOR_PK]
-        );
+      if (await comparePassword(adminPassword, admin.tr_password)) {
+        isValidAdmin = true;
         break;
       }
     }
 
-    if (!isAdminVerified) {
-      return { success: false, data: null, error: "Contraseña administrativa incorrecta" };
+    if (!isValidAdmin) {
+      return { success: false, data: null, error: "Contraseña de administrador incorrecta" };
     }
 
     // 3. Check for foreign key constraints manually (to provide better error messages)
-    const [facturas]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURAS WHERE TR_IDCAJERO_FK = ?", [workerId]);
-    const [detalles]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURA_DETALLES WHERE TR_IDTECNICO_FK = ?", [workerId]);
-    const [productos]: any = await db.execute("SELECT COUNT(*) as count FROM KS_FACTURA_PRODUCTOS WHERE TR_IDTECNICO_FK = ?", [workerId]);
-    const [vales]: any = await db.execute("SELECT COUNT(*) as count FROM KS_SERVICIOS_TRABAJADOR WHERE TR_IDTRABAJADOR_FK = ?", [workerId]);
+    const [facturas]: any = await db.execute("SELECT COUNT(*) as count FROM ks_facturas WHERE tr_idcajero_fk = ?", [workerId]);
+    if (facturas[0].count > 0) {
+      return { success: false, data: null, error: "No se puede eliminar porque este trabajador tiene facturas registradas" };
+    }
 
-    if (
-      facturas[0].count > 0 ||
-      detalles[0].count > 0 ||
-      productos[0].count > 0 ||
-      vales[0].count > 0
-    ) {
-      return {
-        success: false,
-        data: null,
-        error: "No se puede eliminar el trabajador porque tiene registros asociados (facturas, servicios o vales). Considere desactivarlo en su lugar."
-      };
+    const [servicios]: any = await db.execute("SELECT COUNT(*) as count FROM ks_servicio_trabajador WHERE tr_idtrabajador_fk = ?", [workerId]);
+    if (servicios[0].count > 0) {
+      return { success: false, data: null, error: "No se puede eliminar porque este trabajador tiene servicios realizados" };
     }
 
     // 4. Delete
-    await db.execute("DELETE FROM KS_TRABAJADORES WHERE TR_IDTRABAJADOR_PK = ?", [workerId]);
+    await db.execute("DELETE FROM ks_trabajadores WHERE tr_idtrabajador_pk = ?", [workerId]);
+
+    revalidatePath("/dashboard/trabajadores");
+    return { success: true, data: null, error: null };
+  } catch (error: any) {
+    console.error("Error deleting worker:", error);
+    return { success: false, data: null, error: error.message || "Error al eliminar el trabajador" };
+  }
+}
+
+/**
+ * Guardar o actualizar una sede
+ */
+export async function saveSede(formData: FormData): Promise<ApiResponse> {
+  const id = formData.get("id");
+  const nombre = formData.get("nombre") as string;
+  const direccion = formData.get("direccion") as string;
+  const ciudad = formData.get("ciudad") as string;
+  const activo = formData.get("activo") === "true" ? 1 : 0;
+
+  try {
+    if (id) {
+      await db.execute(
+        "UPDATE ks_sucursales SET sc_nombre = ?, sc_direccion = ?, sc_ciudad = ?, sc_activa = ? WHERE sc_idsucursal_pk = ?",
+        [nombre, direccion, ciudad, activo, id]
+      );
+    } else {
+      await db.execute(
+        "INSERT INTO ks_sucursales (sc_nombre, sc_direccion, sc_ciudad, sc_activa) VALUES (?, ?, ?, ?)",
+        [nombre, direccion, ciudad, activo]
+      );
+    }
 
     revalidatePath("/dashboard/trabajadores");
     return { success: true, data: null, error: null };
   } catch (error) {
-    console.error("Error deleting worker:", error);
-    return { success: false, data: null, error: "Error al eliminar el trabajador" };
-  }
-}
-
-export async function getRoles(): Promise<ApiResponse> {
-  try {
-    const [rows] = await db.execute("SELECT RL_IDROL_PK, RL_NOMBRE FROM KS_ROLES ORDER BY RL_NOMBRE ASC");
-    return { success: true, data: rows, error: null };
-  } catch (error) {
-    console.error("Error fetching roles:", error);
-    return { success: false, data: null, error: "Error al obtener los roles" };
-  }
-}
-
-export async function getSedes(): Promise<ApiResponse> {
-  try {
-    const [rows] = await db.execute("SELECT SC_IDSUCURSAL_PK, SC_NOMBRE, SC_DIRECCION FROM KS_SUCURSALES ORDER BY SC_NOMBRE ASC");
-    return { success: true, data: rows, error: null };
-  } catch (error) {
-    console.error("Error fetching sedes:", error);
-    return { success: false, data: null, error: "Error al obtener las sedes" };
-  }
-}
-
-export async function saveSede(data: { SC_IDSUCURSAL_PK?: number, SC_NOMBRE: string, SC_DIRECCION?: string | null }): Promise<ApiResponse> {
-  try {
-    if (data.SC_IDSUCURSAL_PK) {
-      await db.execute(
-        "UPDATE KS_SUCURSALES SET SC_NOMBRE = ?, SC_DIRECCION = ? WHERE SC_IDSUCURSAL_PK = ?",
-        [data.SC_NOMBRE, data.SC_DIRECCION || null, data.SC_IDSUCURSAL_PK]
-      );
-    } else {
-      await db.execute(
-        "INSERT INTO KS_SUCURSALES (SC_NOMBRE, SC_DIRECCION) VALUES (?, ?)",
-        [data.SC_NOMBRE, data.SC_DIRECCION || null]
-      );
-    }
-    revalidatePath("/dashboard/sedes");
-    return { success: true, data: null, error: null };
-  } catch (error) {
     console.error("Error saving sede:", error);
-    return { success: false, data: null, error: "Error al guardar la sucursal" };
+    return { success: false, data: null, error: "Error al guardar la sede" };
   }
 }
 
+/**
+ * Eliminar una sede (sucursal)
+ */
 export async function deleteSede(sedeId: number, adminPassword: string): Promise<ApiResponse> {
   try {
-    // 1. Verify admin password (supporting lazy migration)
-    const [adminRows] = await db.execute(
-      `SELECT T.TR_IDTRABAJADOR_PK, T.TR_PASSWORD
-       FROM KS_TRABAJADORES T
-       JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'`
+    // 1. Verify admin password
+    const [admins]: any = await db.execute(
+      `SELECT t.tr_idtrabajador_pk, t.tr_password
+       FROM ks_trabajadores t
+       JOIN ks_roles r ON t.rl_idrol_fk = r.rl_idrol_pk
+       WHERE r.rl_nombre = 'ADMINISTRADOR_TOTAL'`
     );
-    const admins = adminRows as any[];
-    let isAdminVerified = false;
 
+    let isValidAdmin = false;
     for (const admin of admins) {
-      if (isHashed(admin.TR_PASSWORD)) {
-        if (await comparePassword(adminPassword, admin.TR_PASSWORD)) {
-          isAdminVerified = true;
-          break;
-        }
-      } else if (adminPassword === admin.TR_PASSWORD) {
-        isAdminVerified = true;
-        // Lazy migration for admin
-        const newHash = await hashPassword(adminPassword);
-        await db.execute(
-          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
-          [newHash, admin.TR_IDTRABAJADOR_PK]
-        );
+      if (await comparePassword(adminPassword, admin.tr_password)) {
+        isValidAdmin = true;
         break;
       }
     }
 
-    if (!isAdminVerified) return { success: false, data: null, error: "Contraseña incorrecta" };
+    if (!isValidAdmin) return { success: false, data: null, error: "Contraseña incorrecta" };
 
     // 2. Check dependencies (workers associated with this branch)
-    const [workers]: any = await db.execute("SELECT COUNT(*) as count FROM KS_TRABAJADORES WHERE SC_IDSUCURSAL_FK = ?", [sedeId]);
+    const [workers]: any = await db.execute("SELECT COUNT(*) as count FROM ks_trabajadores WHERE sc_idsucursal_fk = ?", [sedeId]);
     if (workers[0].count > 0) {
       return { success: false, data: null, error: "No se puede eliminar porque hay trabajadores asociados a esta sede" };
     }
 
     // 3. Delete
-    await db.execute("DELETE FROM KS_SUCURSALES WHERE SC_IDSUCURSAL_PK = ?", [sedeId]);
+    await db.execute("DELETE FROM ks_sucursales WHERE sc_idsucursal_pk = ?", [sedeId]);
 
-    revalidatePath("/dashboard/sedes");
+    revalidatePath("/dashboard/trabajadores");
     return { success: true, data: null, error: null };
   } catch (error) {
     console.error("Error deleting sede:", error);
-    return { success: false, data: null, error: "Error al eliminar la sucursal" };
+    return { success: false, data: null, error: "Error al eliminar la sede" };
   }
 }

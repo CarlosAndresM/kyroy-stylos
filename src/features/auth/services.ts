@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { LoginFormData } from "@/features/auth/schema";
 import { cookies } from "next/headers";
-import { hashPassword, comparePassword, isHashed } from "@/lib/auth-utils";
+import { hashPassword, comparePassword, isHashed } from "@/lib/password-utils";
+import { encrypt } from "@/lib/jwt-utils";
 
 export async function login(data: LoginFormData): Promise<ApiResponse> {
   try {
@@ -10,10 +11,10 @@ export async function login(data: LoginFormData): Promise<ApiResponse> {
 
     // 1. Fetch user by username only
     const [rows] = await db.execute(
-      `SELECT T.*, R.RL_NOMBRE 
-       FROM KS_TRABAJADORES T
-       JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE T.TR_NOMBRE = ? AND T.TR_ACTIVO = 1`,
+      `SELECT t.*, r.rl_nombre 
+       FROM ks_trabajadores t
+       JOIN ks_roles r ON t.rl_idrol_fk = r.rl_idrol_pk
+       WHERE t.tr_nombre = ? AND t.tr_activo = 1`,
       [data.username]
     );
 
@@ -28,45 +29,27 @@ export async function login(data: LoginFormData): Promise<ApiResponse> {
     }
 
     const worker = workers[0];
-    const storedPassword = worker.TR_PASSWORD;
-    let isPasswordCorrect = false;
-
-    // 2. Check if stored password is hashed
-    if (isHashed(storedPassword)) {
-      isPasswordCorrect = await comparePassword(data.password, storedPassword);
-    } else {
-      // Lazy migration: if not hashed, compare directly
-      isPasswordCorrect = data.password === storedPassword;
-
-      if (isPasswordCorrect) {
-        // Migrating: hash it and update the database
-        const newHash = await hashPassword(data.password);
-        await db.execute(
-          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
-          [newHash, worker.TR_IDTRABAJADOR_PK]
-        );
-        console.log(`Password migrated for user: ${data.username}`);
-      }
-    }
+    const storedPassword = worker.tr_password;
+    // 1. Password verification
+    const isPasswordCorrect = await comparePassword(data.password, worker.tr_password);
 
     if (!isPasswordCorrect) {
-      return {
-        success: false,
-        data: null,
-        error: "Usuario o contraseña incorrectos",
-      };
+      return { success: false, data: null, error: "Credenciales inválidas" };
     }
 
     const user = {
-      id: worker.TR_IDTRABAJADOR_PK,
-      username: worker.TR_NOMBRE,
-      role: worker.RL_NOMBRE,
-      branchId: worker.SC_IDSUCURSAL_FK,
+      id: worker.tr_idtrabajador_pk,
+      username: worker.tr_nombre,
+      role: worker.rl_nombre,
+      branchId: worker.sc_idsucursal_fk,
     };
+
+    // Encrypt token with jose
+    const token = await encrypt(user);
 
     // Set session cookie
     const cookieStore = await cookies();
-    cookieStore.set("session_user", JSON.stringify(user), {
+    cookieStore.set("session_user", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7, // 1 week
