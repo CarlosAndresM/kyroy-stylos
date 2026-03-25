@@ -2,6 +2,7 @@ import { getUnifiedExpenses } from "@/features/gastos/services";
 import { ExpenseClient } from "@/features/gastos/expense-client";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { decrypt } from "@/lib/jwt-utils";
 
 export default async function GastosPage() {
   const [expensesRes, cookieStore] = await Promise.all([
@@ -14,7 +15,7 @@ export default async function GastosPage() {
     redirect("/auth/login");
   }
 
-  const user = JSON.parse(sessionUser.value);
+  const user = await decrypt(sessionUser.value);
 
   return (
     <div className="p-4 md:p-8">

@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { cookies } from "next/headers";
+import { decrypt } from "@/lib/jwt-utils";
 
 export async function getDashboardStats(sucursalId: number, dateFrom: string, dateTo: string): Promise<ApiResponse> {
   try {
@@ -244,7 +245,9 @@ export async function getCurrentUserSession(): Promise<ApiResponse> {
     const cookieStore = await cookies();
     const sessionUser = cookieStore.get("session_user");
     if (!sessionUser) return { success: false, data: null, error: "No hay sesión activa" };
-    return { success: true, data: JSON.parse(sessionUser.value), error: null };
+
+    const payload = await decrypt(sessionUser.value);
+    return { success: true, data: payload, error: null };
   } catch (error) {
     return { success: false, data: null, error: "Error al obtener sesión" };
   }

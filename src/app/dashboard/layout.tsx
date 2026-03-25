@@ -4,6 +4,7 @@ import { Bell, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cookies } from 'next/headers'
+import { decrypt } from '@/lib/jwt-utils'
 
 export default async function DashboardLayout({
   children,
@@ -14,13 +15,9 @@ export default async function DashboardLayout({
   const sessionUser = cookieStore.get('session_user')
   let user = null
   if (sessionUser && sessionUser.value) {
-    try {
-      user = JSON.parse(sessionUser.value)
-    } catch (e) {
-      console.error("Error parsing session_user cookie:", e)
-    }
+    user = await decrypt(sessionUser.value);
   }
-  
+
   const userRole = user?.role || 'INVITADO'
   const userName = user?.username || 'Usuario'
 
@@ -44,7 +41,7 @@ export default async function DashboardLayout({
               <Bell className="size-5 text-slate-500" />
               <span className="absolute top-2 right-2 size-2 bg-[#FF7E5F] rounded-full border-2 border-white dark:border-slate-900" />
             </Button>
-            
+
             <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-1 md:mx-2" />
 
             <UserProfileDropdown userName={userName} userRole={userRole} />
@@ -56,7 +53,7 @@ export default async function DashboardLayout({
           {/* Subtle Background Glows */}
           <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-br from-[#FF7E5F]/5 to-transparent blur-3xl -z-10 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-[#FEB47B]/5 to-transparent blur-3xl -z-10 pointer-events-none" />
-          
+
           <div className="max-w-7xl mx-auto space-y-4 md:space-y-8">
             {children}
           </div>
