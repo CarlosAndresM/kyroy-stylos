@@ -1,19 +1,20 @@
-'use server'
 import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { LoginFormData } from "@/features/auth/schema";
 import { cookies } from "next/headers";
+import { hashPassword, comparePassword, isHashed } from "@/lib/auth-utils";
 
 export async function login(data: LoginFormData): Promise<ApiResponse> {
   try {
     console.log("Login attempt with:", data.username);
 
+    // 1. Fetch user by username only
     const [rows] = await db.execute(
       `SELECT T.*, R.RL_NOMBRE 
        FROM KS_TRABAJADORES T
        JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE T.TR_NOMBRE = ? AND T.TR_PASSWORD = ? AND T.TR_ACTIVO = 1`,
-      [data.username, data.password]
+       WHERE T.TR_NOMBRE = ? AND T.TR_ACTIVO = 1`,
+      [data.username]
     );
 
     const workers = rows as any[];
@@ -27,6 +28,35 @@ export async function login(data: LoginFormData): Promise<ApiResponse> {
     }
 
     const worker = workers[0];
+    const storedPassword = worker.TR_PASSWORD;
+    let isPasswordCorrect = false;
+
+    // 2. Check if stored password is hashed
+    if (isHashed(storedPassword)) {
+      isPasswordCorrect = await comparePassword(data.password, storedPassword);
+    } else {
+      // Lazy migration: if not hashed, compare directly
+      isPasswordCorrect = data.password === storedPassword;
+
+      if (isPasswordCorrect) {
+        // Migrating: hash it and update the database
+        const newHash = await hashPassword(data.password);
+        await db.execute(
+          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
+          [newHash, worker.TR_IDTRABAJADOR_PK]
+        );
+        console.log(`Password migrated for user: ${data.username}`);
+      }
+    }
+
+    if (!isPasswordCorrect) {
+      return {
+        success: false,
+        data: null,
+        error: "Usuario o contraseña incorrectos",
+      };
+    }
+
     const user = {
       id: worker.TR_IDTRABAJADOR_PK,
       username: worker.TR_NOMBRE,

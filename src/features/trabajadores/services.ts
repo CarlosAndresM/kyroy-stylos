@@ -5,6 +5,7 @@ import { ApiResponse } from "@/lib/api-response";
 import { WorkerFormData, WorkerWithStats } from "@/features/trabajadores/schema";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { hashPassword, comparePassword, isHashed } from "@/lib/auth-utils";
 
 /**
  * TRABAJADORES
@@ -79,11 +80,12 @@ export async function saveTrabajador(data: WorkerFormData): Promise<ApiResponse>
     if (data.TR_IDTRABAJADOR_PK) {
       // Update
       if (data.TR_PASSWORD && data.TR_PASSWORD.trim() !== '') {
+        const hashedPassword = await hashPassword(data.TR_PASSWORD);
         await db.execute(
           `UPDATE KS_TRABAJADORES 
            SET TR_NOMBRE = ?, TR_TELEFONO = ?, TR_PASSWORD = ?, TR_ACTIVO = ?, RL_IDROL_FK = ?, SC_IDSUCURSAL_FK = ? 
            WHERE TR_IDTRABAJADOR_PK = ?`,
-          [data.TR_NOMBRE, data.TR_TELEFONO || '', data.TR_PASSWORD || '', data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null, data.TR_IDTRABAJADOR_PK] as any[]
+          [data.TR_NOMBRE, data.TR_TELEFONO || '', hashedPassword, data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null, data.TR_IDTRABAJADOR_PK] as any[]
         );
       } else {
         await db.execute(
@@ -95,10 +97,11 @@ export async function saveTrabajador(data: WorkerFormData): Promise<ApiResponse>
       }
     } else {
       // Create
+      const hashedPassword = await hashPassword(data.TR_PASSWORD || '123456');
       await db.execute(
         `INSERT INTO KS_TRABAJADORES (TR_NOMBRE, TR_TELEFONO, TR_PASSWORD, TR_ACTIVO, RL_IDROL_FK, SC_IDSUCURSAL_FK) 
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [data.TR_NOMBRE, data.TR_TELEFONO || '', data.TR_PASSWORD || '123456', data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null] as any[]
+        [data.TR_NOMBRE, data.TR_TELEFONO || '', hashedPassword, data.TR_ACTIVO, data.RL_IDROL_FK, data.SC_IDSUCURSAL_FK || null] as any[]
       );
     }
     revalidatePath("/dashboard/trabajadores");
@@ -129,17 +132,35 @@ export async function deleteWorker(workerId: number, adminPassword: string): Pro
 
     const user = JSON.parse(sessionUser.value);
 
-    // 2. Verify if the provided password belongs to ANY administrator
+    // 2. Verify if the provided password belongs to ANY administrator (supporting lazy migration)
     const [adminRows] = await db.execute(
-      `SELECT T.TR_IDTRABAJADOR_PK 
+      `SELECT T.TR_IDTRABAJADOR_PK, T.TR_PASSWORD 
        FROM KS_TRABAJADORES T
        JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE T.TR_PASSWORD = ? AND R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'
-       LIMIT 1`,
-      [adminPassword]
+       WHERE R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'`
     );
     const admins = adminRows as any[];
-    if (admins.length === 0) {
+    let isAdminVerified = false;
+
+    for (const admin of admins) {
+      if (isHashed(admin.TR_PASSWORD)) {
+        if (await comparePassword(adminPassword, admin.TR_PASSWORD)) {
+          isAdminVerified = true;
+          break;
+        }
+      } else if (adminPassword === admin.TR_PASSWORD) {
+        isAdminVerified = true;
+        // Lazy migration for admin
+        const newHash = await hashPassword(adminPassword);
+        await db.execute(
+          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
+          [newHash, admin.TR_IDTRABAJADOR_PK]
+        );
+        break;
+      }
+    }
+
+    if (!isAdminVerified) {
       return { success: false, data: null, error: "Contraseña administrativa incorrecta" };
     }
 
@@ -216,17 +237,35 @@ export async function saveSede(data: { SC_IDSUCURSAL_PK?: number, SC_NOMBRE: str
 
 export async function deleteSede(sedeId: number, adminPassword: string): Promise<ApiResponse> {
   try {
-    // 1. Verify admin password
+    // 1. Verify admin password (supporting lazy migration)
     const [adminRows] = await db.execute(
-      `SELECT T.TR_IDTRABAJADOR_PK 
+      `SELECT T.TR_IDTRABAJADOR_PK, T.TR_PASSWORD
        FROM KS_TRABAJADORES T
        JOIN KS_ROLES R ON T.RL_IDROL_FK = R.RL_IDROL_PK
-       WHERE T.TR_PASSWORD = ? AND R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'
-       LIMIT 1`,
-      [adminPassword]
+       WHERE R.RL_NOMBRE = 'ADMINISTRADOR_TOTAL'`
     );
     const admins = adminRows as any[];
-    if (admins.length === 0) return { success: false, data: null, error: "Contraseña incorrecta" };
+    let isAdminVerified = false;
+
+    for (const admin of admins) {
+      if (isHashed(admin.TR_PASSWORD)) {
+        if (await comparePassword(adminPassword, admin.TR_PASSWORD)) {
+          isAdminVerified = true;
+          break;
+        }
+      } else if (adminPassword === admin.TR_PASSWORD) {
+        isAdminVerified = true;
+        // Lazy migration for admin
+        const newHash = await hashPassword(adminPassword);
+        await db.execute(
+          "UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?",
+          [newHash, admin.TR_IDTRABAJADOR_PK]
+        );
+        break;
+      }
+    }
+
+    if (!isAdminVerified) return { success: false, data: null, error: "Contraseña incorrecta" };
 
     // 2. Check dependencies (workers associated with this branch)
     const [workers]: any = await db.execute("SELECT COUNT(*) as count FROM KS_TRABAJADORES WHERE SC_IDSUCURSAL_FK = ?", [sedeId]);
