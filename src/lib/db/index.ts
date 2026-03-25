@@ -22,17 +22,19 @@ if (process.env.NODE_ENV !== 'production') globalForDb.db = pool;
 
 // --- AQUÍ ESTÁ EL TRUCO ---
 // Creamos un objeto que imita al pool pero intercepta el SQL y normaliza los resultados
-export const db = {
+const poolProxy = {
   ...pool,
-  execute: async (sql: string, params?: any) => {
+  execute: async (sql: any, params?: any): Promise<[any, any]> => {
     // 1. Normalizar SQL para nombres de tabla en minúsculas (compatibilidad Linux)
-    const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
-      // Evitar tocar palabras reservadas o funciones
-      if (['SET', 'SELECT', 'WHERE', 'AND', 'DESC', 'ASC', 'VALUES'].includes(table.toUpperCase())) return match;
-      return `${op} ${table.toLowerCase()}`;
-    });
+    if (typeof sql === 'string') {
+      const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
+        if (['SET', 'SELECT', 'WHERE', 'AND', 'DESC', 'ASC', 'VALUES'].includes(table.toUpperCase())) return match;
+        return `${op} ${table.toLowerCase()}`;
+      });
+      sql = fixedSql;
+    }
 
-    const [rows, fields] = await pool.execute(fixedSql, params);
+    const [rows, fields] = await pool.execute(sql, params);
 
     // 2. Normalizar las keys de los resultados a minúsculas MANTENIENDO las originales para compatibilidad
     if (Array.isArray(rows)) {
@@ -53,15 +55,17 @@ export const db = {
 
     return [rows, fields];
   },
-  query: async (sql: string, params?: any) => {
-    const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
-      if (['SET', 'SELECT', 'WHERE', 'AND', 'DESC', 'ASC', 'VALUES'].includes(table.toUpperCase())) return match;
-      return `${op} ${table.toLowerCase()}`;
-    });
+  query: async (sql: any, params?: any): Promise<[any, any]> => {
+    if (typeof sql === 'string') {
+      const fixedSql = sql.replace(/(FROM|JOIN|UPDATE|INTO|TABLE)\s+([A-Z0-9_]+)/gi, (match, op, table) => {
+        if (['SET', 'SELECT', 'WHERE', 'AND', 'DESC', 'ASC', 'VALUES'].includes(table.toUpperCase())) return match;
+        return `${op} ${table.toLowerCase()}`;
+      });
+      sql = fixedSql;
+    }
 
-    const [rows, fields] = await pool.query(fixedSql, params);
+    const [rows, fields] = await pool.query(sql, params);
 
-    // Mismo soporte dual para query
     if (Array.isArray(rows)) {
       const normalizedRows = rows.map((row: any) => {
         if (typeof row !== 'object' || row === null) return row;
@@ -80,4 +84,6 @@ export const db = {
 
     return [rows, fields];
   }
-} as mysql.Pool;
+};
+
+export const db = poolProxy as unknown as mysql.Pool;
