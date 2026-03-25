@@ -7,14 +7,14 @@
 :root {
   /* Paleta de colores kairos Stylos - DISEÑO CENTRALIZADO */
   --brand-pink: #FF7E5F;       /* Coral Principal */
-  --brand-pink-light: #fff7ed; /* naranja muy claro (orange-50) */
+  --brand-pink-light: #fff0f3; /* Rosado más visible */
   --brand-orange: #FEB47B;      /* Melocotón/Naranja suave */
   --brand-orange-hover: #f97316;
-  --brand-border: #e2e8f0;     /* slate-200, neutral */
+  --brand-border: #f9dbe1;     /* Borde rosado más marcado */
   --brand-text: #475569;       /* slate-600 */
 
   /* Mapeo a Estándares de UI (Shadcn/Tailwind) */
-  --background: oklch(0.98 0 0);
+  --background: oklch(0.98 0.03 0); /* Rosado claro pero notable */
   --foreground: oklch(0.2 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0 0);
