@@ -178,13 +178,13 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                                             axisLine={false} 
                                             tickLine={false} 
                                             tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                                            tickFormatter={(val) => `$${val.toLocaleString('es-CO')}`}
+                                            tickFormatter={(val) => `$${(Number(val) || 0).toLocaleString('es-CO')}`}
                                         />
                                         <RechartsTooltip 
                                             cursor={{ fill: '#f8fafc' }}
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
                                             labelFormatter={(label) => format(new Date(label), 'EEEE, d MMMM', { locale: es })}
-                                            formatter={(value: any) => [`$${value.toLocaleString('es-CO')}`, 'Valor']}
+                                            formatter={(value: any) => [`$${(Number(value) || 0).toLocaleString('es-CO')}`, 'Valor']}
                                         />
                                         <Bar dataKey="total" radius={[6, 6, 0, 0]} barSize={40}>
                                             {chartsData.map((entry, index) => (
@@ -235,7 +235,7 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="px-6 py-4 text-right">
-                                                    <span className="text-sm font-black text-slate-900">$ {Number(item.valor).toLocaleString('es-CO')}</span>
+                                                    <span className="text-sm font-black text-slate-900">$ {(Number(item.valor) || 0).toLocaleString('es-CO')}</span>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -277,11 +277,11 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                             <div className="flex flex-col">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sueldo Base</span>
-                                                <span className="text-sm font-bold text-slate-900">$ {Number(payroll.ND_BASE).toLocaleString('es-CO')}</span>
+                                                <span className="text-sm font-bold text-slate-900">$ {(Number(payroll.ND_BASE) || 0).toLocaleString('es-CO')}</span>
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Comisiones</span>
-                                                <span className="text-sm font-bold text-emerald-600">$ {Number(payroll.ND_COMISIONES).toLocaleString('es-CO')}</span>
+                                                <span className="text-sm font-bold text-emerald-600">$ {(Number(payroll.ND_COMISIONES) || 0).toLocaleString('es-CO')}</span>
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Deducciones</span>
@@ -291,7 +291,7 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                                             </div>
                                             <div className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-100">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Neto</span>
-                                                <span className="text-lg font-black text-slate-900">$ {Number(payroll.ND_TOTAL_NETO).toLocaleString('es-CO')}</span>
+                                                <span className="text-lg font-black text-slate-900">$ {(Number(payroll.ND_TOTAL_NETO) || 0).toLocaleString('es-CO')}</span>
                                             </div>
                                         </div>
                                     </div>

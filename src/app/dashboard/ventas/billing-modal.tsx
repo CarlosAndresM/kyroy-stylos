@@ -748,7 +748,7 @@ export function BillingModal({
                                   ? watchedServices[index].products.map((p: any, pIdx: number) => {
                                     const pName = products.find(cp => cp.PR_IDPRODUCTO_PK === p.PR_IDPRODUCTO_FK)?.PR_NOMBRE || 'Producto'
                                     return <span key={pIdx} className="inline-block bg-slate-100 rounded px-1.5 py-0.5 mr-1 mb-1 not-italic text-slate-600 font-bold border border-slate-200">
-                                      {pName} (${Number(p.FP_VALOR || 0).toLocaleString('es-CO')})
+                                      {pName} (${(Number(p.FP_VALOR || 0)).toLocaleString('es-CO')})
                                     </span>
                                   })
                                   : 'Sin productos'}
@@ -775,7 +775,7 @@ export function BillingModal({
                         <tr>
                           <td colSpan={3} className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Total</td>
                           <td className="px-4 py-3 text-right">
-                            <span className="text-lg font-black text-slate-900">$ {total.toLocaleString('es-CO')}</span>
+                            <span className="text-lg font-black text-slate-900">$ {(total || 0).toLocaleString('es-CO')}</span>
                           </td>
                           <td></td>
                         </tr>
@@ -866,16 +866,16 @@ export function BillingModal({
                           "bg-slate-50 border-slate-200")}>
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-semibold text-slate-500">Total venta</span>
-                        <span className="font-black text-slate-900">$ {total.toLocaleString('es-CO')}</span>
+                        <span className="font-black text-slate-900">$ {(total || 0).toLocaleString('es-CO')}</span>
                       </div>
                       <div className="flex justify-between items-center text-xs mt-1">
                         <span className="font-semibold text-slate-500">Pagado</span>
-                        <span className="font-bold text-slate-700">$ {totalPaid.toLocaleString('es-CO')}</span>
+                        <span className="font-bold text-slate-700">$ {(totalPaid || 0).toLocaleString('es-CO')}</span>
                       </div>
                       {Math.abs(totalPaid - total) > 0.01 && (
                         <div className="flex justify-between items-center text-xs mt-1 pt-1 border-t border-slate-200">
                           <span className="font-bold text-amber-600">{totalPaid > total ? 'Exceso' : 'Pendiente'}</span>
-                          <span className="font-black text-amber-600">$ {Math.abs(totalPaid - total).toLocaleString('es-CO')}</span>
+                          <span className="font-black text-amber-600">$ {Math.abs((totalPaid || 0) - (total || 0)).toLocaleString('es-CO')}</span>
                         </div>
                       )}
                     </div>

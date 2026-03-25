@@ -359,7 +359,7 @@ export function BillingClient({
                           "text-sm font-black tracking-tight",
                           invoice.FC_ESTADO === 'CANCELADO' ? "text-slate-200 line-through" : "text-slate-800"
                         )}>
-                          $ {Number(invoice.FC_TOTAL).toLocaleString('es-CO')}
+                          $ {(Number(invoice.FC_TOTAL) || 0).toLocaleString('es-CO')}
                         </span>
                       </TableCell>
                       <TableCell className="py-2 px-4 text-center">

@@ -157,7 +157,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
                     <div className="border-r border-white/10 pr-6 mr-6 hidden sm:block">
                         <p className="text-[10px] font-black text-[#FF7E5F] uppercase tracking-widest mb-0.5">TOTAL EGRESOS</p>
                         <p className="text-xl font-black text-white leading-none tabular-nums">
-                            $ {totalGastos.toLocaleString('es-CO')}
+                            $ {(totalGastos || 0).toLocaleString('es-CO')}
                         </p>
                     </div>
                     <CircleDollarSign className="size-6 text-[#FF7E5F] group-hover:scale-110 transition-transform" />
@@ -268,7 +268,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
                     </TableCell>
                     <TableCell className="text-right font-black text-slate-900 text-base tabular-nums px-6">
                       <span className="text-xs text-slate-400 mr-1 font-bold italic">$</span>
-                      {Number(item.valor).toLocaleString('es-CO')}
+                      {(Number(item.valor) || 0).toLocaleString('es-CO')}
                     </TableCell>
                   </TableRow>
                 ))

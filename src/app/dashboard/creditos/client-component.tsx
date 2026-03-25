@@ -214,7 +214,7 @@ export default function CreditsPage() {
                 
                 <div className="bg-black/60 text-white px-6 py-3 rounded-2xl flex flex-col justify-center min-w-[200px] shadow-2xl backdrop-blur-md border border-white/10">
                     <span className="text-[10px] font-black uppercase text-[#FF7E5F] block tracking-widest mb-0.5">TOTAL CARTERA</span>
-                    <span className="text-2xl font-black text-white">$ {totalDebt.toLocaleString('es-CO')}</span>
+                    <span className="text-2xl font-black text-white">$ {(totalDebt || 0).toLocaleString('es-CO')}</span>
                 </div>
             </div>
         }

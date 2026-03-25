@@ -116,7 +116,7 @@ export function ServicioTrabajadorClient({ initialServicios }: ServicioTrabajado
                     <span className="text-xs font-black text-slate-400">{s.ST_NUMERO_CUOTAS} <span className="text-[9px] font-bold uppercase ml-0.5">Semanas</span></span>
                   </TableCell>
                   <TableCell className="px-6 py-5 text-right font-black text-sm text-slate-900 tabular-nums">
-                    $ {Number(s.ST_VALOR_TOTAL).toLocaleString('es-CO')}
+                    $ {(Number(s.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}
                   </TableCell>
                   <TableCell className="px-6 py-5 text-center">
                     {getStatusBadge(s.ST_ESTADO)}
@@ -160,7 +160,7 @@ export function ServicioTrabajadorClient({ initialServicios }: ServicioTrabajado
               <div className="flex gap-4 mt-4">
                 <div className="flex flex-col">
                   <span className="text-[9px] font-bold text-slate-400 uppercase">Total Crédito</span>
-                  <span className="text-lg font-black text-[#FF7E5F]">$ {Number(selectedService?.ST_VALOR_TOTAL || 0).toLocaleString('es-CO')}</span>
+                  <span className="text-lg font-black text-[#FF7E5F]">$ {(Number(selectedService?.ST_VALOR_TOTAL || 0)).toLocaleString('es-CO')}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[9px] font-bold text-slate-400 uppercase">Cuotas</span>
@@ -204,7 +204,7 @@ export function ServicioTrabajadorClient({ initialServicios }: ServicioTrabajado
                         </div>
                       </TableCell>
                       <TableCell className="px-8 py-4 text-right">
-                        <span className="text-sm font-black text-slate-900 tabular-nums">$ {Number(q.STC_VALOR_CUOTA).toLocaleString('es-CO')}</span>
+                        <span className="text-sm font-black text-slate-900 tabular-nums">$ {(Number(q.STC_VALOR_CUOTA) || 0).toLocaleString('es-CO')}</span>
                       </TableCell>
                       <TableCell className="px-8 py-4 text-center">
                         <Badge className={cn(

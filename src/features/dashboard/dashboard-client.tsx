@@ -731,7 +731,7 @@ export function DashboardClient() {
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
                                                             <div className="bg-[#FF7E5F]/10 text-[#FF7E5F] px-4 py-1.5 rounded-full text-[11px] font-black shadow-sm shadow-coral-500/5 group-hover/tech:bg-[#FF7E5F] group-hover/tech:text-white transition-all">
-                                                                $ {Number(tech.total).toLocaleString('es-CO')}
+                                                                $ {(Number(tech.total) || 0).toLocaleString('es-CO')}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -877,7 +877,7 @@ export function DashboardClient() {
                                                                     "text-sm font-black tabular-nums text-right",
                                                                     f.FC_ESTADO === 'CANCELADO' ? "text-slate-300 line-through" : "text-slate-900"
                                                                 )}>
-                                                                    $ {Number(f.FC_TOTAL).toLocaleString('es-CO')}
+                                                                    $ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell className="px-4 py-4 text-center">
@@ -969,7 +969,7 @@ export function DashboardClient() {
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900">{c.FC_NUMERO_FACTURA}</TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-600 uppercase">{c.cliente_display}</TableCell>
-                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-right text-orange-500 tabular-nums">$ {Number(c.CR_VALOR_PENDIENTE).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-right text-orange-500 tabular-nums">$ {(Number(c.CR_VALOR_PENDIENTE) || 0).toLocaleString('es-CO')}</TableCell>
                                                     </TableRow>
                                                 ))}
                                                 {(specificData?.creditos || []).length === 0 && (
@@ -1018,7 +1018,7 @@ export function DashboardClient() {
                                                             {format(new Date(v.ST_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">{v.trabajador_nombre}</TableCell>
-                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {Number(v.ST_VALOR_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {(Number(v.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                         <TableCell className="px-4 py-3 text-center">
                                                             <span className="px-2 py-0.5 text-[9px] font-bold uppercase border border-slate-200 bg-slate-50 text-slate-500 rounded-full">
                                                                 {v.ST_ESTADO}
@@ -1072,7 +1072,7 @@ export function DashboardClient() {
                                                             {format(new Date(v.AD_FECHA), "dd/MM/yyyy", { locale: es })}
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">{v.trabajador_nombre}</TableCell>
-                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {Number(v.AD_MONTO).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
                                                         <TableCell className="px-4 py-3 text-center">
                                                             <span className={cn(
                                                                 "px-2 py-0.5 text-[9px] font-bold uppercase border rounded-full",
@@ -1150,7 +1150,7 @@ export function DashboardClient() {
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-xs font-bold text-slate-700 uppercase">{p.producto_nombre}</TableCell>
                                                         <TableCell className="px-4 py-3 text-xs font-black text-right text-slate-900 tabular-nums">
-                                                            $ {Number(p.FP_VALOR).toLocaleString('es-CO')}
+                                                            $ {(Number(p.FP_VALOR) || 0).toLocaleString('es-CO')}
                                                         </TableCell>
                                                         <TableCell className="px-4 py-3 text-[11px] font-bold uppercase text-slate-500 italic">{p.tecnico_nombre}</TableCell>
                                                         <TableCell className="px-4 py-3">
@@ -1239,7 +1239,7 @@ export function DashboardClient() {
                                         <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                         <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {Number(f.FC_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                     </TableRow>
                                 ))}
 
@@ -1250,7 +1250,7 @@ export function DashboardClient() {
                                                 <TableCell className="font-bold text-xs uppercase">Venta: {f.FC_NUMERO_FACTURA}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                 <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                <TableCell className="text-right font-black text-xs text-emerald-600">$ {Number(f.FC_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-emerald-600">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
                                         ))}
                                         {(specificData?.abonos || []).map((ab: any) => (
@@ -1258,7 +1258,7 @@ export function DashboardClient() {
                                                 <TableCell className="font-bold text-xs uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                 <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
-                                                <TableCell className="text-right font-black text-xs text-blue-600">$ {Number(ab.AB_VALOR).toLocaleString('es-CO')}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
                                         ))}
                                     </>
@@ -1269,7 +1269,7 @@ export function DashboardClient() {
                                         <TableCell className="font-bold text-xs uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
                                         <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-indigo-600">$ {Number(ab.AB_VALOR).toLocaleString('es-CO')}</TableCell>
+                                        <TableCell className="text-right font-black text-xs text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                     </TableRow>
                                 ))}
 
@@ -1278,7 +1278,7 @@ export function DashboardClient() {
                                         <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                         <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-red-500">$ {Number(f.FC_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                        <TableCell className="text-right font-black text-xs text-red-500">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                     </TableRow>
                                 ))}
 
@@ -1317,7 +1317,7 @@ export function DashboardClient() {
                                                 <TableCell className="text-[10px] font-bold uppercase text-slate-700">
                                                     {factura?.cliente_display || 'GENERAL'}
                                                 </TableCell>
-                                                <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {Number(pago.PF_VALOR).toLocaleString('es-CO')}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
                                         )
                                     })
@@ -1328,7 +1328,7 @@ export function DashboardClient() {
                                         <TableCell className="font-bold text-xs">Adelanto {v.AD_IDADELANTO_PK}</TableCell>
                                         <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-orange-600">$ {Number(v.AD_MONTO).toLocaleString('es-CO')}</TableCell>
+                                        <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
                                     </TableRow>
                                 ))}
 
@@ -1346,7 +1346,7 @@ export function DashboardClient() {
                                         <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                         <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                         <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {Number(f.FC_TOTAL).toLocaleString('es-CO')}</TableCell>
+                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                     </TableRow>
                                 ))}
 
@@ -1484,7 +1484,7 @@ export function DashboardClient() {
                                     <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">3. SERVICIO DONDE SE USÓ:</label>
                                     <ComboboxSearch
                                         options={(apInvoiceDetails?.services || []).map((s: any) => ({
-                                            label: `${catalogData.services.find((cs: any) => cs.SV_IDSERVICIO_PK === s.SV_IDSERVICIO_FK)?.SV_NOMBRE || 'Servicio'} - $${Number(s.FD_VALOR).toLocaleString('es-CO')}`,
+                                            label: `${catalogData.services.find((cs: any) => cs.SV_IDSERVICIO_PK === s.SV_IDSERVICIO_FK)?.SV_NOMBRE || 'Servicio'} - $${(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}`,
                                             value: s.FD_IDDETALLE_PK.toString()
                                         }))}
                                         value={apSelectedServiceId}
