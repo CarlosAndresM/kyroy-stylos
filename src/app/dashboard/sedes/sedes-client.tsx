@@ -2,38 +2,38 @@
 
 import * as React from 'react'
 import { Plus, Search, Edit2, Trash2, Loader2 } from 'lucide-react'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TableFilter } from '@/components/ui/table-filter'
 import { LoadingGate } from '@/components/ui/loading-gate'
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
-    DialogTitle, 
-    DialogFooter 
-  } from '@/components/ui/dialog'
-  import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-  } from "@/components/ui/form"
-  import { useForm } from 'react-hook-form'
-  import { zodResolver } from '@hookform/resolvers/zod'
-  import { sedeSchema, SedeFormData } from '@/features/trabajadores/schema'
-  import { saveSede, deleteSede } from '@/features/trabajadores/services'
-  import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from '@/components/ui/dialog'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { sedeSchema, SedeFormData } from '@/features/trabajadores/schema'
+import { saveSede, deleteSede } from '@/features/trabajadores/services'
+import { toast } from '@/lib/toast-helper'
 
 interface SedesClientProps {
   initialSedes: any[]
@@ -45,7 +45,7 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [editingSede, setEditingSede] = React.useState<any | null>(null)
   const [isLoading, setIsLoading] = React.useState(false)
-  
+
   // Auth state for deletion
   const [isAuthOpen, setIsAuthOpen] = React.useState(false)
   const [sedeToDelete, setSedeToDelete] = React.useState<number | null>(null)
@@ -143,7 +143,7 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-            <Input 
+            <Input
               placeholder="Buscar por nombre o dirección..."
               className="pl-9 w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-[#FF7E5F]/20"
               value={searchTerm}
@@ -152,7 +152,7 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
             />
           </div>
 
-          <Button 
+          <Button
             onClick={() => { setEditingSede(null); setIsModalOpen(true); }}
             className="w-full sm:w-auto bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white font-bold gap-2 rounded-xl shadow-lg shadow-[#FF7E5F]/20 h-10 px-6 text-xs uppercase"
           >
@@ -167,24 +167,24 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
               <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="px-6 h-12 w-[120px]">
-                    <TableFilter 
-                      label="ID" 
+                    <TableFilter
+                      label="ID"
                       options={getFilterOptions('SC_IDSUCURSAL_PK')}
                       selectedValues={activeFilters['SC_IDSUCURSAL_PK'] || []}
                       onFilterChange={(vals: string[]) => handleFilterChange('SC_IDSUCURSAL_PK', vals)}
                     />
                   </TableHead>
                   <TableHead className="px-6 h-12">
-                    <TableFilter 
-                      label="Nombre de Sucursal" 
+                    <TableFilter
+                      label="Nombre de Sucursal"
                       options={getFilterOptions('SC_NOMBRE')}
                       selectedValues={activeFilters['SC_NOMBRE'] || []}
                       onFilterChange={(vals: string[]) => handleFilterChange('SC_NOMBRE', vals)}
                     />
                   </TableHead>
                   <TableHead className="px-6 h-12">
-                    <TableFilter 
-                      label="Dirección" 
+                    <TableFilter
+                      label="Dirección"
                       options={getFilterOptions('SC_DIRECCION')}
                       selectedValues={activeFilters['SC_DIRECCION'] || []}
                       onFilterChange={(vals: string[]) => handleFilterChange('SC_DIRECCION', vals)}
@@ -210,7 +210,7 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
-                          <Button 
+                          <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => { setEditingSede(sede); setIsModalOpen(true); }}
@@ -218,7 +218,7 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
                           >
                             <Edit2 className="size-4" />
                           </Button>
-                          <Button 
+                          <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => { setSedeToDelete(sede.SC_IDSUCURSAL_PK); setIsAuthOpen(true); }}
@@ -303,11 +303,11 @@ export function SedesClient({ initialSedes }: SedesClientProps) {
           </DialogHeader>
           <div className="p-6 space-y-4">
             <p className="text-xs font-medium text-slate-500">Se requiere contraseña administrativa para eliminar esta sucursal:</p>
-            <Input 
-              type="password" 
-              value={adminPassword} 
+            <Input
+              type="password"
+              value={adminPassword}
               onChange={(e) => setAdminPassword(e.target.value)}
-              className="h-11 border-slate-200 dark:border-slate-800 rounded-xl text-center font-bold tracking-widest focus:ring-red-500/20" 
+              className="h-11 border-slate-200 dark:border-slate-800 rounded-xl text-center font-bold tracking-widest focus:ring-red-500/20"
               placeholder="••••••••"
             />
             <div className="flex gap-3 pt-2">
