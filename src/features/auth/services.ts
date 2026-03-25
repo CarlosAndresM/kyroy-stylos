@@ -1,3 +1,5 @@
+'use server'
+
 import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { LoginFormData } from "@/features/auth/schema";
