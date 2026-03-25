@@ -554,3 +554,92 @@ export async function addProductToInvoice(
     if (connection) connection.release();
   }
 }
+
+export async function updateProductInInvoice(
+  productInvoiceId: number,
+  productId: number,
+  technicianId: number,
+  value: number,
+  detailId?: number
+): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Obtener valor anterior e ID de factura
+    const [oldRow]: any = await connection.execute(
+      "SELECT fp_valor, fc_idfactura_fk FROM ks_factura_productos WHERE fp_idfactura_producto_pk = ?",
+      [productInvoiceId]
+    );
+
+    if (oldRow.length === 0) throw new Error("Producto no encontrado en la factura");
+    
+    const oldValue = Number(oldRow[0].fp_valor);
+    const invoiceId = oldRow[0].fc_idfactura_fk;
+    const diff = value - oldValue;
+
+    // 2. Actualizar producto
+    await connection.execute(
+      `UPDATE ks_factura_productos 
+       SET pr_idproducto_fk = ?, tr_idtecnico_fk = ?, fp_valor = ?, fd_iddetalle_fk = ?
+       WHERE fp_idfactura_producto_pk = ?`,
+      [productId, technicianId, value, detailId || null, productInvoiceId]
+    );
+
+    // 3. Ajustar total factura
+    if (diff !== 0) {
+      await connection.execute(
+        "UPDATE ks_facturas SET fc_total = fc_total + ? WHERE fc_idfactura_pk = ?",
+        [diff, invoiceId]
+      );
+    }
+
+    await connection.commit();
+    revalidatePath("/dashboard");
+    return { success: true, data: null, error: null };
+  } catch (error: any) {
+    if (connection) await connection.rollback();
+    console.error("Error updating product in invoice:", error);
+    return { success: false, data: null, error: error.message || "Error al actualizar producto" };
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+export async function deleteProductFromInvoice(productInvoiceId: number): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Obtener valor e id factura
+    const [oldRow]: any = await connection.execute(
+      "SELECT fp_valor, fc_idfactura_fk FROM ks_factura_productos WHERE fp_idfactura_producto_pk = ?",
+      [productInvoiceId]
+    );
+
+    if (oldRow.length === 0) throw new Error("Producto no encontrado");
+
+    const value = Number(oldRow[0].fp_valor);
+    const invoiceId = oldRow[0].fc_idfactura_fk;
+
+    // 2. Eliminar
+    await connection.execute("DELETE FROM ks_factura_productos WHERE fp_idfactura_producto_pk = ?", [productInvoiceId]);
+
+    // 3. Restar del total
+    await connection.execute(
+      "UPDATE ks_facturas SET fc_total = fc_total - ? WHERE fc_idfactura_pk = ?",
+      [value, invoiceId]
+    );
+
+    await connection.commit();
+    revalidatePath("/dashboard");
+    return { success: true, data: null, error: null };
+  } catch (error: any) {
+    if (connection) await connection.rollback();
+    console.error("Error deleting product from invoice:", error);
+    return { success: false, data: null, error: error.message || "Error al eliminar producto" };
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
