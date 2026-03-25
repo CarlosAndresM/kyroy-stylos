@@ -34,13 +34,17 @@ export const db = {
 
     const [rows, fields] = await pool.execute(fixedSql, params);
 
-    // 2. Normalizar las keys de los resultados a minúsculas
+    // 2. Normalizar las keys de los resultados a minúsculas MANTENIENDO las originales para compatibilidad
     if (Array.isArray(rows)) {
       const normalizedRows = rows.map((row: any) => {
         if (typeof row !== 'object' || row === null) return row;
         const normalized: any = {};
         for (const key in row) {
-          normalized[key.toLowerCase()] = row[key];
+          const lowerKey = key.toLowerCase();
+          const upperKey = key.toUpperCase();
+          normalized[key] = row[key];         // Mantener original
+          normalized[lowerKey] = row[key];    // Forzar minúscula (para auth/services)
+          normalized[upperKey] = row[key];    // Forzar mayúscula (para frontend/zod)
         }
         return normalized;
       });
@@ -57,12 +61,17 @@ export const db = {
 
     const [rows, fields] = await pool.query(fixedSql, params);
 
+    // Mismo soporte dual para query
     if (Array.isArray(rows)) {
       const normalizedRows = rows.map((row: any) => {
         if (typeof row !== 'object' || row === null) return row;
         const normalized: any = {};
         for (const key in row) {
-          normalized[key.toLowerCase()] = row[key];
+          const lowerKey = key.toLowerCase();
+          const upperKey = key.toUpperCase();
+          normalized[key] = row[key];
+          normalized[lowerKey] = row[key];
+          normalized[upperKey] = row[key];
         }
         return normalized;
       });
