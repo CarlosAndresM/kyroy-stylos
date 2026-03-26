@@ -14,6 +14,7 @@ export async function compressImage(file: File, options?: any) {
     maxWidthOrHeight: 1920,      // Resolución máxima permitida
     useWebWorker: true,         // Mejor rendimiento en hilo separado
     initialQuality: 0.8,        // Calidad inicial (0 a 1)
+    fileType: 'image/jpeg',     // Estandarizar a JPEG
     ...options
   };
 
@@ -25,4 +26,15 @@ export async function compressImage(file: File, options?: any) {
     // Si falla, devolvemos el original para no bloquear el flujo
     return file;
   }
+}
+
+/**
+ * Estandariza el nombre de un archivo para que tenga extensión .jpg
+ * 
+ * @param fileName Nombre de archivo original
+ * @returns Nombre de archivo con extensión .jpg
+ */
+export function standardizeFileName(fileName: string): string {
+  const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+  return `${nameWithoutExt}.jpg`;
 }

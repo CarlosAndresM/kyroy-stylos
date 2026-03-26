@@ -9,8 +9,8 @@ function isHashed(password: string): boolean {
   return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(password);
 }
 
-async function run() {
-  const connection = await mysql.createConnection({
+export async function hashPasswords(existingConnection?: mysql.Connection) {
+  const connection = existingConnection || await mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -21,16 +21,16 @@ async function run() {
   try {
     console.log('--- Iniciando migración de contraseñas ---');
 
-    // Usamos minúsculas para los nombres de las tablas según la observación del usuario
-    const [rows]: any = await connection.execute('SELECT tr_idtrabajador_pk, tr_nombre, tr_password FROM ks_trabajadores');
+    // Usamos MAYÚSCULAS para cumplir con el estándar de la guía de estilo
+    const [rows]: any = await connection.execute('SELECT TR_IDTRABAJADOR_PK, TR_NOMBRE, TR_PASSWORD FROM KS_TRABAJADORES');
 
     let updatedCount = 0;
     let skippedCount = 0;
 
     for (const row of rows) {
-      const password = row.tr_password;
-      const id = row.tr_idtrabajador_pk;
-      const name = row.tr_nombre;
+      const password = row.TR_PASSWORD;
+      const id = row.TR_IDTRABAJADOR_PK;
+      const name = row.TR_NOMBRE;
 
       if (!password) {
         console.log(`Skipping ${name} (no password set)`);
@@ -39,14 +39,13 @@ async function run() {
       }
 
       if (isHashed(password)) {
-        console.log(`Skipping ${name} (already hashed)`);
         skippedCount++;
         continue;
       }
 
       const hash = await bcrypt.hash(password, SALT_ROUNDS);
       await connection.execute(
-        'UPDATE ks_trabajadores SET tr_password = ? WHERE tr_idtrabajador_pk = ?',
+        'UPDATE KS_TRABAJADORES SET TR_PASSWORD = ? WHERE TR_IDTRABAJADOR_PK = ?',
         [hash, id]
       );
 
@@ -61,8 +60,13 @@ async function run() {
   } catch (error: any) {
     console.error('Error durante la migración:', error.message);
   } finally {
-    await connection.end();
+    if (!existingConnection) {
+      await connection.end();
+    }
   }
 }
 
-run();
+// Ejecutar si se llama directamente
+if (require.main === module) {
+  hashPasswords();
+}

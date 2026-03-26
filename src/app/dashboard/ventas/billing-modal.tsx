@@ -69,7 +69,7 @@ import { getRecentInvoices, getWorkers, getPaymentMethods, saveInvoice, getNextI
 import { toast } from '@/lib/toast-helper'
 import { cn } from '@/lib/utils'
 import { ComboboxSearch } from '@/components/ui/combobox-search'
-import { compressImage } from '@/lib/image-utils'
+import { compressImage, standardizeFileName } from '@/lib/image-utils'
 import {
   HoverCard,
   HoverCardContent,
@@ -157,8 +157,9 @@ export function BillingModal({
     setUploadingPhysical(true)
     try {
       const compressedFile = await compressImage(file)
+      const fileName = standardizeFileName(file.name)
       const formData = new FormData()
-      formData.append('file', compressedFile, file.name)
+      formData.append('file', compressedFile, fileName)
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -188,8 +189,9 @@ export function BillingModal({
     setUploadingIndexes(prev => [...prev, index])
     try {
       const compressedFile = await compressImage(file)
+      const fileName = standardizeFileName(file.name)
       const formData = new FormData()
-      formData.append('file', compressedFile, file.name)
+      formData.append('file', compressedFile, fileName)
 
       const response = await fetch('/api/upload', {
         method: 'POST',

@@ -55,6 +55,7 @@ import {
     Bar,
     XAxis,
     YAxis,
+    LabelList,
     CartesianGrid,
     Tooltip as RechartsTooltip,
     ResponsiveContainer,
@@ -532,36 +533,77 @@ export function DashboardClient() {
                     {/* Main Content Area */}
                     {viewMode === 'GENERAL' ? (
                         <div className="space-y-8 font-black">
-                            {/* Row 1: Core Metrics */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mt-4">
                                 {[
                                     {
-                                        title: `Ventas Hoy`,
-                                        value: `$${(stats?.ventas_total || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Facturas Pagadas Hoy',
+                                        title: 'VENTAS',
+                                        value: `$ ${(stats?.ventas_total || 0).toLocaleString('es-CO')}`,
+                                        sub: 'FACTURAS PAGADAS HOY',
                                         icon: TrendingUp,
                                         color: 'from-[#FF7E5F] to-[#FEB47B]'
                                     },
                                     {
-                                        title: 'Recibido en Caja',
-                                        value: `$${(stats?.total_caja || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Directo + Abonos de Deuda',
+                                        title: 'POR COBRAR',
+                                        value: `$ ${(stats?.por_cobrar_total || 0).toLocaleString('es-CO')}`,
+                                        sub: 'VENTAS PENDIENTES HOY',
+                                        icon: HandCoins,
+                                        color: 'from-red-500 to-rose-400'
+                                    },
+                                    {
+                                        title: 'TOTAL EN CAJA',
+                                        value: `$ ${(stats?.total_caja || 0).toLocaleString('es-CO')}`,
+                                        sub: 'DIRECTO + ABONOS DE DEUDA',
                                         icon: Wallet,
                                         color: 'from-emerald-600 to-teal-500'
                                     },
                                     {
-                                        title: 'Abonos de Deuda',
-                                        value: `$${(stats?.total_abonos || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Pagos a deudas de clientes',
+                                        title: 'EFECTIVO',
+                                        value: `$ ${(stats?.metodos_pago?.['EFECTIVO'] || 0).toLocaleString('es-CO')}`,
+                                        sub: 'SUMA DE VENTAS PAGADAS',
+                                        icon: DollarSign,
+                                        color: 'from-green-600 to-emerald-500'
+                                    },
+                                    {
+                                        title: 'TRANSFERENCIA',
+                                        value: `$ ${(stats?.metodos_pago?.['TRANSFERENCIA'] || 0).toLocaleString('es-CO')}`,
+                                        sub: 'NEQUI / DAVIPLATA / BANCOS',
+                                        icon: Landmark,
+                                        color: 'from-blue-600 to-cyan-500'
+                                    },
+                                    {
+                                        title: 'CREDITO',
+                                        value: `$ ${(stats?.metodos_pago?.['CREDITO'] || 0).toLocaleString('es-CO')}`,
+                                        sub: 'DEUDA GENERADA HOY',
+                                        icon: History,
+                                        color: 'from-amber-600 to-orange-400'
+                                    },
+                                    {
+                                        title: 'SERVICIO TRABAJADOR',
+                                        value: `$ ${(stats?.metodos_pago?.['SERVICIO DE TRABAJADOR'] || 0).toLocaleString('es-CO')}`,
+                                        sub: 'SERVICIOS ENTRE TÉCNICOS',
+                                        icon: Ticket,
+                                        color: 'from-slate-600 to-slate-450'
+                                    },
+                                    {
+                                        title: 'ABONO A DEUDAS',
+                                        value: `$ ${(stats?.total_abonos || 0).toLocaleString('es-CO')}`,
+                                        sub: 'PAGOS A DEUDAS DE CLIENTES',
                                         icon: History,
                                         color: 'from-purple-600 to-indigo-500'
                                     },
                                     {
-                                        title: 'Por Cobrar',
-                                        value: `$${(stats?.por_cobrar_total || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Ventas Pendientes Hoy',
-                                        icon: HandCoins,
-                                        color: 'from-red-500 to-rose-400'
+                                        title: 'DATAFONO',
+                                        value: `$ ${(stats?.metodos_pago?.['DATAFONO'] || 0).toLocaleString('es-CO')}`,
+                                        sub: 'TARJETAS DÉBITO / CRÉDITO',
+                                        icon: CreditCard,
+                                        color: 'from-indigo-600 to-violet-500'
+                                    },
+                                    {
+                                        title: 'VALES',
+                                        value: `$ ${(stats?.adelantos_total || 0).toLocaleString('es-CO')}`,
+                                        sub: 'ADELANTOS DE NÓMINA HOY',
+                                        icon: Zap,
+                                        color: 'from-orange-500 to-yellow-500'
                                     },
                                 ].map((stat, i) => (
                                     <Card
@@ -588,104 +630,6 @@ export function DashboardClient() {
                                 ))}
                             </div>
 
-                            {/* Row 2: Payment Methods Breakdown */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6 mt-4 md:mt-8">
-                                {[
-                                    {
-                                        title: 'Efectivo',
-                                        value: `$${(stats?.metodos_pago?.['EFECTIVO'] || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Suma de Ventas Pagadas',
-                                        icon: DollarSign,
-                                        color: 'from-green-600 to-emerald-500'
-                                    },
-                                    {
-                                        title: 'Transferencia',
-                                        value: `$${(stats?.metodos_pago?.['TRANSFERENCIA'] || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Nequi / Daviplata / Bancos',
-                                        icon: Landmark,
-                                        color: 'from-blue-600 to-cyan-500'
-                                    },
-                                    {
-                                        title: 'Datáfono',
-                                        value: `$${(stats?.metodos_pago?.['DATAFONO'] || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Tarjetas Débito / Crédito',
-                                        icon: CreditCard,
-                                        color: 'from-indigo-600 to-violet-500'
-                                    },
-                                    {
-                                        title: 'Crédito',
-                                        value: `$${(stats?.metodos_pago?.['CREDITO'] || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Deuda generada hoy',
-                                        icon: History,
-                                        color: 'from-amber-600 to-orange-400'
-                                    },
-                                    {
-                                        title: 'Servicio Trabajador',
-                                        value: `$${(stats?.metodos_pago?.['SERVICIO DE TRABAJADOR'] || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Servicios entre técnicos',
-                                        icon: Ticket,
-                                        color: 'from-slate-600 to-slate-450'
-                                    },
-                                ].map((stat, i) => (
-                                    <Card
-                                        key={i}
-                                        className="border border-orange-100 rounded-xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50 transition-all"
-                                        onClick={() => {
-                                            setDetailType(stat.title)
-                                            setDetailTitle(stat.title)
-                                            setIsDetailModalOpen(true)
-                                        }}
-                                    >
-                                        <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.05] group-hover:opacity-[0.1] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
-                                            <CardTitle className="text-[10px] font-black text-orange-300 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
-                                            <div className={cn("p-2 border border-orange-100 shadow-sm bg-gradient-to-br", stat.color)}>
-                                                <stat.icon className="size-4 text-white" />
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="relative z-10">
-                                            <div className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{stat.value}</div>
-                                            <div className="text-[9px] font-bold text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-
-                            {/* Row 3: Additional Financial Metrics */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mt-4">
-                                {[
-                                    {
-                                        title: 'Vales (Adelantos)',
-                                        value: `$${(stats?.adelantos_total || 0).toLocaleString('es-CO')}`,
-                                        sub: 'Adelantos de nómina hoy',
-                                        icon: Zap,
-                                        color: 'from-orange-500 to-yellow-500'
-                                    },
-                                ].map((stat, i) => (
-                                    <Card
-                                        key={i}
-                                        className="border border-orange-100 rounded-xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50 transition-all"
-                                        onClick={() => {
-                                            setDetailType(stat.title)
-                                            setDetailTitle(stat.title)
-                                            setIsDetailModalOpen(true)
-                                        }}
-                                    >
-                                        <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.05] group-hover:opacity-[0.1] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
-                                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
-                                            <CardTitle className="text-[10px] font-black text-orange-300 uppercase tracking-[0.2em]">{stat.title}</CardTitle>
-                                            <div className={cn("p-2 border border-orange-100 shadow-sm bg-gradient-to-br", stat.color)}>
-                                                <stat.icon className="size-4 text-white" />
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="relative z-10">
-                                            <div className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tighter">{stat.value}</div>
-                                            <div className="text-[9px] font-bold text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mt-4">
                                 {/* Top Technicians Ranking */}
                                 <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
@@ -704,6 +648,11 @@ export function DashboardClient() {
                                             </div>
                                         ) : (chartsData?.topTechs || []).length > 0 ? (
                                             <div className="divide-y divide-slate-100">
+                                                <div className="flex items-center justify-between px-4 py-2 bg-slate-50 text-[10px] font-bold uppercase text-slate-400 tracking-widest border-b border-slate-100">
+                                                    <div className="w-[45%] flex gap-4 pl-12">Técnico</div>
+                                                    <div className="w-[20%] text-center">Servicios</div>
+                                                    <div className="w-[35%] text-right pr-4">Total</div>
+                                                </div>
                                                 {(chartsData?.topTechs || []).map((tech: any, index: number) => (
                                                     <div
                                                         key={index}
@@ -714,7 +663,7 @@ export function DashboardClient() {
                                                             setIsDetailModalOpen(true)
                                                         }}
                                                     >
-                                                        <div className="flex items-center gap-4">
+                                                        <div className="flex items-center gap-4 w-[45%]">
                                                             <div className={cn(
                                                                 "size-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 shadow-sm transition-transform group-hover/tech:scale-110",
                                                                 index === 0 ? "bg-amber-100 text-amber-600 border border-amber-200 shadow-inner" :
@@ -724,12 +673,14 @@ export function DashboardClient() {
                                                             )}>
                                                                 {index + 1}
                                                             </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight group-hover/tech:text-[#FF7E5F] transition-colors">{tech.name}</span>
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase italic leading-none mt-1">{tech.count} servicios</span>
+                                                            <div className="flex flex-col truncate">
+                                                                <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight group-hover/tech:text-[#FF7E5F] transition-colors truncate">{tech.name}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col items-end gap-1">
+                                                        <div className="w-[20%] text-center">
+                                                            <span className="text-xs font-black text-slate-600 tabular-nums bg-slate-100 px-2 py-1 rounded-lg">{tech.count}</span>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1 w-[35%]">
                                                             <div className="bg-[#FF7E5F]/10 text-[#FF7E5F] px-4 py-1.5 rounded-full text-[11px] font-black shadow-sm shadow-coral-500/5 group-hover/tech:bg-[#FF7E5F] group-hover/tech:text-white transition-all">
                                                                 $ {(Number(tech.total) || 0).toLocaleString('es-CO')}
                                                             </div>
@@ -750,43 +701,40 @@ export function DashboardClient() {
                                         <Users className="size-4 text-emerald-500" />
                                         <h3 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Servicios</h3>
                                     </div>
-                                    <div className="p-0 h-[350px] w-full flex flex-col items-center justify-center">
-                                        <div className="h-[220px] w-full">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={chartsData?.topServices || []}
-                                                        cx="50%"
-                                                        cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
-                                                        paddingAngle={8}
+                                    <div className="p-6 h-[350px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={chartsData?.topServices || []}
+                                                margin={{ top: 20, right: 10, left: 10, bottom: 20 }}
+                                            >
+                                                <XAxis
+                                                    dataKey="name"
+                                                    axisLine={false}
+                                                    tickLine={false}
+                                                    tick={{ fontSize: 8, fontWeight: 800, fill: '#64748b' }}
+                                                    interval={0}
+                                                />
+                                                <YAxis hide />
+                                                <RechartsTooltip
+                                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                                                    cursor={{ fill: 'transparent' }}
+                                                />
+                                                <Bar
+                                                    dataKey="count"
+                                                    radius={[8, 8, 0, 0]}
+                                                    barSize={32}
+                                                >
+                                                    {(chartsData?.topServices || []).map((entry: any, index: number) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                    <LabelList
                                                         dataKey="count"
-                                                        stroke="none"
-                                                    >
-                                                        {(chartsData?.topServices || []).map((entry: any, index: number) => (
-                                                            <Cell
-                                                                key={`cell-${index}`}
-                                                                fill={COLORS[index % COLORS.length]}
-                                                                className="hover:opacity-80 transition-opacity cursor-pointer outline-none"
-                                                            />
-                                                        ))}
-                                                    </Pie>
-                                                    <RechartsTooltip
-                                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}
+                                                        position="top"
+                                                        style={{ fill: '#ff7e5f', fontSize: 11, fontWeight: 900, fontFamily: 'inherit' }}
                                                     />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                        <div className="p-6 pt-0 w-full grid grid-cols-2 gap-x-4 gap-y-2">
-                                            {(chartsData?.topServices || []).map((s: any, i: number) => (
-                                                <div key={i} className="flex items-center gap-2 bg-slate-50/80 px-3 py-2 rounded-xl border border-slate-100/50">
-                                                    <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                                                    <span className="text-[9px] font-black text-slate-600 uppercase truncate flex-1 tracking-tight">{s.name}</span>
-                                                    <span className="text-[10px] font-black text-[#FF7E5F] tabular-nums">{s.count}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </Card>
 
@@ -933,7 +881,7 @@ export function DashboardClient() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 mt-4">
                         {/* Créditos Table */}
                         <Card className="border border-slate-200 rounded-2xl shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
                             <div className="p-4 bg-slate-50/50 border-b border-slate-100 mb-0">
@@ -1205,338 +1153,340 @@ export function DashboardClient() {
                             </div>
                         </Card>
                     </div>
-                </>
-            )}
 
-            {/* Metric Detail Modal */}
-            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl">
-                    <DialogHeader className="p-6 pb-4 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[#FF7E5F]/10 rounded-xl">
-                                <BarChart3 className="size-5 text-[#FF7E5F]" />
-                            </div>
-                            <div>
-                                <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Detalle de {detailTitle}</DialogTitle>
-                                <DialogDescription className="text-xs font-medium text-slate-500 uppercase italic">Desglose detallado de la métrica seleccionada</DialogDescription>
-                            </div>
-                        </div>
-                    </DialogHeader>
+                    {/* Metric Detail Modal */}
+                    <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl [&>button]:top-6 [&>button]:right-6 [&>button]:size-7 [&>button]:bg-white/50 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:shadow-sm [&>button]:border [&>button]:border-slate-200 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:hover:bg-white [&>button]:transition-all">
+                            <DialogHeader className="p-6 pr-12 pb-4 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-[#FF7E5F]/10 rounded-xl">
+                                        <BarChart3 className="size-5 text-[#FF7E5F]" />
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Detalle de {detailTitle}</DialogTitle>
+                                        <DialogDescription className="text-xs font-medium text-slate-500 uppercase italic">Desglose detallado de la métrica seleccionada</DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
 
-                    <div className="flex-1 overflow-auto p-6">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="hover:bg-transparent border-b-2 border-slate-200 dark:border-slate-800">
-                                    <TableHead className="font-bold text-[10px] uppercase text-slate-400">Concepto / ID</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase text-slate-400">Fecha</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase text-slate-400">Cliente / Info</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase text-slate-400 text-right">Valor</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
-                                    <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                        <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                    </TableRow>
-                                ))}
-
-                                {detailType === 'Recibido en Caja' && (
-                                    <>
-                                        {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
-                                            <TableRow key={`caja-f-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                <TableCell className="font-bold text-xs uppercase">Venta: {f.FC_NUMERO_FACTURA}</TableCell>
+                            <div className="flex-1 overflow-auto p-6">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="hover:bg-transparent border-b-2 border-slate-200 dark:border-slate-800">
+                                            <TableHead className="font-bold text-[10px] uppercase text-slate-400">Concepto / ID</TableHead>
+                                            <TableHead className="font-bold text-[10px] uppercase text-slate-400">Fecha</TableHead>
+                                            <TableHead className="font-bold text-[10px] uppercase text-slate-400">Cliente / Info</TableHead>
+                                            <TableHead className="font-bold text-[10px] uppercase text-slate-400 text-right">Valor</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
+                                            <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                 <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                <TableCell className="text-right font-black text-xs text-emerald-600">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
                                         ))}
-                                        {(specificData?.abonos || []).map((ab: any) => (
-                                            <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                <TableCell className="font-bold text-xs uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
+
+                                        {detailType === 'Recibido en Caja' && (
+                                            <>
+                                                {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
+                                                    <TableRow key={`caja-f-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                        <TableCell className="font-bold text-xs uppercase">Venta: {f.FC_NUMERO_FACTURA}</TableCell>
+                                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                        <TableCell className="text-right font-black text-xs text-emerald-600">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                {(specificData?.abonos || []).map((ab: any) => (
+                                                    <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                        <TableCell className="font-bold text-xs uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
+                                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
+                                                        <TableCell className="text-right font-black text-xs text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </>
+                                        )}
+
+                                        {detailType === 'Abonos de Deuda' && (specificData?.abonos || []).map((ab: any) => (
+                                            <TableRow key={ab.AB_IDABONO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                <TableCell className="font-bold text-xs uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
-                                                <TableCell className="text-right font-black text-xs text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
                                         ))}
-                                    </>
-                                )}
 
-                                {detailType === 'Abonos de Deuda' && (specificData?.abonos || []).map((ab: any) => (
-                                    <TableRow key={ab.AB_IDABONO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                        <TableCell className="font-bold text-xs uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
-                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                    </TableRow>
-                                ))}
-
-                                {detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
-                                    <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                        <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-red-500">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                    </TableRow>
-                                ))}
-
-                                {['Efectivo', 'Transferencia', 'Datáfono', 'Crédito', 'Servicio Trabajador'].includes(detailType) && (() => {
-                                    // Map the UI card name to the DB method name
-                                    const methodMap: Record<string, string> = {
-                                        'Efectivo': 'EFECTIVO',
-                                        'Transferencia': 'TRANSFERENCIA',
-                                        'Datáfono': 'DATAFONO',
-                                        'Crédito': 'CREDITO',
-                                        'Servicio Trabajador': 'SERVICIO DE TRABAJADOR',
-                                    }
-                                    const dbMethod = methodMap[detailType] || detailType.toUpperCase()
-
-                                    // Find all payments matching this method
-                                    const matchingPayments = (specificData?.pagos || []).filter(
-                                        (p: any) => p.metodo?.toUpperCase() === dbMethod
-                                    )
-
-                                    if (matchingPayments.length === 0) {
-                                        return (
-                                            <TableRow>
-                                                <TableCell colSpan={4} className="py-20 text-center text-slate-300 font-bold italic text-[10px] uppercase tracking-widest">No se encontraron registros</TableCell>
+                                        {detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
+                                            <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
+                                                <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-red-500">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
-                                        )
-                                    }
+                                        ))}
 
-                                    return matchingPayments.map((pago: any, idx: number) => {
-                                        const factura = (specificData?.facturas || []).find((f: any) => f.FC_IDFACTURA_PK === pago.FC_IDFACTURA_FK)
-                                        return (
-                                            <TableRow key={`pago-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                <TableCell className="font-bold text-xs">Factura {factura?.FC_NUMERO_FACTURA || pago.FC_IDFACTURA_FK}</TableCell>
-                                                <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">
-                                                    {factura ? format(new Date(factura.FC_FECHA), 'dd/MM/yyyy') : '---'}
-                                                </TableCell>
-                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">
-                                                    {factura?.cliente_display || 'GENERAL'}
-                                                </TableCell>
-                                                <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                        {['Efectivo', 'Transferencia', 'Datáfono', 'Crédito', 'Servicio Trabajador'].includes(detailType) && (() => {
+                                            // Map the UI card name to the DB method name
+                                            const methodMap: Record<string, string> = {
+                                                'Efectivo': 'EFECTIVO',
+                                                'Transferencia': 'TRANSFERENCIA',
+                                                'Datáfono': 'DATAFONO',
+                                                'Crédito': 'CREDITO',
+                                                'Servicio Trabajador': 'SERVICIO DE TRABAJADOR',
+                                            }
+                                            const dbMethod = methodMap[detailType] || detailType.toUpperCase()
+
+                                            // Find all payments matching this method
+                                            const matchingPayments = (specificData?.pagos || []).filter(
+                                                (p: any) => p.metodo?.toUpperCase() === dbMethod
+                                            )
+
+                                            if (matchingPayments.length === 0) {
+                                                return (
+                                                    <TableRow>
+                                                        <TableCell colSpan={4} className="py-20 text-center text-slate-300 font-bold italic text-[10px] uppercase tracking-widest">No se encontraron registros</TableCell>
+                                                    </TableRow>
+                                                )
+                                            }
+
+                                            return matchingPayments.map((pago: any, idx: number) => {
+                                                const factura = (specificData?.facturas || []).find((f: any) => f.FC_IDFACTURA_PK === pago.FC_IDFACTURA_FK)
+                                                return (
+                                                    <TableRow key={`pago-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                        <TableCell className="font-bold text-xs">Factura {factura?.FC_NUMERO_FACTURA || pago.FC_IDFACTURA_FK}</TableCell>
+                                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">
+                                                            {factura ? format(new Date(factura.FC_FECHA), 'dd/MM/yyyy') : '---'}
+                                                        </TableCell>
+                                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">
+                                                            {factura?.cliente_display || 'GENERAL'}
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                    </TableRow>
+                                                )
+                                            })
+                                        })()}
+
+                                        {detailType === 'Vales (Adelantos)' && (specificData?.adelantos || []).map((v: any) => (
+                                            <TableRow key={v.AD_IDADELANTO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                <TableCell className="font-bold text-xs">Adelanto {v.AD_IDADELANTO_PK}</TableCell>
+                                                <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
                                             </TableRow>
-                                        )
-                                    })
-                                })()}
+                                        ))}
 
-                                {detailType === 'Vales (Adelantos)' && (specificData?.adelantos || []).map((v: any) => (
-                                    <TableRow key={v.AD_IDADELANTO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                        <TableCell className="font-bold text-xs">Adelanto {v.AD_IDADELANTO_PK}</TableCell>
-                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
-                                    </TableRow>
-                                ))}
+                                        {detailType === 'Técnico' && (specificData?.facturas || []).flatMap((f: any) => {
+                                            // This is a bit complex as we need to find the specific services for the technician
+                                            // But specificData doesn't have the details of services per technician directly in a flat way
+                                            // I'll assume for now we show invoices where the technician worked
+                                            if (detailTitle.includes(f.cliente_display)) return []; // avoid showing cliente as tech if name overlaps
+                                            // In a real scenario, we'd filter the FD_IDTECNICO_FK. 
+                                            // Since we don't have the full details here (only summary strings), 
+                                            // I'll show invoices where they appear.
+                                            return f.servicios?.includes(detailTitle.replace('Servicios de ', '')) ? [f] : [];
+                                        }).map((f: any, i: number) => (
+                                            <TableRow key={`tech-${f.FC_IDFACTURA_PK}-${i}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
+                                                <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
+                                            </TableRow>
+                                        ))}
 
-                                {detailType === 'Técnico' && (specificData?.facturas || []).flatMap((f: any) => {
-                                    // This is a bit complex as we need to find the specific services for the technician
-                                    // But specificData doesn't have the details of services per technician directly in a flat way
-                                    // I'll assume for now we show invoices where the technician worked
-                                    if (detailTitle.includes(f.cliente_display)) return []; // avoid showing cliente as tech if name overlaps
-                                    // In a real scenario, we'd filter the FD_IDTECNICO_FK. 
-                                    // Since we don't have the full details here (only summary strings), 
-                                    // I'll show invoices where they appear.
-                                    return f.servicios?.includes(detailTitle.replace('Servicios de ', '')) ? [f] : [];
-                                }).map((f: any, i: number) => (
-                                    <TableRow key={`tech-${f.FC_IDFACTURA_PK}-${i}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                        <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                    </TableRow>
-                                ))}
-
-                                {((detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
-                                    (detailType === 'Recibido en Caja' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
-                                    (detailType === 'Abonos de Deuda' && (specificData?.abonos || []).length === 0) ||
-                                    (detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="py-20 text-center text-slate-300 font-bold italic text-[10px] uppercase tracking-widest">No se encontraron registros</TableCell>
-                                        </TableRow>
-                                    )}
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <DialogFooter className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shrink-0">
-                        <Button onClick={() => setIsDetailModalOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-bold uppercase text-[10px] tracking-widest h-12 shadow-lg active:scale-95 transition-all">
-                            Cerrar Detalle
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <BillingModal
-                isOpen={isBillingModalOpen}
-                onClose={() => {
-                    setIsBillingModalOpen(false)
-                    fetchData() // Refresh data after closing
-                }}
-                technicians={catalogData.technicians}
-                services={catalogData.services}
-                products={catalogData.products}
-                paymentMethods={catalogData.paymentMethods}
-                sucursales={sedes}
-                sessionUser={user}
-                invoice={selectedInvoice}
-                isViewOnly={isViewOnly}
-            />
-
-            {/* Modal Autenticación Admin para Eliminar */}
-            {isAdminDeleteAuthOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 w-full max-w-sm rounded-3xl shadow-2xl">
-                        <h3 className="text-sm font-black uppercase mb-4 tracking-tighter text-red-600 flex items-center gap-2">
-                            <Trash2 className="size-4" /> REQUERIDO ADMIN
-                        </h3>
-                        <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase italic">Para eliminar definitivamente una factura debe autorizar como administrador.</p>
-                        <Input
-                            type="password"
-                            placeholder="CONTRASEÑA ADMINISTRADOR"
-                            value={adminPassword}
-                            onChange={(e) => setAdminPassword(e.target.value)}
-                            className="rounded-xl border-slate-200 focus:border-[#FF7E5F] mb-4 font-bold bg-slate-50 text-slate-900 h-12 transition-all"
-                            autoFocus
-                            autoComplete="new-password"
-                            onKeyDown={(e) => e.key === 'Enter' && confirmDeleteInvoice()}
-                        />
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                className="flex-1 rounded-xl border-slate-200 uppercase font-bold text-[10px] text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-12"
-                                onClick={() => {
-                                    setIsAdminDeleteAuthOpen(false)
-                                    setAdminPassword('')
-                                    setInvoiceToDelete(null)
-                                }}
-                            >
-                                CANCELAR
-                            </Button>
-                            <Button
-                                className="flex-1 rounded-xl bg-red-600 text-white hover:bg-red-700 uppercase font-bold text-[10px] gap-2 shadow-lg shadow-red-500/20 h-12 border-none"
-                                onClick={confirmDeleteInvoice}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting && <Loader2 className="size-3 animate-spin" />}
-                                CONFIRMAR
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL PARA AGREGAR PRODUCTO A FACTURA EXISTENTE */}
-            <Dialog open={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen}>
-                <DialogContent className="max-w-md border-none rounded-3xl shadow-2xl p-0 bg-white overflow-hidden">
-                    <DialogHeader className="bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B] p-8">
-                        <DialogTitle className="text-white font-black uppercase text-xl italic tracking-tight">{apIsEdit ? "EDITAR ASOCIACIÓN" : "AGREGAR PRODUCTO"}</DialogTitle>
-                        <DialogDescription className="text-white/90 text-xs uppercase font-bold tracking-wider">{apIsEdit ? "Modifique los detalles de este producto." : "Asocie un producto con un servicio realizado."}</DialogDescription>
-                    </DialogHeader>
-
-                    <div className="p-6 space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">1. SELECCIONAR FACTURA:</label>
-                            <ComboboxSearch
-                                options={(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => ({
-                                    label: `#${f.FC_NUMERO_FACTURA} - ${f.cliente_display}`,
-                                    value: f.FC_IDFACTURA_PK.toString()
-                                }))}
-                                value={apSelectedInvoiceId}
-                                onValueChange={(val) => fetchInvoiceForAssociation(val.toString())}
-                                placeholder="BUSQUE LA FACTURA..."
-                                className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase focus:border-[#FF7E5F]"
-                            />
-                        </div>
-
-                        {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0 && (
-                            <div className="mx-6 p-3 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold uppercase rounded-lg italic">
-                                No hay facturas PENDIENTES. Si desea agregar productos a una factura PAGADA, cámbiela primero a PENDIENTE (desde el Registro de Ventas).
+                                        {((detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
+                                            (detailType === 'Recibido en Caja' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
+                                            (detailType === 'Abonos de Deuda' && (specificData?.abonos || []).length === 0) ||
+                                            (detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
+                                                <TableRow>
+                                                    <TableCell colSpan={4} className="py-20 text-center text-slate-300 font-bold italic text-[10px] uppercase tracking-widest">No se encontraron registros</TableCell>
+                                                </TableRow>
+                                            )}
+                                    </TableBody>
+                                </Table>
                             </div>
-                        )}
 
-                        {apLoadingInvoice && (
-                            <div className="flex items-center justify-center py-4 gap-2 text-[10px] font-bold text-[#FF7E5F] italic animate-pulse">
-                                <Loader2 className="size-4 animate-spin" /> CARGANDO SERVICIOS...
+                            <DialogFooter className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                <Button onClick={() => setIsDetailModalOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-bold uppercase text-[10px] tracking-widest h-12 shadow-lg active:scale-95 transition-all">
+                                    Cerrar Detalle
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    <BillingModal
+                        isOpen={isBillingModalOpen}
+                        onClose={() => {
+                            setIsBillingModalOpen(false)
+                            fetchData() // Refresh data after closing
+                        }}
+                        technicians={catalogData.technicians}
+                        services={catalogData.services}
+                        products={catalogData.products}
+                        paymentMethods={catalogData.paymentMethods}
+                        sucursales={sedes}
+                        sessionUser={user}
+                        invoice={selectedInvoice}
+                        isViewOnly={isViewOnly}
+                    />
+
+                    {/* Modal Autenticación Admin para Eliminar */}
+                    {
+                        isAdminDeleteAuthOpen && (
+                            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 w-full max-w-sm rounded-3xl shadow-2xl">
+                                    <h3 className="text-sm font-black uppercase mb-4 tracking-tighter text-red-600 flex items-center gap-2">
+                                        <Trash2 className="size-4" /> REQUERIDO ADMIN
+                                    </h3>
+                                    <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase italic">Para eliminar definitivamente una factura debe autorizar como administrador.</p>
+                                    <Input
+                                        type="password"
+                                        placeholder="CONTRASEÑA ADMINISTRADOR"
+                                        value={adminPassword}
+                                        onChange={(e) => setAdminPassword(e.target.value)}
+                                        className="rounded-xl border-slate-200 focus:border-[#FF7E5F] mb-4 font-bold bg-slate-50 text-slate-900 h-12 transition-all"
+                                        autoFocus
+                                        autoComplete="new-password"
+                                        onKeyDown={(e) => e.key === 'Enter' && confirmDeleteInvoice()}
+                                    />
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 rounded-xl border-slate-200 uppercase font-bold text-[10px] text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-12"
+                                            onClick={() => {
+                                                setIsAdminDeleteAuthOpen(false)
+                                                setAdminPassword('')
+                                                setInvoiceToDelete(null)
+                                            }}
+                                        >
+                                            CANCELAR
+                                        </Button>
+                                        <Button
+                                            className="flex-1 rounded-xl bg-red-600 text-white hover:bg-red-700 uppercase font-bold text-[10px] gap-2 shadow-lg shadow-red-500/20 h-12 border-none"
+                                            onClick={confirmDeleteInvoice}
+                                            disabled={isDeleting}
+                                        >
+                                            {isDeleting && <Loader2 className="size-3 animate-spin" />}
+                                            CONFIRMAR
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
-                        )}
+                        )
+                    }
 
-                        {apInvoiceDetails && (
-                            <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-300">
+                    {/* MODAL PARA AGREGAR PRODUCTO A FACTURA EXISTENTE */}
+                    <Dialog open={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen}>
+                        <DialogContent className="max-w-md border-none rounded-3xl shadow-2xl p-0 bg-white overflow-hidden">
+                            <DialogHeader className="bg-gradient-to-r from-[#FF7E5F] to-[#FEB47B] p-8">
+                                <DialogTitle className="text-white font-black uppercase text-xl italic tracking-tight">{apIsEdit ? "EDITAR ASOCIACIÓN" : "AGREGAR PRODUCTO"}</DialogTitle>
+                                <DialogDescription className="text-white/90 text-xs uppercase font-bold tracking-wider">{apIsEdit ? "Modifique los detalles de este producto." : "Asocie un producto con un servicio realizado."}</DialogDescription>
+                            </DialogHeader>
+
+                            <div className="p-6 space-y-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">2. PRODUCTO A CONSUMIR:</label>
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">1. SELECCIONAR FACTURA:</label>
                                     <ComboboxSearch
-                                        options={catalogData.products.map((p: any) => ({
-                                            label: p.PR_NOMBRE,
-                                            value: p.PR_IDPRODUCTO_PK.toString()
+                                        options={(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => ({
+                                            label: `#${f.FC_NUMERO_FACTURA} - ${f.cliente_display}`,
+                                            value: f.FC_IDFACTURA_PK.toString()
                                         }))}
-                                        value={apSelectedProductId}
-                                        onValueChange={(val) => handleProductChange(val.toString())}
-                                        placeholder="BUSCAR PRODUCTO..."
+                                        value={apSelectedInvoiceId}
+                                        onValueChange={(val) => fetchInvoiceForAssociation(val.toString())}
+                                        placeholder="BUSQUE LA FACTURA..."
                                         className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase focus:border-[#FF7E5F]"
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">3. SERVICIO DONDE SE USÓ:</label>
-                                    <ComboboxSearch
-                                        options={(apInvoiceDetails?.services || []).map((s: any) => ({
-                                            label: `${catalogData.services.find((cs: any) => cs.SV_IDSERVICIO_PK === s.SV_IDSERVICIO_FK)?.SV_NOMBRE || 'Servicio'} - $${(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}`,
-                                            value: s.FD_IDDETALLE_PK.toString()
-                                        }))}
-                                        value={apSelectedServiceId}
-                                        onValueChange={(val) => setApSelectedServiceId(val.toString())}
-                                        placeholder="SELECCIONAR SERVICIO..."
-                                        className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase bg-slate-50 focus:border-[#FF7E5F]"
-                                        emptyText={(!apInvoiceDetails.services || apInvoiceDetails.services.length === 0) ? "SIN SERVICIOS EN FACTURA" : "NO SE ENCONTRÓ"}
-                                    />
-                                </div>
+                                {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0 && (
+                                    <div className="mx-6 p-3 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold uppercase rounded-lg italic">
+                                        No hay facturas PENDIENTES. Si desea agregar productos a una factura PAGADA, cámbiela primero a PENDIENTE (desde el Registro de Ventas).
+                                    </div>
+                                )}
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">VALOR:</label>
-                                        <NumericFormat
-                                            value={apValue}
-                                            onValueChange={(vals) => setApValue(vals.floatValue || 0)}
-                                            thousandSeparator="."
-                                            decimalSeparator=","
-                                            prefix="$ "
-                                            className="w-full h-12 border border-slate-200 rounded-xl px-4 font-black text-sm outline-none bg-slate-50 focus:bg-white focus:border-[#FF7E5F] transition-all"
-                                        />
+                                {apLoadingInvoice && (
+                                    <div className="flex items-center justify-center py-4 gap-2 text-[10px] font-bold text-[#FF7E5F] italic animate-pulse">
+                                        <Loader2 className="size-4 animate-spin" /> CARGANDO SERVICIOS...
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TÉCNICO:</label>
-                                        <ComboboxSearch
-                                            options={catalogData.technicians.map((t: any) => ({
-                                                label: t.TR_NOMBRE,
-                                                value: t.TR_IDTRABAJADOR_PK.toString()
-                                            }))}
-                                            value={apTechnicianId}
-                                            onValueChange={(val) => setApTechnicianId(val.toString())}
-                                            placeholder="TÉCNICO..."
-                                            className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase focus:border-[#FF7E5F] hover:border-[#FF7E5F]/30 transition-all"
-                                        />
+                                )}
+
+                                {apInvoiceDetails && (
+                                    <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">2. PRODUCTO A CONSUMIR:</label>
+                                            <ComboboxSearch
+                                                options={catalogData.products.map((p: any) => ({
+                                                    label: p.PR_NOMBRE,
+                                                    value: p.PR_IDPRODUCTO_PK.toString()
+                                                }))}
+                                                value={apSelectedProductId}
+                                                onValueChange={(val) => handleProductChange(val.toString())}
+                                                placeholder="BUSCAR PRODUCTO..."
+                                                className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase focus:border-[#FF7E5F]"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">3. SERVICIO DONDE SE USÓ:</label>
+                                            <ComboboxSearch
+                                                options={(apInvoiceDetails?.services || []).map((s: any) => ({
+                                                    label: `${catalogData.services.find((cs: any) => cs.SV_IDSERVICIO_PK === s.SV_IDSERVICIO_FK)?.SV_NOMBRE || 'Servicio'} - $${(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}`,
+                                                    value: s.FD_IDDETALLE_PK.toString()
+                                                }))}
+                                                value={apSelectedServiceId}
+                                                onValueChange={(val) => setApSelectedServiceId(val.toString())}
+                                                placeholder="SELECCIONAR SERVICIO..."
+                                                className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase bg-slate-50 focus:border-[#FF7E5F]"
+                                                emptyText={(!apInvoiceDetails.services || apInvoiceDetails.services.length === 0) ? "SIN SERVICIOS EN FACTURA" : "NO SE ENCONTRÓ"}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">VALOR:</label>
+                                                <NumericFormat
+                                                    value={apValue}
+                                                    onValueChange={(vals) => setApValue(vals.floatValue || 0)}
+                                                    thousandSeparator="."
+                                                    decimalSeparator=","
+                                                    prefix="$ "
+                                                    className="w-full h-12 border border-slate-200 rounded-xl px-4 font-black text-sm outline-none bg-slate-50 focus:bg-white focus:border-[#FF7E5F] transition-all"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TÉCNICO:</label>
+                                                <ComboboxSearch
+                                                    options={catalogData.technicians.map((t: any) => ({
+                                                        label: t.TR_NOMBRE,
+                                                        value: t.TR_IDTRABAJADOR_PK.toString()
+                                                    }))}
+                                                    value={apTechnicianId}
+                                                    onValueChange={(val) => setApTechnicianId(val.toString())}
+                                                    placeholder="TÉCNICO..."
+                                                    className="w-full h-12 border border-slate-200 rounded-xl font-bold text-xs uppercase focus:border-[#FF7E5F] hover:border-[#FF7E5F]/30 transition-all"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-                        <Button
-                            className="w-full h-14 rounded-2xl bg-[#FF7E5F] text-white font-black uppercase text-xs tracking-tight shadow-xl shadow-coral-500/20 active:scale-95 hover:bg-[#FF7E5F]/90 border-none transition-all"
-                            onClick={handleAddProduct}
-                            disabled={apIsSubmitting || !apSelectedInvoiceId || !apSelectedProductId}
-                        >
-                            {apIsSubmitting ? <Loader2 className="size-4 animate-spin mr-2" /> : <Package2 className="size-4 mr-2" />}
-                            {apIsEdit ? "ACTUALIZAR PRODUCTO" : "ASOCIAR PRODUCTO"}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                            <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
+                                <Button
+                                    className="w-full h-14 rounded-2xl bg-[#FF7E5F] text-white font-black uppercase text-xs tracking-tight shadow-xl shadow-coral-500/20 active:scale-95 hover:bg-[#FF7E5F]/90 border-none transition-all"
+                                    onClick={handleAddProduct}
+                                    disabled={apIsSubmitting || !apSelectedInvoiceId || !apSelectedProductId}
+                                >
+                                    {apIsSubmitting ? <Loader2 className="size-4 animate-spin mr-2" /> : <Package2 className="size-4 mr-2" />}
+                                    {apIsEdit ? "ACTUALIZAR PRODUCTO" : "ASOCIAR PRODUCTO"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </>
+            )}
         </div>
     )
 }

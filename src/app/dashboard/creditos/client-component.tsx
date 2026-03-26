@@ -45,6 +45,7 @@ import { toast } from '@/lib/toast-helper'
 import { LoadingGate } from '@/components/ui/loading-gate'
 import { Loader2 } from 'lucide-react'
 import { DashboardBanner } from '@/components/layout/dashboard-banner'
+import { compressImage, standardizeFileName } from '@/lib/image-utils'
 
 export default function CreditsPage() {
   // Estados principales
@@ -99,10 +100,11 @@ export default function CreditsPage() {
     if (!file) return
 
     setIsUploadingEvidence(true)
-    const formData = new FormData()
-    formData.append('file', file)
-
     try {
+      const compressedFile = await compressImage(file)
+      const fileName = standardizeFileName(file.name)
+      const formData = new FormData()
+      formData.append('file', compressedFile, fileName)
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,

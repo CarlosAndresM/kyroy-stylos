@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import mysql from 'mysql2/promise';
 import * as dotenv from 'dotenv';
+import { hashPasswords } from './hash-passwords';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -48,6 +49,10 @@ async function seed() {
     }
 
     console.log('✨ Proceso de seeding completado.');
+
+    // Ejecutar hashing de contraseñas automáticamente
+    await hashPasswords(connection);
+
   } catch (error) {
     console.error('❌ Error durante el seeding:', error);
     process.exit(1);
