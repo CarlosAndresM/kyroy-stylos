@@ -96,12 +96,15 @@ export function ClientAutocomplete({
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-800 group-hover:text-[#FF7E5F] transition-colors">{client.CL_NOMBRE}</span>
+                  <div className="flex items-center gap-1.5 text-slate-500">
+                    <Phone className="size-3 text-[#FF7E5F]" />
+                    <span className="text-sm font-bold text-slate-800">{client.CL_TELEFONO}</span>
+                  </div>
                   <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase font-sans">Historial</span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5 text-slate-500">
-                  <Phone className="size-3 text-slate-400" />
-                  <span className="text-xs">{client.CL_TELEFONO}</span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <User className="size-3 text-slate-400" />
+                  <span className="text-xs font-medium text-slate-500 group-hover:text-[#FF7E5F] transition-colors">{client.CL_NOMBRE}</span>
                 </div>
               </li>
             ))}

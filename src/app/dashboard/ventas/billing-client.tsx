@@ -299,12 +299,7 @@ export function BillingClient({
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
-                    <TableFilter
-                      label="CLIENTE"
-                      options={getFilterOptions('cliente_display')}
-                      selectedValues={activeFilters['cliente_display'] || []}
-                      onFilterChange={(vals) => handleFilterChange('cliente_display', vals)}
-                    />
+                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Teléfono</span>
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4 text-center">
                     <TableFilter
@@ -316,7 +311,12 @@ export function BillingClient({
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Teléfono</span>
+                    <TableFilter
+                      label="CLIENTE"
+                      options={getFilterOptions('cliente_display')}
+                      selectedValues={activeFilters['cliente_display'] || []}
+                      onFilterChange={(vals) => handleFilterChange('cliente_display', vals)}
+                    />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
                     <TableFilter
@@ -362,8 +362,8 @@ export function BillingClient({
                         </Badge>
                       </TableCell>
                       <TableCell className="py-2 px-4">
-                        <span className="text-xs font-bold text-slate-700 truncate max-w-[150px] block">
-                          {invoice.cliente_display || 'GENERAL'}
+                        <span className="text-[10px] font-medium text-slate-500 tabular-nums">
+                          {invoice.FC_CLIENTE_TELEFONO || '--'}
                         </span>
                       </TableCell>
                       <TableCell className="py-2 px-4 text-center">
@@ -375,8 +375,8 @@ export function BillingClient({
                         </Badge>
                       </TableCell>
                       <TableCell className="py-2 px-4">
-                        <span className="text-[10px] font-medium text-slate-500 tabular-nums">
-                          {invoice.FC_CLIENTE_TELEFONO || '--'}
+                        <span className="text-xs font-bold text-slate-700 truncate max-w-[150px] block">
+                          {invoice.cliente_display || 'GENERAL'}
                         </span>
                       </TableCell>
                       <TableCell className="py-2 px-4">

@@ -244,8 +244,8 @@ export default function CreditsPage() {
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] px-6"># Fac</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Registro</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Sede</TableHead>
-                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Cliente</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Teléfono</TableHead>
+                  <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Cliente</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Servicios</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] text-right">Total</TableHead>
                   <TableHead className="font-bold text-slate-500 uppercase tracking-wider text-[10px] text-right">Pendiente</TableHead>
@@ -265,11 +265,11 @@ export default function CreditsPage() {
                     <TableCell className="text-[10px] font-medium text-slate-500 uppercase">
                       {credit.sucursal_nombre}
                     </TableCell>
-                    <TableCell className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {credit.cliente_display || credit.FC_CLIENTE_NOMBRE}
-                    </TableCell>
                     <TableCell className="text-[11px] text-slate-500">
                       {credit.FC_CLIENTE_TELEFONO}
+                    </TableCell>
+                    <TableCell className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      {credit.cliente_display || credit.FC_CLIENTE_NOMBRE}
                     </TableCell>
                     <TableCell className="max-w-[120px] truncate text-[10px] text-slate-500">
                       {credit.servicios || '---'}

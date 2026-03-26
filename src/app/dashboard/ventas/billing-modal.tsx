@@ -17,7 +17,7 @@ import {
   Eye,
   Pencil
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, startOfWeek, endOfWeek, isSameWeek } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { v4 as uuidv4 } from 'uuid'
 import { ProductAssociationModal } from '@/features/dashboard/product-association-modal'
@@ -433,10 +433,17 @@ export function BillingModal({
   const serviceOptions = services.map(s => ({ label: s.SV_NOMBRE, value: s.SV_IDSERVICIO_PK }))
   const productOptions = products.map(p => ({ label: p.PR_NOMBRE, value: p.PR_IDPRODUCTO_PK }))
 
+  const getWeekRange = React.useCallback((date: Date | null) => {
+    if (!date) return null;
+    const start = startOfWeek(date, { weekStartsOn: 1 });
+    const end = endOfWeek(date, { weekStartsOn: 1 });
+    return `Semana del ${format(start, 'dd MMM', { locale: es })} al ${format(end, 'dd MMM', { locale: es })}`;
+  }, []);
+
   // Manejo de pagos
   const handlePaymentToggle = (method: any, checked: boolean) => {
     const currentPayments = form.getValues("payments") || []
-    const isValeMethod = method.MP_NOMBRE?.toUpperCase() === 'VALE'
+    const isValeMethod = method.MP_NOMBRE?.toUpperCase() === 'VALE' || method.MP_NOMBRE?.toUpperCase() === 'SERVICIO DE TRABAJADOR'
 
     if (checked) {
       const currentPayments = form.getValues("payments") || []
@@ -457,7 +464,14 @@ export function BillingModal({
       const filteredPayments = currentPayments.filter(p => p.MP_IDMETODO_FK !== method.MP_IDMETODO_PK)
 
       form.setValue("payments", filteredPayments)
-      if (isValeMethod) form.setValue("isVale", false)
+      
+      // Check if any other vale-related method remains
+      const anyOtherVale = filteredPayments.some(p => {
+        const m = paymentMethods.find(pm => pm.MP_IDMETODO_PK === p.MP_IDMETODO_FK)
+        const n = m?.MP_NOMBRE?.toUpperCase()
+        return n === 'VALE' || n === 'SERVICIO DE TRABAJADOR'
+      })
+      if (isValeMethod && !anyOtherVale) form.setValue("isVale", false)
     }
   }
 
@@ -488,21 +502,31 @@ export function BillingModal({
   React.useEffect(() => {
     const isValeValue = form.watch("isVale")
     const valeMethod = paymentMethods.find(m => m.MP_NOMBRE?.toUpperCase() === 'VALE')
+    const serviceMethod = paymentMethods.find(m => m.MP_NOMBRE?.toUpperCase() === 'SERVICIO DE TRABAJADOR')
 
-    if (clientType === 'TECNICO' && isValeValue && valeMethod) {
+    if (clientType === 'TECNICO' && isValeValue) {
       const currentPayments = form.getValues("payments") || []
-      const alreadyHasVale = currentPayments.find(p => p.MP_IDMETODO_FK === valeMethod.MP_IDMETODO_PK)
+      const hasVale = currentPayments.some(p => {
+        const mId = p.MP_IDMETODO_FK;
+        return mId === valeMethod?.MP_IDMETODO_PK || mId === serviceMethod?.MP_IDMETODO_PK;
+      });
 
-      if (!alreadyHasVale) {
-        // We add it but with 0 or the current total if it's the only one, but the user wants manual control. 
-        // Let's just add it with 0 and let them balance it.
-        form.setValue("payments", [{ MP_IDMETODO_FK: valeMethod.MP_IDMETODO_PK, PF_VALOR: 0, PF_EVIDENCIA_URL: '' }])
+      if (!hasVale && (valeMethod || serviceMethod)) {
+        // Default to VALE if none selected but isVale is true
+        const methodToUse = serviceMethod || valeMethod;
+        if (methodToUse) {
+          form.setValue("payments", [...currentPayments, { MP_IDMETODO_FK: methodToUse.MP_IDMETODO_PK, PF_VALOR: 0, PF_EVIDENCIA_URL: '' }])
+        }
       }
     } else if (!isValeValue && clientType === 'TECNICO') {
-      const valeMethod = paymentMethods.find(m => m.MP_NOMBRE?.toUpperCase() === 'VALE')
-      if (valeMethod) {
-        const currentPayments = form.getValues("payments") || []
-        form.setValue("payments", currentPayments.filter(p => p.MP_IDMETODO_FK !== valeMethod.MP_IDMETODO_PK))
+      const currentPayments = form.getValues("payments") || []
+      const filtered = currentPayments.filter(p => {
+        const m = paymentMethods.find(pm => pm.MP_IDMETODO_PK === p.MP_IDMETODO_FK)
+        const name = m?.MP_NOMBRE?.toUpperCase()
+        return name !== 'VALE' && name !== 'SERVICIO DE TRABAJADOR'
+      })
+      if (filtered.length !== currentPayments.length) {
+        form.setValue("payments", filtered)
       }
     }
   }, [form.watch("isVale"), clientType, total, paymentMethods, form])
@@ -650,24 +674,6 @@ export function BillingModal({
                   {clientType === 'CLIENTE' && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="FC_CLIENTE_NOMBRE" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Nombre del Cliente *</FormLabel>
-                            <ClientAutocomplete
-                              value={field.value || ''}
-                              onValueChange={field.onChange}
-                              clients={allClients}
-                              onClientSelect={(client) => {
-                                form.setValue('FC_CLIENTE_NOMBRE', client.CL_NOMBRE)
-                                form.setValue('FC_CLIENTE_TELEFONO', client.CL_TELEFONO)
-                              }}
-                              disabled={isPaid}
-                              placeholder="Escribe para buscar o agregar..."
-                              icon="user"
-                            />
-                            <FormMessage className="text-[10px]" />
-                          </FormItem>
-                        )} />
                         <FormField control={form.control} name="FC_CLIENTE_TELEFONO" render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase text-slate-400">Teléfono *</FormLabel>
@@ -682,6 +688,24 @@ export function BillingModal({
                               disabled={isPaid}
                               placeholder="Celular..."
                               icon="phone"
+                            />
+                            <FormMessage className="text-[10px]" />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="FC_CLIENTE_NOMBRE" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Nombre del Cliente *</FormLabel>
+                            <ClientAutocomplete
+                              value={field.value || ''}
+                              onValueChange={field.onChange}
+                              clients={allClients}
+                              onClientSelect={(client) => {
+                                form.setValue('FC_CLIENTE_NOMBRE', client.CL_NOMBRE)
+                                form.setValue('FC_CLIENTE_TELEFONO', client.CL_TELEFONO)
+                              }}
+                              disabled={isPaid}
+                              placeholder="Escribe para buscar o agregar..."
+                              icon="user"
                             />
                             <FormMessage className="text-[10px]" />
                           </FormItem>
@@ -769,7 +793,19 @@ export function BillingModal({
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date()} initialFocus />
+                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date()} initialFocus
+                              modifiers={{
+                                week: (date) => field.value ? isSameWeek(date, field.value, { weekStartsOn: 1 }) : false
+                              }}
+                              modifiersClassNames={{
+                                week: "bg-[#FF7E5F]/15 font-bold rounded-none"
+                              }}
+                            />
+                            <div className="p-3 border-t border-slate-100 bg-slate-50">
+                              <p className="text-[10px] font-black uppercase text-slate-500 italic tracking-tight">
+                                {getWeekRange(field.value)}
+                              </p>
+                            </div>
                           </PopoverContent>
                         </Popover>
                       </FormItem>
@@ -804,9 +840,21 @@ export function BillingModal({
                                 </Button>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
+                                <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus
+                                  modifiers={{
+                                    week: (date) => field.value ? isSameWeek(date, field.value, { weekStartsOn: 1 }) : false
+                                  }}
+                                  modifiersClassNames={{
+                                    week: "bg-[#FF7E5F]/15 font-bold rounded-none"
+                                  }}
+                                />
                               </PopoverContent>
                             </Popover>
+                            {field.value && (
+                              <p className="text-[9px] font-bold text-amber-600 uppercase mt-1">
+                                {getWeekRange(field.value)}
+                              </p>
+                            )}
                           </FormItem>
                         )} />
                         <FormField control={form.control} name="VL_NUMERO_CUOTAS" render={({ field }) => (

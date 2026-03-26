@@ -20,14 +20,14 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
 
     // 1. Get total sales (ONLY PAGADO invoices)
     const [salesResult]: any = await db.execute(
-      `SELECT SUM(FC_TOTAL) as total FROM KS_FACTURAS 
+      `SELECT SUM(FC_TOTAL) as total, COUNT(*) as count FROM KS_FACTURAS 
        WHERE DATE(FC_FECHA) BETWEEN ? AND ? AND FC_ESTADO = 'PAGADO' ${sucursalFilter}`,
       params
     );
 
     // 2. Get breakdown of payments by method (ONLY for PAGADO invoices to match ventas_total)
     const [paymentsBreakdown]: any = await db.execute(
-      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total
+      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total, COUNT(pf.PF_IDPAGO_PK) as count
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
        JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
@@ -40,7 +40,7 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
 
     // 3. Get total from Credit Abonos in this period
     const [abonosResult]: any = await db.execute(
-      `SELECT SUM(ab.AB_VALOR) as total, COUNT(DISTINCT ab.CR_IDCREDITO_FK) as count
+      `SELECT SUM(ab.AB_VALOR) as total, COUNT(ab.AB_IDABONO_PK) as count
        FROM KS_CREDITO_ABONOS ab
        JOIN KS_CREDITOS c ON ab.CR_IDCREDITO_FK = c.CR_IDCREDITO_PK
        JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
@@ -64,7 +64,7 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
     // 5. Total Pendiente por Cobrar (SOLO EFECTIVO, TRANSF, DATAFONO en facturas pendientes)
     // Se omiten CRÉDITOS y VALES porque no se cobrarán hoy
     const [pendientesHoy]: any = await db.execute(
-      `SELECT SUM(pf.PF_VALOR) as total
+      `SELECT SUM(pf.PF_VALOR) as total, COUNT(pf.PF_IDPAGO_PK) as count
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
        JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
@@ -75,16 +75,15 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       params
     );
 
-    // 5b. Deuda Total Generada Hoy (Para mostrar en las tarjetas de CREDITO y SERVICIO DE TRABAJADOR)
-    // Extraemos estos valores independientes del breakdown de PAGADO
+    // 5b. Deuda Total Generada Hoy (Para mostrar en las tarjetas de CREDITO, VALE y SERVICIO DE TRABAJADOR)
     const [deudaNueva]: any = await db.execute(
-      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total
+      `SELECT mp.MP_NOMBRE as metodo, SUM(pf.PF_VALOR) as total, COUNT(pf.PF_IDPAGO_PK) as count
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
        JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
        WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? 
        AND (f.FC_ESTADO = 'PENDIENTE' OR f.FC_ESTADO = 'PAGADO')
-       AND mp.MP_NOMBRE IN ('CREDITO', 'SERVICIO DE TRABAJADOR')
+       AND mp.MP_NOMBRE IN ('CREDITO', 'SERVICIO DE TRABAJADOR', 'VALE')
        ${sucursalFilter ? 'AND f.' + sucursalFilter.trim().substring(4) : ''}
        GROUP BY mp.MP_NOMBRE`,
       params
@@ -108,51 +107,102 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       'TRANSFERENCIA': 0,
       'DATAFONO': 0,
       'CREDITO': 0,
-      'SERVICIO DE TRABAJADOR': 0
+      'SERVICIO DE TRABAJADOR': 0,
+      'VALE': 0
+    };
+
+    const metodosCount: Record<string, number> = {
+      'EFECTIVO': 0,
+      'TRANSFERENCIA': 0,
+      'DATAFONO': 0,
+      'CREDITO': 0,
+      'SERVICIO DE TRABAJADOR': 0,
+      'VALE': 0
     };
 
     (paymentsBreakdown || []).forEach((row: any) => {
       const metodo = row.metodo.toUpperCase();
-      if (metodo === 'EFECTIVO') metodos['EFECTIVO'] += Number(row.total || 0);
-      else if (metodo === 'DATAFONO' || metodo === 'TARJETA') metodos['DATAFONO'] += Number(row.total || 0);
-      else if (metodo === 'TRANSFERENCIA') metodos['TRANSFERENCIA'] += Number(row.total || 0);
+      if (metodo === 'EFECTIVO') {
+        metodos['EFECTIVO'] += Number(row.total || 0);
+        metodosCount['EFECTIVO'] += Number(row.count || 0);
+      }
+      else if (metodo === 'DATAFONO' || metodo === 'TARJETA') {
+        metodos['DATAFONO'] += Number(row.total || 0);
+        metodosCount['DATAFONO'] += Number(row.count || 0);
+      }
+      else if (metodo === 'TRANSFERENCIA') {
+        metodos['TRANSFERENCIA'] += Number(row.total || 0);
+        metodosCount['TRANSFERENCIA'] += Number(row.count || 0);
+      }
     });
 
     (deudaNueva || []).forEach((row: any) => {
       const metodo = row.metodo.toUpperCase();
-      if (metodo === 'CREDITO') metodos['CREDITO'] += Number(row.total || 0);
-      else if (metodo === 'SERVICIO DE TRABAJADOR') metodos['SERVICIO DE TRABAJADOR'] += Number(row.total || 0);
+      if (metodo === 'CREDITO') {
+        metodos['CREDITO'] += Number(row.total || 0);
+        metodosCount['CREDITO'] += Number(row.count || 0);
+      }
+      else if (metodo === 'SERVICIO DE TRABAJADOR') {
+        metodos['SERVICIO DE TRABAJADOR'] += Number(row.total || 0);
+        metodosCount['SERVICIO DE TRABAJADOR'] += Number(row.count || 0);
+      }
+      else if (metodo === 'VALE') {
+        metodos['VALE'] = Number(row.total || 0);
+        metodosCount['VALE'] = Number(row.count || 0);
+      }
     });
 
     // 7. Adelantos (Vales Reales) en el periodo
+    let adelantoParams: any[] = [dateFrom, dateTo];
+    let adelantoSucursalFilter = "";
+    if (sucursalId !== -1) {
+      adelantoSucursalFilter = " AND t.SC_IDSUCURSAL_FK = ?";
+      adelantoParams.push(sucursalId);
+    }
+
     const [adelantosResult]: any = await db.execute(
-      `SELECT SUM(ad.AD_MONTO) as total 
+      `SELECT SUM(ad.AD_MONTO) as total, COUNT(*) as count
        FROM KS_ADELANTOS ad
        JOIN KS_TRABAJADORES t ON ad.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        WHERE DATE(ad.AD_FECHA) BETWEEN ? AND ? 
-       AND ad.AD_ESTADO != 'ANULADO'`,
-      [dateFrom, dateTo]
+       AND ad.AD_ESTADO != 'ANULADO'
+       ${adelantoSucursalFilter}`,
+      adelantoParams
     );
 
     const totalVentasPagadas = Number(salesResult[0]?.total || 0);
     const totalAbonosRecibidos = Number(abonosResult[0]?.total || 0);
+    const totalAbonosCount = Number(abonosResult[0]?.count || 0);
 
     // Recibido en Caja = (Efectivo + Transferencia + Datafono de Facturas Pagadas) + Abonos
     const totalCaja = metodos['EFECTIVO'] + metodos['TRANSFERENCIA'] + metodos['DATAFONO'] + totalAbonosRecibidos;
+    const totalCajaCount = metodosCount['EFECTIVO'] + metodosCount['TRANSFERENCIA'] + metodosCount['DATAFONO'] + totalAbonosCount;
+
+    const adelantosNominaTotal = Number(adelantosResult[0]?.total || 0);
+    const adelantosNominaCount = Number(adelantosResult[0]?.count || 0);
+
+    // El total de "VALES" para el dashboard es la suma de los adelantos de nómina + los pagos por VALE en facturas
+    const totalValesCard = adelantosNominaTotal + (metodos['VALE'] || 0);
+    const totalValesCount = adelantosNominaCount + (metodosCount['VALE'] || 0);
 
     return {
       success: true,
       data: {
         ventas_total: totalVentasPagadas,
+        ventas_count: Number(salesResult[0]?.count || 0),
         total_caja: totalCaja,
+        total_caja_count: totalCajaCount,
         metodos_pago: metodos,
+        metodos_count: metodosCount,
         por_cobrar_total: Number(pendientesHoy[0]?.total || 0),
+        por_cobrar_count: Number(pendientesHoy[0]?.count || 0),
         total_abonos: totalAbonosRecibidos,
-        abonos_count: Number(abonosResult[0]?.count || 0),
+        abonos_count: totalAbonosCount,
         clientes_nuevos: Number(clientsResult[0]?.total || 0),
         vales_total: Number(valesResult[0]?.total || 0),
-        adelantos_total: Number(adelantosResult[0]?.total || 0),
+        vales_count: Number(valesResult[0]?.count || 0),
+        adelantos_total: totalValesCard,
+        adelantos_count: totalValesCount,
       },
       error: null
     };
@@ -347,22 +397,22 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
     );
 
     // 6. Adelantos (Vales Reales) detallados
-    // Nota: Los adelantos reales dependen del trabajador, no de la factura.
-    // Habitualmente se filtran por la sucursal del trabajador.
-    let adelantoFilter = "";
+    let adelantoParamsSpecific: any[] = [dateFrom, dateTo];
+    let adelantoFilterSpecific = "";
     if (sucursalId !== -1) {
-      adelantoFilter = " AND t.SC_IDSUCURSAL_FK = ?";
+      adelantoFilterSpecific = " AND t.SC_IDSUCURSAL_FK = ?";
+      adelantoParamsSpecific.push(sucursalId);
     }
 
     const [adelantos]: any = await db.execute(
       `SELECT a.*, t.TR_NOMBRE as trabajador_nombre
        FROM KS_ADELANTOS a
        JOIN KS_TRABAJADORES t ON a.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
-       JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
        WHERE DATE(a.AD_FECHA) BETWEEN ? AND ?
-       ${adelantoFilter}
+       AND a.AD_ESTADO != 'ANULADO'
+       ${adelantoFilterSpecific}
        ORDER BY a.AD_FECHA DESC`,
-      sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
+      adelantoParamsSpecific
     );
 
     // 7. Pagos por factura (para filtrar por método en el detalle modal)
@@ -371,6 +421,20 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? ${sucursalFilter}
+       ORDER BY f.FC_FECHA DESC`,
+      sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
+    );
+
+    // 8. Servicios detallados (para el detalle de técnicos en el ranking)
+    const [serviciosDetalle]: any = await db.execute(
+      `SELECT fd.*, sv.SV_NOMBRE as servicio_nombre, t.TR_NOMBRE as tecnico_nombre, f.FC_NUMERO_FACTURA, f.FC_FECHA,
+       COALESCE(f.FC_CLIENTE_NOMBRE, tc.TR_NOMBRE) as cliente_display
+       FROM KS_FACTURA_DETALLES fd
+       JOIN KS_SERVICIOS sv ON fd.SV_IDSERVICIO_FK = sv.SV_IDSERVICIO_PK
+       JOIN KS_TRABAJADORES t ON fd.TR_IDTECNICO_FK = t.TR_IDTRABAJADOR_PK
+       JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       LEFT JOIN KS_TRABAJADORES tc ON f.TR_IDCLIENTE_FK = tc.TR_IDTRABAJADOR_PK
        WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? ${sucursalFilter}
        ORDER BY f.FC_FECHA DESC`,
       sucursalId !== -1 ? [...baseParams, sucursalId] : baseParams
@@ -385,7 +449,8 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
         productos: (productos || []).map((p: any) => ({ ...p, FP_VALOR: Number(p.FP_VALOR || 0) })),
         abonos: (abonos || []).map((a: any) => ({ ...a, AB_VALOR: Number(a.AB_VALOR || 0), cr_valor_pendiente: Number(a.cr_valor_pendiente || 0) })),
         adelantos: (adelantos || []).map((a: any) => ({ ...a, AD_MONTO: Number(a.AD_MONTO || 0) })),
-        pagos: (pagos || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.PF_VALOR || 0) }))
+        pagos: (pagos || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.PF_VALOR || 0) })),
+        serviciosDetalle: (serviciosDetalle || []).map((s: any) => ({ ...s, FD_VALOR: Number(s.FD_VALOR || 0) }))
       },
       error: null
     };

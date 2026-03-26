@@ -110,36 +110,47 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                         value: `$${(stats?.services_total || 0).toLocaleString('es-CO')}`,
                         sub: `${stats?.services_count || 0} realizados`,
                         icon: Briefcase,
-                        color: 'from-[#FF7E5F] to-[#FEB47B]'
+                        color: 'from-[#FF7E5F] to-[#FEB47B]',
+                        count: stats?.services_count || 0
                     },
                     {
                         title: 'Productos Usados',
                         value: `$${(stats?.products_total || 0).toLocaleString('es-CO')}`,
                         sub: `${stats?.products_count || 0} unidades`,
                         icon: Package2,
-                        color: 'from-blue-600 to-cyan-500'
+                        color: 'from-blue-600 to-cyan-500',
+                        count: stats?.products_count || 0
                     },
                     {
                         title: 'Diferencia (Neto)',
                         value: `$${((stats?.services_total || 0) - (stats?.products_total || 0)).toLocaleString('es-CO')}`,
                         sub: 'Servicios - Productos',
                         icon: Zap,
-                        color: 'from-emerald-600 to-teal-500'
+                        color: 'from-emerald-600 to-teal-500',
+                        count: 0
                     },
                     {
                         title: 'Prod. Realizados',
                         value: stats?.services_count || 0,
                         sub: 'En el periodo',
                         icon: TrendingUp,
-                        color: 'from-purple-600 to-indigo-500'
+                        color: 'from-purple-600 to-indigo-500',
+                        count: stats?.services_count || 0
                     }
                 ].map((stat, i) => (
                     <Card key={i} className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900">
                         <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
                             <CardTitle className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.title}</CardTitle>
-                            <div className={cn("p-2 rounded-xl bg-gradient-to-br", stat.color)}>
-                                <stat.icon className="size-4 text-white" />
+                            <div className="relative">
+                                <div className={cn("p-2 rounded-xl bg-gradient-to-br", stat.color)}>
+                                    <stat.icon className="size-4 text-white" />
+                                </div>
+                                {stat.count > 0 && i !== 2 && (
+                                    <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black size-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+                                        {stat.count}
+                                    </div>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent className="relative z-10">

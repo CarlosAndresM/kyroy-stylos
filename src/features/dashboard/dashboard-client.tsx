@@ -454,75 +454,88 @@ export function DashboardClient() {
                                             value: `$ ${(stats?.ventas_total || 0).toLocaleString('es-CO')}`,
                                             sub: 'FACTURAS PAGADAS HOY',
                                             icon: TrendingUp,
-                                            color: 'from-[#FF7E5F] to-[#FEB47B]'
+                                            color: 'from-[#FF7E5F] to-[#FEB47B]',
+                                            count: stats?.ventas_count || 0
                                         },
                                         {
                                             title: 'POR COBRAR',
                                             value: `$ ${(stats?.por_cobrar_total || 0).toLocaleString('es-CO')}`,
                                             sub: 'VENTAS PENDIENTES HOY',
                                             icon: HandCoins,
-                                            color: 'from-red-500 to-rose-400'
+                                            color: 'from-red-500 to-rose-400',
+                                            count: stats?.por_cobrar_count || 0
                                         },
                                         {
                                             title: 'TOTAL EN CAJA',
                                             value: `$ ${(stats?.total_caja || 0).toLocaleString('es-CO')}`,
                                             sub: 'DIRECTO + ABONOS DE DEUDA',
                                             icon: Wallet,
-                                            color: 'from-emerald-600 to-teal-500'
+                                            color: 'from-emerald-600 to-teal-500',
+                                            count: stats?.total_caja_count || 0
                                         },
                                         {
                                             title: 'EFECTIVO',
                                             value: `$ ${(stats?.metodos_pago?.['EFECTIVO'] || 0).toLocaleString('es-CO')}`,
                                             sub: 'SUMA DE VENTAS PAGADAS',
                                             icon: DollarSign,
-                                            color: 'from-green-600 to-emerald-500'
+                                            color: 'from-green-600 to-emerald-500',
+                                            count: stats?.metodos_count?.['EFECTIVO'] || 0
                                         },
                                         {
                                             title: 'TRANSFERENCIA',
                                             value: `$ ${(stats?.metodos_pago?.['TRANSFERENCIA'] || 0).toLocaleString('es-CO')}`,
                                             sub: 'NEQUI / DAVIPLATA / BANCOS',
                                             icon: Landmark,
-                                            color: 'from-blue-600 to-cyan-500'
+                                            color: 'from-blue-600 to-cyan-500',
+                                            count: stats?.metodos_count?.['TRANSFERENCIA'] || 0
                                         },
                                         {
                                             title: 'CREDITO',
                                             value: `$ ${(stats?.metodos_pago?.['CREDITO'] || 0).toLocaleString('es-CO')}`,
                                             sub: 'DEUDA GENERADA HOY',
                                             icon: History,
-                                            color: 'from-amber-600 to-orange-400'
+                                            color: 'from-amber-600 to-orange-400',
+                                            count: stats?.metodos_count?.['CREDITO'] || 0
                                         },
                                         {
                                             title: 'SERVICIO TRABAJADOR',
                                             value: `$ ${(stats?.metodos_pago?.['SERVICIO DE TRABAJADOR'] || 0).toLocaleString('es-CO')}`,
                                             sub: 'SERVICIOS ENTRE TÉCNICOS',
                                             icon: Ticket,
-                                            color: 'from-slate-600 to-slate-450'
+                                            color: 'from-slate-600 to-slate-450',
+                                            count: stats?.metodos_count?.['SERVICIO DE TRABAJADOR'] || 0
                                         },
                                         {
                                             title: 'ABONO A DEUDAS',
                                             value: `$ ${(stats?.total_abonos || 0).toLocaleString('es-CO')}`,
                                             sub: 'PAGOS A DEUDAS DE CLIENTES',
                                             icon: History,
-                                            color: 'from-purple-600 to-indigo-500'
+                                            color: 'from-purple-600 to-indigo-500',
+                                            count: stats?.abonos_count || 0
                                         },
                                         {
                                             title: 'DATAFONO',
                                             value: `$ ${(stats?.metodos_pago?.['DATAFONO'] || 0).toLocaleString('es-CO')}`,
                                             sub: 'TARJETAS DÉBITO / CRÉDITO',
                                             icon: CreditCard,
-                                            color: 'from-indigo-600 to-violet-500'
+                                            color: 'from-indigo-600 to-violet-500',
+                                            count: stats?.metodos_count?.['DATAFONO'] || 0
                                         },
                                         {
                                             title: 'VALES',
                                             value: `$ ${(stats?.adelantos_total || 0).toLocaleString('es-CO')}`,
                                             sub: 'ADELANTOS DE NÓMINA HOY',
                                             icon: Zap,
-                                            color: 'from-orange-500 to-yellow-500'
+                                            color: 'from-orange-500 to-yellow-500',
+                                            count: stats?.adelantos_count || 0
                                         },
                                     ].filter(stat => stat.title !== 'DATAFONO').map((stat, i) => (
                                         <Card
                                             key={i}
-                                            className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 transition-all hover:shadow-md cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50"
+                                            className={cn(
+                                                "border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 transition-all hover:shadow-md cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50",
+                                                stat.title === 'VENTAS' ? "col-span-2 lg:col-span-2" : ""
+                                            )}
                                             onClick={() => {
                                                 setDetailType(stat.title)
                                                 setDetailTitle(stat.title)
@@ -532,12 +545,28 @@ export function DashboardClient() {
                                             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
                                             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
                                                 <CardTitle className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.title}</CardTitle>
-                                                <div className={cn("p-2.5 rounded-xl shadow-lg shadow-coral-500/10 bg-gradient-to-br", stat.color)}>
-                                                    <stat.icon className="size-4 text-white" />
+                                                <div className="relative">
+                                                    <div className={cn(
+                                                        "p-2.5 rounded-xl shadow-lg shadow-coral-500/10 bg-gradient-to-br",
+                                                        stat.color,
+                                                        stat.title === 'VENTAS' ? "p-4" : ""
+                                                    )}>
+                                                        <stat.icon className={cn("text-white", stat.title === 'VENTAS' ? "size-6" : "size-4")} />
+                                                    </div>
+                                                    {stat.count > 0 && (
+                                                        <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black size-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm animate-in zoom-in-50 duration-300">
+                                                            {stat.count}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </CardHeader>
                                             <CardContent className="relative z-10">
-                                                <div className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{stat.value}</div>
+                                                <div className={cn(
+                                                    "font-black text-slate-900 dark:text-white leading-none tracking-tight",
+                                                    stat.title === 'VENTAS' ? "text-4xl" : "text-2xl"
+                                                )}>
+                                                    {stat.value}
+                                                </div>
                                                 <div className="text-[10px] font-medium text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
                                             </CardContent>
                                         </Card>
@@ -1180,32 +1209,53 @@ export function DashboardClient() {
                                                 })
                                             })()}
 
-                                            {detailType === 'VALES' && (specificData?.adelantos || []).map((v: any) => (
-                                                <TableRow key={v.AD_IDADELANTO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                    <TableCell className="font-bold text-xs">Adelanto {v.AD_IDADELANTO_PK}</TableCell>
-                                                    <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                    <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
-                                                    <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {detailType === 'VALES' && (
+                                                <>
+                                                    {(specificData?.adelantos || []).map((v: any) => (
+                                                        <TableRow key={`adelanto-${v.AD_IDADELANTO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                            <TableCell className="font-bold text-xs uppercase text-orange-600">Adelanto Nómina</TableCell>
+                                                            <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                            <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
+                                                            <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.AD_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                    {(specificData?.pagos || []).filter((p: any) => p.metodo?.toUpperCase() === 'VALE').map((pago: any, idx: number) => {
+                                                        const factura = (specificData?.facturas || []).find((f: any) => f.FC_IDFACTURA_PK === pago.FC_IDFACTURA_FK)
+                                                        return (
+                                                            <TableRow key={`vale-pago-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-xs uppercase text-amber-600">Vale Trabajador</TableCell>
+                                                                <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">
+                                                                    {factura ? format(new Date(factura.FC_FECHA), 'dd/MM/yyyy') : '---'}
+                                                                </TableCell>
+                                                                <TableCell className="text-[10px] font-bold uppercase text-slate-700">
+                                                                    {factura?.cliente_display || 'GENERAL'} (Fact. {factura?.FC_NUMERO_FACTURA})
+                                                                </TableCell>
+                                                                <TableCell className="text-right font-black text-xs text-amber-600">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                            </TableRow>
+                                                        )
+                                                    })}
+                                                </>
+                                            )}
 
-                                            {detailType === 'Técnico' && (specificData?.facturas || []).flatMap((f: any) => {
-                                                // This is a bit complex as we need to find the specific services for the technician
-                                                // But specificData doesn't have the details of services per technician directly in a flat way
-                                                // I'll assume for now we show invoices where the technician worked
-                                                if (detailTitle.includes(f.cliente_display)) return []; // avoid showing cliente as tech if name overlaps
-                                                // In a real scenario, we'd filter the FD_IDTECNICO_FK. 
-                                                // Since we don't have the full details here (only summary strings), 
-                                                // I'll show invoices where they appear.
-                                                return f.servicios?.includes(detailTitle.replace('Servicios de ', '')) ? [f] : [];
-                                            }).map((f: any, i: number) => (
-                                                <TableRow key={`tech-${f.FC_IDFACTURA_PK}-${i}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                    <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                                    <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                    <TableCell className="text-[10px] font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                    <TableCell className="text-right font-black text-xs text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {detailType === 'Técnico' && (specificData?.serviciosDetalle || [])
+                                                .filter((s: any) => s.tecnico_nombre === detailTitle.replace('Servicios de ', ''))
+                                                .map((s: any, idx: number) => (
+                                                    <TableRow key={`tech-s-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                        <TableCell className="font-bold text-xs uppercase">
+                                                            {s.servicio_nombre} (Factura {s.FC_NUMERO_FACTURA})
+                                                        </TableCell>
+                                                        <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">
+                                                            {format(new Date(s.FC_FECHA), 'dd/MM/yyyy')}
+                                                        </TableCell>
+                                                        <TableCell className="text-[10px] font-bold uppercase text-slate-700">
+                                                            {s.cliente_display || 'GENERAL'}
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-black text-xs text-[#FF7E5F]">
+                                                            $ {(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            }
 
                                             {((detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
                                                 (detailType === 'TOTAL EN CAJA' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
