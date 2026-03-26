@@ -33,14 +33,14 @@ export default function Hero() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-brand">
+              <span className="bg-gradient-to-r from-primary to-[#ff4e50] bg-clip-text text-transparent font-brand">
                 kairos Stylos
               </span>
             </h1>
 
             <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
               Belleza Premium{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-[#ff4e50] bg-clip-text text-transparent">
                 Diseñada para Ti
               </span>
             </h2>
@@ -52,10 +52,10 @@ export default function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <a
-                href="#contacto"
-                className="px-8 py-3 rounded-full bg-gradient-to-r from-primary to-accent text-white font-medium hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 group"
+                href="/auth/login"
+                className="px-8 py-3 rounded-full bg-gradient-to-r from-primary to-[#ff4e50] text-white font-medium hover:shadow-lg transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 group"
               >
-                Agendar Cita
+                Iniciar Sesión
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </a>
               <a

@@ -8,8 +8,16 @@ import { GastoData, UnifiedGasto, gastoSchema } from "./schema";
 /**
  * Obtener lista unificada de gastos (Manuales + Nómina Confirmada)
  */
-export async function getUnifiedExpenses(): Promise<ApiResponse<UnifiedGasto[]>> {
+export async function getUnifiedExpenses(sucursalId?: number): Promise<ApiResponse<UnifiedGasto[]>> {
   try {
+    let manualFilter = "";
+    const params: any[] = [];
+
+    if (sucursalId) {
+      manualFilter = " WHERE GS.SC_IDSUCURSAL_FK = ?";
+      params.push(sucursalId);
+    }
+
     const query = `
       SELECT 
         GS_IDGASTO_PK as id, 
@@ -21,6 +29,7 @@ export async function getUnifiedExpenses(): Promise<ApiResponse<UnifiedGasto[]>>
         CONVERT(COALESCE(SC.SC_NOMBRE, 'GENERAL') USING utf8mb4) as sucursal
       FROM KS_GASTOS GS
       LEFT JOIN KS_SUCURSALES SC ON GS.SC_IDSUCURSAL_FK = SC.SC_IDSUCURSAL_PK
+      ${manualFilter}
       
       UNION ALL
       
@@ -37,7 +46,7 @@ export async function getUnifiedExpenses(): Promise<ApiResponse<UnifiedGasto[]>>
       ORDER BY fecha DESC
     `;
 
-    const [rows] = await db.query(query) as any;
+    const [rows] = await db.query(query, params) as any;
     return { success: true, data: rows };
   } catch (error) {
     console.error("Error getUnifiedExpenses:", error);

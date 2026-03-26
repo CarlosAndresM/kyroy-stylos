@@ -67,7 +67,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
     GS_DESCRIPCION: '',
     GS_VALOR: 0,
     GS_FECHA: new Date(),
-    SC_IDSUCURSAL_FK: user?.sucursalId || null
+    SC_IDSUCURSAL_FK: user?.branchId || null
   })
 
   React.useEffect(() => {
@@ -114,7 +114,7 @@ export function ExpenseClient({ initialData, user }: ExpenseClientProps) {
       GS_DESCRIPCION: '',
       GS_VALOR: 0,
       GS_FECHA: new Date(),
-      SC_IDSUCURSAL_FK: user?.role === 'ADMINISTRADOR_PUNTO' ? user?.sucursalId : null
+      SC_IDSUCURSAL_FK: user?.role === 'ADMINISTRADOR_PUNTO' ? user?.branchId : null
     })
     setIsModalOpen(true)
   }

@@ -64,7 +64,7 @@ const NAV_GROUPS = [
         title: 'Gastos',
         href: '/dashboard/gastos',
         icon: TrendingDown,
-        roles: ['ADMINISTRADOR_TOTAL']
+        roles: ['ADMINISTRADOR_TOTAL', 'ADMINISTRADOR_PUNTO']
       },
     ]
   },

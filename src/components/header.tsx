@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Menu, X, MessageCircle } from "lucide-react"
+import { Menu, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
-
-  const whatsappLink = "https://wa.me/573182165987"
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-primary/10">
@@ -34,27 +32,12 @@ export default function Header() {
           <a href="#servicios" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Servicios
           </a>
-          <a href="#nosotros" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <a href="#about" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Nosotros
-          </a>
-          <a href="#testimonios" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-            Testimonios
-          </a>
-          <a href="#contacto" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-            Contacto
           </a>
           <Link href="/auth/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Iniciar Sesión
           </Link>
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-6 py-2 rounded-full border-2 border-primary text-primary font-medium hover:bg-primary/5 transition-all duration-300 flex items-center gap-2"
-          >
-            <MessageCircle size={18} />
-            Contáctanos
-          </a>
         </div>
 
         {/* Mobile Menu Button */}
@@ -69,27 +52,12 @@ export default function Header() {
               <a href="#servicios" className="text-sm font-medium text-foreground hover:text-primary">
                 Servicios
               </a>
-              <a href="#nosotros" className="text-sm font-medium text-foreground hover:text-primary">
+              <a href="#about" className="text-sm font-medium text-foreground hover:text-primary">
                 Nosotros
-              </a>
-              <a href="#testimonios" className="text-sm font-medium text-foreground hover:text-primary">
-                Testimonios
-              </a>
-              <a href="#contacto" className="text-sm font-medium text-foreground hover:text-primary">
-                Contacto
               </a>
               <Link href="/auth/login" className="text-sm font-medium text-foreground hover:text-primary">
                 Iniciar Sesión
               </Link>
-              <a
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-2 rounded-full border-2 border-primary text-primary font-medium w-full flex items-center justify-center gap-2"
-              >
-                <MessageCircle size={18} />
-                Contáctanos
-              </a>
             </div>
           </div>
         )}

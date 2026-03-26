@@ -9,7 +9,7 @@ export default function About() {
   const { ref: teamRef, isVisible: teamVisible } = useScrollReveal()
 
   return (
-    <section id="nosotros" className="py-20 md:py-32 bg-white">
+    <section id="about" className="py-20 md:py-32 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-12 items-center mb-20">
           {/* Image */}
