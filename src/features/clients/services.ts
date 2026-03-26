@@ -9,14 +9,14 @@ import { ApiResponse } from "@/lib/api-response";
 export async function getClients(search?: string): Promise<ApiResponse> {
   try {
     let query = `
-      SELECT DISTINCT fc_cliente_nombre AS CL_NOMBRE, fc_cliente_telefono AS CL_TELEFONO 
-      FROM ks_facturas 
-      WHERE fc_tipo_cliente = 'CLIENTE' AND fc_cliente_nombre IS NOT NULL AND fc_cliente_telefono IS NOT NULL
+      SELECT DISTINCT FC_CLIENTE_NOMBRE AS CL_NOMBRE, FC_CLIENTE_TELEFONO AS CL_TELEFONO 
+      FROM KS_FACTURAS 
+      WHERE FC_TIPO_CLIENTE = 'CLIENTE' AND FC_CLIENTE_NOMBRE IS NOT NULL AND FC_CLIENTE_TELEFONO IS NOT NULL
     `;
     const params: any[] = [];
 
     if (search) {
-      query += " AND (fc_cliente_nombre LIKE ? OR fc_cliente_telefono LIKE ?)";
+      query += " AND (FC_CLIENTE_NOMBRE LIKE ? OR FC_CLIENTE_TELEFONO LIKE ?)";
       params.push(`%${search}%`, `%${search}%`);
     }
 

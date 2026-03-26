@@ -610,7 +610,7 @@ export function DashboardClient() {
                                         icon: Zap,
                                         color: 'from-orange-500 to-yellow-500'
                                     },
-                                ].map((stat, i) => (
+                                ].filter(stat => stat.title !== 'DATAFONO').map((stat, i) => (
                                     <Card
                                         key={i}
                                         className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 transition-all hover:shadow-md cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50"

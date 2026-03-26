@@ -503,7 +503,7 @@ export async function getRecentInvoices(sucursalId: number): Promise<ApiResponse
 
 export async function getPaymentMethods(): Promise<ApiResponse> {
   try {
-    const [rows] = await (db as any).execute("SELECT mp_idmetodo_pk, mp_nombre FROM ks_metodos_pago");
+    const [rows] = await (db as any).execute("SELECT mp_idmetodo_pk, mp_nombre FROM ks_metodos_pago WHERE mp_nombre != 'DATAFONO'");
     return { success: true, data: rows, error: null };
   } catch (error) {
     console.error("Error fetching payment methods:", error);
