@@ -66,7 +66,7 @@ import { getClients } from "@/features/clients/services";
 import { toast } from '@/lib/toast-helper'
 import { cn } from '@/lib/utils'
 import { ComboboxSearch } from '@/components/ui/combobox-search'
-import { compressImage, standardizeFileName } from '@/lib/image-utils'
+import { compressImage } from '@/lib/image-utils'
 import {
   HoverCard,
   HoverCardContent,
@@ -161,9 +161,8 @@ export function BillingModal({
     setUploadingPhysical(true)
     try {
       const compressedFile = await compressImage(file)
-      const fileName = standardizeFileName(file.name)
       const formData = new FormData()
-      formData.append('file', compressedFile, fileName)
+      formData.append('file', compressedFile, file.name)
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -193,9 +192,8 @@ export function BillingModal({
     setUploadingIndexes(prev => [...prev, index])
     try {
       const compressedFile = await compressImage(file)
-      const fileName = standardizeFileName(file.name)
       const formData = new FormData()
-      formData.append('file', compressedFile, fileName)
+      formData.append('file', compressedFile, file.name)
 
       const response = await fetch('/api/upload', {
         method: 'POST',
@@ -296,7 +294,7 @@ export function BillingModal({
       // Fetch latest prods because we might have just updated them in the removal step above
       const updatedServices = form.getValues('services')
       const existingProducts = updatedServices[serviceIndex].products || []
-      
+
       form.setValue(`services.${serviceIndex}.products`, [
         ...existingProducts,
         {
@@ -815,7 +813,7 @@ export function BillingModal({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Servicios</h3>
-<div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <Button type="button" variant="outline" size="sm" disabled={isPaid}
                       onClick={() => setIsProductModalOpen(true)}
                       className="gap-2 text-xs border-blue-200 text-blue-600 hover:bg-blue-50">

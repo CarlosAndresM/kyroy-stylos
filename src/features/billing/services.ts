@@ -465,7 +465,15 @@ export async function getInvoicesByFilter(filters: { sucursalId?: number, date?:
       (SELECT GROUP_CONCAT(DISTINCT sv.sv_nombre SEPARATOR ', ') 
        FROM ks_factura_detalles fd 
        JOIN ks_servicios sv ON fd.sv_idservicio_fk = sv.sv_idservicio_pk 
-       WHERE fd.fc_idfactura_fk = f.fc_idfactura_pk) as servicios
+       WHERE fd.fc_idfactura_fk = f.fc_idfactura_pk) as servicios,
+      (SELECT GROUP_CONCAT(DISTINCT pr.pr_nombre SEPARATOR ', ') 
+       FROM ks_factura_productos fp 
+       JOIN ks_productos pr ON fp.pr_idproducto_fk = pr.pr_idproducto_pk 
+       WHERE fp.fc_idfactura_fk = f.fc_idfactura_pk) as productos_nombres,
+      (SELECT GROUP_CONCAT(DISTINCT mp.mp_nombre SEPARATOR ', ') 
+       FROM ks_pagos_factura pf 
+       JOIN ks_metodos_pago mp ON pf.mp_idmetodo_fk = mp.mp_idmetodo_pk 
+       WHERE pf.fc_idfactura_fk = f.fc_idfactura_pk) as metodos_pago
       FROM ks_facturas f 
       JOIN ks_sucursales s ON f.sc_idsucursal_fk = s.sc_idsucursal_pk
       LEFT JOIN ks_trabajadores t ON f.tr_idcliente_fk = t.tr_idtrabajador_pk
