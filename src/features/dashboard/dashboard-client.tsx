@@ -1185,7 +1185,7 @@ export function DashboardClient() {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
+                                        {detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
                                             <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
                                                 <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
@@ -1194,7 +1194,7 @@ export function DashboardClient() {
                                             </TableRow>
                                         ))}
 
-                                        {detailType === 'Recibido en Caja' && (
+                                        {detailType === 'TOTAL EN CAJA' && (
                                             <>
                                                 {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
                                                     <TableRow key={`caja-f-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
@@ -1215,7 +1215,7 @@ export function DashboardClient() {
                                             </>
                                         )}
 
-                                        {detailType === 'Abonos de Deuda' && (specificData?.abonos || []).map((ab: any) => (
+                                        {detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).map((ab: any) => (
                                             <TableRow key={ab.AB_IDABONO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
                                                 <TableCell className="font-bold text-xs uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
@@ -1224,7 +1224,7 @@ export function DashboardClient() {
                                             </TableRow>
                                         ))}
 
-                                        {detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
+                                        {detailType === 'POR COBRAR' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
                                             <TableRow key={f.FC_IDFACTURA_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
                                                 <TableCell className="font-bold text-xs">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
@@ -1233,14 +1233,14 @@ export function DashboardClient() {
                                             </TableRow>
                                         ))}
 
-                                        {['Efectivo', 'Transferencia', 'Datáfono', 'Crédito', 'Servicio Trabajador'].includes(detailType) && (() => {
+                                        {['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'CREDITO', 'SERVICIO TRABAJADOR'].includes(detailType) && (() => {
                                             // Map the UI card name to the DB method name
                                             const methodMap: Record<string, string> = {
-                                                'Efectivo': 'EFECTIVO',
-                                                'Transferencia': 'TRANSFERENCIA',
-                                                'Datáfono': 'DATAFONO',
-                                                'Crédito': 'CREDITO',
-                                                'Servicio Trabajador': 'SERVICIO DE TRABAJADOR',
+                                                'EFECTIVO': 'EFECTIVO',
+                                                'TRANSFERENCIA': 'TRANSFERENCIA',
+                                                'DATAFONO': 'DATAFONO',
+                                                'CREDITO': 'CREDITO',
+                                                'SERVICIO TRABAJADOR': 'SERVICIO DE TRABAJADOR',
                                             }
                                             const dbMethod = methodMap[detailType] || detailType.toUpperCase()
 
@@ -1274,7 +1274,7 @@ export function DashboardClient() {
                                             })
                                         })()}
 
-                                        {detailType === 'Vales (Adelantos)' && (specificData?.adelantos || []).map((v: any) => (
+                                        {detailType === 'VALES' && (specificData?.adelantos || []).map((v: any) => (
                                             <TableRow key={v.AD_IDADELANTO_PK} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
                                                 <TableCell className="font-bold text-xs">Adelanto {v.AD_IDADELANTO_PK}</TableCell>
                                                 <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.AD_FECHA), 'dd/MM/yyyy')}</TableCell>
@@ -1301,10 +1301,10 @@ export function DashboardClient() {
                                             </TableRow>
                                         ))}
 
-                                        {((detailType === 'Ventas Hoy' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
-                                            (detailType === 'Recibido en Caja' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
-                                            (detailType === 'Abonos de Deuda' && (specificData?.abonos || []).length === 0) ||
-                                            (detailType === 'Por Cobrar' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
+                                        {((detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
+                                            (detailType === 'TOTAL EN CAJA' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
+                                            (detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).length === 0) ||
+                                            (detailType === 'POR COBRAR' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
                                                 <TableRow>
                                                     <TableCell colSpan={4} className="py-20 text-center text-slate-300 font-bold italic text-[10px] uppercase tracking-widest">No se encontraron registros</TableCell>
                                                 </TableRow>

@@ -541,11 +541,6 @@ export async function addProductToInvoice(
       [value, invoiceId, productId, technicianId, detailId || null]
     );
 
-    await connection.execute(
-      "UPDATE ks_facturas SET fc_total = fc_total + ? WHERE fc_idfactura_pk = ?",
-      [value, invoiceId]
-    );
-
     await connection.commit();
     revalidatePath("/dashboard");
     return { success: true, data: null, error: null };
@@ -589,14 +584,6 @@ export async function updateProductInInvoice(
       [productId, technicianId, value, detailId || null, productInvoiceId]
     );
 
-    // 3. Ajustar total factura
-    if (diff !== 0) {
-      await connection.execute(
-        "UPDATE ks_facturas SET fc_total = fc_total + ? WHERE fc_idfactura_pk = ?",
-        [diff, invoiceId]
-      );
-    }
-
     await connection.commit();
     revalidatePath("/dashboard");
     return { success: true, data: null, error: null };
@@ -627,12 +614,6 @@ export async function deleteProductFromInvoice(productInvoiceId: number): Promis
 
     // 2. Eliminar
     await connection.execute("DELETE FROM ks_factura_productos WHERE fp_idfactura_producto_pk = ?", [productInvoiceId]);
-
-    // 3. Restar del total
-    await connection.execute(
-      "UPDATE ks_facturas SET fc_total = fc_total - ? WHERE fc_idfactura_pk = ?",
-      [value, invoiceId]
-    );
 
     await connection.commit();
     revalidatePath("/dashboard");

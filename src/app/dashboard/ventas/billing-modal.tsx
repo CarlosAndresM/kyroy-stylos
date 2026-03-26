@@ -323,14 +323,9 @@ export function BillingModal({
 
   // El total se calcula dinÃƒÂ¡micamente para la UI, ya no se sincroniza al estado del form para evitar bucles de renderizado
   const total = React.useMemo(() => {
-    const sTotal = (watchedServices || []).reduce((sum, s) => {
-      const base = Number(s.FD_VALOR) || 0
-      const prodsTotal = (s.products || []).reduce((ps, p: any) => ps + (Number(p.FP_VALOR) || 0), 0)
-      return sum + base + prodsTotal
-    }, 0)
-    const pTotal = (watchedProducts || []).reduce((sum, p) => sum + (Number(p.FP_VALOR) || 0), 0)
-    return sTotal + pTotal
-  }, [watchedServices, watchedProducts])
+    const sTotal = (watchedServices || []).reduce((sum, s) => sum + (Number(s.FD_VALOR) || 0), 0)
+    return sTotal
+  }, [watchedServices])
 
   const totalPaid = React.useMemo(() => {
     return (watchedPayments || []).reduce((sum, p) => sum + (Number(p.PF_VALOR) || 0), 0)
@@ -829,119 +824,119 @@ export function BillingModal({
               </div>
 
               {/* ── SECCIÓN PAGOS ── */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Métodos de pago</h3>
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Métodos de pago</h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Selección de métodos */}
-                    <div className="space-y-2">
-                      <p className="text-xs text-slate-500">Seleccione uno o varios métodos:</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {paymentMethods
-                          .filter(method => {
-                            const nameMatch = method.MP_NOMBRE?.toUpperCase();
-                            if (clientType === 'CLIENTE') {
-                              return nameMatch !== 'VALE' && nameMatch !== 'SERVICIO DE TRABAJADOR';
-                            }
-                            return true;
-                          })
-                          .map(method => {
-                            const isSelected = !!watchedPayments.find(p => p.MP_IDMETODO_FK === method.MP_IDMETODO_PK)
-                            return (
-                              <div key={method.MP_IDMETODO_PK}
-                                onClick={() => !isPaid && handlePaymentToggle(method, !isSelected)}
-                                className={cn("flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer select-none transition-all",
-                                  isPaid ? "cursor-not-allowed opacity-60" : "",
-                                  isSelected ? "border-[#FF7E5F] bg-[#FF7E5F]/5" : "border-slate-200 bg-white hover:border-slate-300")}>
-                                <div className={cn("size-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all",
-                                  isSelected ? "border-[#FF7E5F] bg-[#FF7E5F]" : "border-slate-300 bg-white")}>
-                                  {isSelected && <Check className="size-2.5 text-white" strokeWidth={3} />}
-                                </div>
-                                <span className="text-xs font-semibold text-slate-700">
-                                  {method.MP_NOMBRE === 'VALE' ? 'Vale trabajador' : method.MP_NOMBRE}
-                                </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Selección de métodos */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-slate-500">Seleccione uno o varios métodos:</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {paymentMethods
+                        .filter(method => {
+                          const nameMatch = method.MP_NOMBRE?.toUpperCase();
+                          if (clientType === 'CLIENTE') {
+                            return nameMatch !== 'VALE' && nameMatch !== 'SERVICIO DE TRABAJADOR';
+                          }
+                          return true;
+                        })
+                        .map(method => {
+                          const isSelected = !!watchedPayments.find(p => p.MP_IDMETODO_FK === method.MP_IDMETODO_PK)
+                          return (
+                            <div key={method.MP_IDMETODO_PK}
+                              onClick={() => !isPaid && handlePaymentToggle(method, !isSelected)}
+                              className={cn("flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer select-none transition-all",
+                                isPaid ? "cursor-not-allowed opacity-60" : "",
+                                isSelected ? "border-[#FF7E5F] bg-[#FF7E5F]/5" : "border-slate-200 bg-white hover:border-slate-300")}>
+                              <div className={cn("size-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-all",
+                                isSelected ? "border-[#FF7E5F] bg-[#FF7E5F]" : "border-slate-300 bg-white")}>
+                                {isSelected && <Check className="size-2.5 text-white" strokeWidth={3} />}
                               </div>
-                            )
-                          })}
-                      </div>
+                              <span className="text-xs font-semibold text-slate-700">
+                                {method.MP_NOMBRE === 'VALE' ? 'Vale trabajador' : method.MP_NOMBRE}
+                              </span>
+                            </div>
+                          )
+                        })}
                     </div>
+                  </div>
 
-                    {/* Distribución y balance */}
-                    <div className="space-y-3">
-                      {watchedPayments.length > 0 && (
-                        <div className="space-y-2">
-                          {watchedPayments.map((payment, idx) => {
-                            const method = paymentMethods.find(m => m.MP_IDMETODO_PK === payment.MP_IDMETODO_FK)
-                            return (
-                              <div key={`${payment.MP_IDMETODO_FK}-${idx}`} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5">
-                                <span className="text-xs font-semibold text-slate-600 flex-1 min-w-0 truncate">
-                                  {method?.MP_NOMBRE === 'VALE' ? 'Vale' : method?.MP_NOMBRE}
-                                </span>
-                                <FormField control={form.control} name={`payments.${idx}.PF_VALOR`} render={({ field }) => (
-                                  <NumericFormat value={field.value} disabled={isPaid} onValueChange={(values) => { const v = values.floatValue ?? 0; if (v !== field.value) field.onChange(v) }}
-                                    thousandSeparator="." decimalSeparator="," prefix="$ " allowNegative={false}
-                                    className="w-32 h-8 bg-white border border-slate-200 rounded-md text-right text-xs text-slate-900 px-2 focus:outline-none focus:ring-2 focus:ring-[#FF7E5F]/30 focus:border-[#FF7E5F] disabled:text-slate-400 transition-colors" />
-                                )} />
-                                <div className="flex items-center gap-1">
-                                  <input type="file" accept="image/*" className="hidden" ref={el => { fileInputRefs.current[`${idx}`] = el }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(idx, f) }} />
-                                  <button type="button" disabled={uploadingIndexes.includes(idx) || isPaid} onClick={(e) => { e.stopPropagation(); fileInputRefs.current[`${idx}`]?.click() }}
-                                    className={cn("p-1.5 rounded border text-xs transition-all",
-                                      uploadingIndexes.includes(idx) ? "border-slate-200 text-slate-300" :
-                                        payment.PF_EVIDENCIA_URL ? "border-green-300 bg-green-50 text-green-600" : "border-slate-200 hover:border-slate-300 text-slate-400")}>
-                                    {uploadingIndexes.includes(idx) ? <Loader2 className="size-3.5 animate-spin" /> : <Camera className="size-3.5" />}
-                                  </button>
-                                  {payment.PF_EVIDENCIA_URL && (
-                                    <a href={payment.PF_EVIDENCIA_URL} target="_blank" rel="noreferrer" className="p-1.5 rounded border border-slate-200 text-slate-400 hover:text-[#FF7E5F]">
-                                      <Eye className="size-3.5" />
-                                    </a>
-                                  )}
-                                </div>
+                  {/* Distribución y balance */}
+                  <div className="space-y-3">
+                    {watchedPayments.length > 0 && (
+                      <div className="space-y-2">
+                        {watchedPayments.map((payment, idx) => {
+                          const method = paymentMethods.find(m => m.MP_IDMETODO_PK === payment.MP_IDMETODO_FK)
+                          return (
+                            <div key={`${payment.MP_IDMETODO_FK}-${idx}`} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+                              <span className="text-xs font-semibold text-slate-600 flex-1 min-w-0 truncate">
+                                {method?.MP_NOMBRE === 'VALE' ? 'Vale' : method?.MP_NOMBRE}
+                              </span>
+                              <FormField control={form.control} name={`payments.${idx}.PF_VALOR`} render={({ field }) => (
+                                <NumericFormat value={field.value} disabled={isPaid} onValueChange={(values) => { const v = values.floatValue ?? 0; if (v !== field.value) field.onChange(v) }}
+                                  thousandSeparator="." decimalSeparator="," prefix="$ " allowNegative={false}
+                                  className="w-32 h-8 bg-white border border-slate-200 rounded-md text-right text-xs text-slate-900 px-2 focus:outline-none focus:ring-2 focus:ring-[#FF7E5F]/30 focus:border-[#FF7E5F] disabled:text-slate-400 transition-colors" />
+                              )} />
+                              <div className="flex items-center gap-1">
+                                <input type="file" accept="image/*" className="hidden" ref={el => { fileInputRefs.current[`${idx}`] = el }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(idx, f) }} />
+                                <button type="button" disabled={uploadingIndexes.includes(idx) || isPaid} onClick={(e) => { e.stopPropagation(); fileInputRefs.current[`${idx}`]?.click() }}
+                                  className={cn("p-1.5 rounded border text-xs transition-all",
+                                    uploadingIndexes.includes(idx) ? "border-slate-200 text-slate-300" :
+                                      payment.PF_EVIDENCIA_URL ? "border-green-300 bg-green-50 text-green-600" : "border-slate-200 hover:border-slate-300 text-slate-400")}>
+                                  {uploadingIndexes.includes(idx) ? <Loader2 className="size-3.5 animate-spin" /> : <Camera className="size-3.5" />}
+                                </button>
+                                {payment.PF_EVIDENCIA_URL && (
+                                  <a href={payment.PF_EVIDENCIA_URL} target="_blank" rel="noreferrer" className="p-1.5 rounded border border-slate-200 text-slate-400 hover:text-[#FF7E5F]">
+                                    <Eye className="size-3.5" />
+                                  </a>
+                                )}
                               </div>
-                            )
-                          })}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Balance */}
+                    <div className={cn("p-3 rounded-lg border",
+                      Math.abs(totalPaid - total) < 0.01 && total > 0 ? "bg-green-50 border-green-200" :
+                        totalPaid > total ? "bg-amber-50 border-amber-200" :
+                          "bg-slate-50 border-slate-200")}>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-slate-500">Total venta</span>
+                        <span className="font-black text-slate-900">$ {(total || 0).toLocaleString('es-CO')}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs mt-1">
+                        <span className="font-semibold text-slate-500">Pagado</span>
+                        <span className="font-bold text-slate-700">$ {(totalPaid || 0).toLocaleString('es-CO')}</span>
+                      </div>
+                      {Math.abs(totalPaid - total) > 0.01 && (
+                        <div className="flex justify-between items-center text-xs mt-1 pt-1 border-t border-slate-200">
+                          <span className="font-bold text-amber-600">{totalPaid > total ? 'Exceso' : 'Pendiente'}</span>
+                          <span className="font-black text-amber-600">$ {Math.abs((totalPaid || 0) - (total || 0)).toLocaleString('es-CO')}</span>
                         </div>
                       )}
-
-                      {/* Balance */}
-                      <div className={cn("p-3 rounded-lg border",
-                        Math.abs(totalPaid - total) < 0.01 && total > 0 ? "bg-green-50 border-green-200" :
-                          totalPaid > total ? "bg-amber-50 border-amber-200" :
-                            "bg-slate-50 border-slate-200")}>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-semibold text-slate-500">Total venta</span>
-                          <span className="font-black text-slate-900">$ {(total || 0).toLocaleString('es-CO')}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs mt-1">
-                          <span className="font-semibold text-slate-500">Pagado</span>
-                          <span className="font-bold text-slate-700">$ {(totalPaid || 0).toLocaleString('es-CO')}</span>
-                        </div>
-                        {Math.abs(totalPaid - total) > 0.01 && (
-                          <div className="flex justify-between items-center text-xs mt-1 pt-1 border-t border-slate-200">
-                            <span className="font-bold text-amber-600">{totalPaid > total ? 'Exceso' : 'Pendiente'}</span>
-                            <span className="font-black text-amber-600">$ {Math.abs((totalPaid || 0) - (total || 0)).toLocaleString('es-CO')}</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-        {/* ── FOOTER ── */}
-              <div className="flex-shrink-0 border-t border-slate-100 px-6 py-4 flex gap-3 bg-white">
-                <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
-                  {isViewOnly ? 'Cerrar' : 'Cancelar'}
+            {/* ── FOOTER ── */}
+            <div className="flex-shrink-0 border-t border-slate-100 px-6 py-4 flex gap-3 bg-white">
+              <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
+                {isViewOnly ? 'Cerrar' : 'Cancelar'}
+              </Button>
+              {!isPaid && (
+                <Button type="submit"
+                  disabled={isLoading || uploadingPhysical || uploadingIndexes.length > 0 || Math.abs(totalPaid - total) > 0.01 || total <= 0}
+                  className="flex-[2] bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white shadow-lg shadow-[#FF7E5F]/20">
+                  {isLoading ? <><Loader2 className="size-4 animate-spin mr-2" />Guardando...</> :
+                    (uploadingPhysical || uploadingIndexes.length > 0) ? 'Subiendo imagen...' :
+                      isEditing ? 'Guardar cambios' : 'Registrar venta'}
                 </Button>
-                {!isPaid && (
-                  <Button type="submit"
-                    disabled={isLoading || uploadingPhysical || uploadingIndexes.length > 0 || Math.abs(totalPaid - total) > 0.01 || total <= 0}
-                    className="flex-[2] bg-[#FF7E5F] hover:bg-[#FF7E5F]/90 text-white shadow-lg shadow-[#FF7E5F]/20">
-                    {isLoading ? <><Loader2 className="size-4 animate-spin mr-2" />Guardando...</> :
-                      (uploadingPhysical || uploadingIndexes.length > 0) ? 'Subiendo imagen...' :
-                        isEditing ? 'Guardar cambios' : 'Registrar venta'}
-                  </Button>
-                )}
-              </div>
+              )}
+            </div>
           </form>
         </Form>
       </DialogContent>
