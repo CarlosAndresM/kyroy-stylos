@@ -4,6 +4,9 @@ import { db } from "@/lib/db";
 import { ApiResponse } from "@/lib/api-response";
 import { cookies } from "next/headers";
 import { decrypt } from "@/lib/jwt-utils";
+import { getSedes } from "@/features/trabajadores/services";
+import { getWorkers, getPaymentMethods } from "@/features/billing/services";
+import { getServices, getProducts } from "@/features/catalog/services";
 
 export async function getDashboardStats(sucursalId: number, dateFrom: string, dateTo: string): Promise<ApiResponse> {
   try {
@@ -493,5 +496,67 @@ export async function getTechnicianPayrollHistory(workerId: number): Promise<Api
   } catch (error) {
     console.error("Error in getTechnicianPayrollHistory:", error);
     return { success: false, data: null, error: "Error al obtener historial de nómina" };
+  }
+}
+
+/**
+ * FunciÃƒÂ³n unificada para inicializar todos los catÃƒÂ¡logos y sesiÃƒÂ³n en una sola llamada
+ */
+export async function getDashboardInitialData(): Promise<ApiResponse> {
+  try {
+    const [userRes, sedesRes, periodsRes, workersRes, servicesRes, productsRes, paymentsRes] = await Promise.all([
+      getCurrentUserSession(),
+      getSedes(),
+      getPayrollPeriods(),
+      getWorkers(),
+      getServices(),
+      getProducts(),
+      getPaymentMethods()
+    ]);
+
+    return {
+      success: true,
+      data: {
+        user: userRes.success ? userRes.data : null,
+        sedes: sedesRes.success ? sedesRes.data : [],
+        periods: periodsRes.success ? periodsRes.data : [],
+        catalog: {
+          technicians: workersRes.success ? workersRes.data : [],
+          services: servicesRes.success ? servicesRes.data : [],
+          products: productsRes.success ? productsRes.data : [],
+          paymentMethods: paymentsRes.success ? paymentsRes.data : []
+        }
+      },
+      error: null
+    };
+  } catch (error) {
+    console.error("Error initializing dashboard data:", error);
+    return { success: false, data: null, error: "Error de inicializaciÃƒÂ³n" };
+  }
+}
+
+/**
+ * FunciÃƒÂ³n unificada para obtener todas las estadÃƒÂsticas y grÃƒÂ¡ficos del dashboard en una sola llamada
+ */
+export async function getDashboardFullData(sucursalId: number, from: string, to: string): Promise<ApiResponse> {
+  try {
+    const [statsRes, chartsRes, specificRes] = await Promise.all([
+      getDashboardStats(sucursalId, from, to),
+      getDashboardCharts(sucursalId, from, to),
+      getDashboardSpecificData(sucursalId, from, to)
+    ]);
+
+    return {
+      success: true,
+      data: {
+        stats: statsRes.success ? statsRes.data : null,
+        charts: chartsRes.success ? chartsRes.data : null,
+        specific: specificRes.success ? specificRes.data : null
+      },
+      error: null
+    };
+  } catch (error) {
+    console.error("Error fetching full dashboard data:", error);
+    return { success: false, data: null, error: "Error al obtener datos completos" };
   }
 }

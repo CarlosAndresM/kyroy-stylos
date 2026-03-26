@@ -129,8 +129,8 @@ export function ProductAssociationModal({
     }
 
     const handleSave = async () => {
-        if ((mode === 'db' && !selectedInvoiceId) || !selectedProductId || !technicianId || value < 0) {
-            toast.error("Datos incompletos", "Por favor llene todos los campos obligatorios.")
+        if ((mode === 'db' && !selectedInvoiceId) || !selectedProductId || !technicianId || !selectedServiceId || value < 0) {
+            toast.error("Datos incompletos", "Por favor llene todos los campos obligatorios, incluyendo el servicio.")
             return
         }
 
@@ -154,14 +154,14 @@ export function ProductAssociationModal({
                     Number(selectedProductId),
                     Number(technicianId),
                     value,
-                    selectedServiceId ? Number(selectedServiceId) : undefined
+                    Number(selectedServiceId)
                 )
                 : await addProductToInvoice(
                     Number(selectedInvoiceId),
                     Number(selectedProductId),
                     Number(technicianId),
                     value,
-                    selectedServiceId ? Number(selectedServiceId) : undefined
+                    Number(selectedServiceId)
                 )
 
             if (res.success) {
@@ -223,7 +223,7 @@ export function ProductAssociationModal({
                     {(invoiceDetails || mode === 'manual') && (
                         <div className="grid grid-cols-1 gap-4 animate-in fade-in duration-300">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">2. PRODUCTO A CONSUMIR:</label>
+                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">2. PRODUCTO A CONSUMIR *:</label>
                                 <ComboboxSearch
                                     options={catalogData.products.map((p: any) => ({
                                         label: p.PR_NOMBRE,
@@ -237,7 +237,7 @@ export function ProductAssociationModal({
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">3. SERVICIO DONDE SE USÓ:</label>
+                                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">3. SERVICIO DONDE SE USÓ *:</label>
                                 <ComboboxSearch
                                     options={mode === 'manual' ? manualServices.map((s: any) => ({
                                         label: `${catalogData.services.find((cs: any) => cs.SV_IDSERVICIO_PK === s.SV_IDSERVICIO_FK)?.SV_NOMBRE || 'Servicio'} - $${(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}`,
@@ -267,7 +267,7 @@ export function ProductAssociationModal({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TÉCNICO:</label>
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TÉCNICO *:</label>
                                     <ComboboxSearch
                                         options={catalogData.technicians.map((t: any) => ({
                                             label: t.TR_NOMBRE,
@@ -288,7 +288,7 @@ export function ProductAssociationModal({
                     <Button
                         className="w-full h-14 rounded-2xl bg-[#FF7E5F] text-white font-black uppercase text-xs tracking-tight shadow-xl shadow-coral-500/20 active:scale-95 hover:bg-[#FF7E5F]/90 border-none transition-all"
                         onClick={handleSave}
-                        disabled={isSubmitting || (mode === 'db' && !selectedInvoiceId) || !selectedProductId}
+                        disabled={isSubmitting || (mode === 'db' && !selectedInvoiceId) || !selectedProductId || !selectedServiceId || !technicianId}
                     >
                         {isSubmitting ? <Loader2 className="size-4 animate-spin mr-2" /> : <Package2 className="size-4 mr-2" />}
                         {editData ? "ACTUALIZAR PRODUCTO" : "ASOCIAR PRODUCTO"}
