@@ -925,7 +925,6 @@ export function BillingModal({
                         <tr>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[30%]">Servicio</th>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[25%]">Tecnico</th>
-                          <th className="text-center text-[11px] font-bold uppercase text-slate-500 tracking-wider px-2 py-3 w-[60px]">Cant</th>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3">Productos</th>
                           <th className="text-right text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[130px]">V. Unit</th>
                           <th className="w-10 px-2 py-3"></th>
@@ -963,23 +962,6 @@ export function BillingModal({
                                   </FormItem>
                                 )} />
                               )}
-                            </td>
-                            <td className="px-2 py-3">
-                              <FormField control={form.control} name={`services.${index}.FD_CANTIDAD`} render={({ field }) => (
-                                <FormItem className="space-y-0">
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min={1}
-                                      disabled={isPaid}
-                                      {...field}
-                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                                      className="w-16 h-9 text-center text-xs font-bold border-slate-200 focus:border-[#FF7E5F]"
-                                    />
-                                  </FormControl>
-                                  <FormMessage className="text-[10px]" />
-                                </FormItem>
-                              )} />
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap gap-1.5 min-h-[2.5rem]">
@@ -1035,7 +1017,7 @@ export function BillingModal({
                       </tbody>
                       <tfoot className="border-t-2 border-slate-200 bg-slate-50">
                         <tr>
-                          <td colSpan={3} className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Total</td>
+                          <td colSpan={2} className="px-4 py-3 text-right text-sm font-semibold text-slate-500 uppercase tracking-wider">Total</td>
                           <td className="px-4 py-3 text-right">
                             <span className="text-lg font-black text-slate-900">$ {(total || 0).toLocaleString('es-CO')}</span>
                           </td>

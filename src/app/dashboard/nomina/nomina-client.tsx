@@ -36,6 +36,7 @@ import {
   saveNominaConfig,
   getNominaByRange,
   deleteNomina,
+  desconfirmarNomina,
   getPayrollWorkers,
   updateNominaConfig,
   deleteNominaConfig,
@@ -134,6 +135,21 @@ export default function NominaClient() {
 
     setLoading(true);
     const res = await deleteNomina(nominaBatch.NM_IDNOMINA_PK);
+    if (res.success) {
+      toast.success(res.message || "Operación exitosa");
+      await fetchNomina();
+    } else {
+      toast.error(res.error || "Ocurrió un error");
+    }
+    setLoading(false);
+  };
+
+  const handleDesconfirmar = async () => {
+    if (!nominaBatch) return;
+    if (!confirm("¿Está seguro de desconfirmar esta nómina? Esto devolverá los vales y cobros a estado pendiente.")) return;
+
+    setLoading(true);
+    const res = await desconfirmarNomina(nominaBatch.NM_IDNOMINA_PK);
     if (res.success) {
       toast.success(res.message || "Operación exitosa");
       await fetchNomina();
@@ -398,6 +414,18 @@ export default function NominaClient() {
                   Confirmar Liquidación
                 </Button>
               </>
+            )}
+
+            {nominaBatch.NM_ESTADO === 'CONFIRMADA' && (
+              <Button
+                variant="outline"
+                className="text-orange-600 border-orange-200 hover:bg-orange-50 gap-2 font-bold"
+                onClick={handleDesconfirmar}
+                disabled={loading}
+              >
+                <Lock className="h-4 w-4" />
+                DESCONFIRMAR NÓMINA
+              </Button>
             )}
           </div>
         </div>

@@ -305,13 +305,94 @@ export async function confirmarNomina(nominaId: number): Promise<ApiResponse> {
 }
 
 /**
+ * Desconfirmar una nómina (Revierte el estado de 'CONFIRMADA' a 'PROCESANDO' y libera cuotas)
+ */
+export async function desconfirmarNomina(nominaId: number): Promise<ApiResponse> {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // 1. Obtener la nómina y su estado
+    const [nomRows]: any = await (connection as any).execute(
+      "SELECT NM_IDNOMINA_PK, NM_ESTADO, NM_FECHA_INICIO, NM_FECHA_FIN, NM_TIPO FROM KS_NOMINAS WHERE NM_IDNOMINA_PK = ?",
+      [nominaId]
+    );
+
+    if (nomRows.length === 0) throw new Error("Nómina no encontrada");
+    const { NM_ESTADO, NM_FECHA_INICIO, NM_FECHA_FIN, NM_TIPO } = nomRows[0];
+
+    if (NM_ESTADO !== 'CONFIRMADA') {
+      return { success: false, error: "Solo se pueden desconfirmar nóminas que estén en estado CONFIRMADA" };
+    }
+
+    // 2. Obtener los trabajadores de esta nómina
+    const [details]: any = await (connection as any).execute(
+      "SELECT TR_IDTRABAJADOR_FK FROM KS_NOMINA_DETALLES WHERE NM_IDNOMINA_FK = ?",
+      [nominaId]
+    );
+
+    // 3. Revertir cuotas de servicios (PAGADO -> PENDIENTE)
+    for (const detail of details) {
+      await (connection as any).execute(
+        `UPDATE KS_SERVICIO_TRABAJADOR_CUOTAS stc
+         JOIN KS_SERVICIOS_TRABAJADOR st ON stc.ST_IDSERVICIO_TRABAJADOR_FK = st.ST_IDSERVICIO_TRABAJADOR_PK
+         SET stc.STC_ESTADO = 'PENDIENTE'
+         WHERE st.TR_IDTRABAJADOR_FK = ? AND stc.STC_ESTADO = 'PAGADO' 
+         AND stc.STC_FECHA_COBRO BETWEEN ? AND ?`,
+        [detail.TR_IDTRABAJADOR_FK, NM_FECHA_INICIO, NM_FECHA_FIN]
+      );
+    }
+
+    // 4. Revertir vales (Adelantos)
+    // Buscamos los vales que fueron marcados con este ID de nómina
+    const [valesRegistros]: any = await (connection as any).execute(
+      "SELECT VL_IDVALE_PK, VL_CUOTAS_PAGADAS FROM KS_VALES WHERE NM_IDNOMINA_FK = ?",
+      [nominaId]
+    );
+
+    for (const vale of valesRegistros) {
+      const newPagadas = Math.max(0, vale.VL_CUOTAS_PAGADAS - 1);
+      // Siempre vuelve a PENDIENTE porque si estaba en DESCONTADO (pagado) y le restamos una, ahora falta al menos una
+      await (connection as any).execute(
+        "UPDATE KS_VALES SET VL_CUOTAS_PAGADAS = ?, VL_ESTADO = 'PENDIENTE', NM_IDNOMINA_FK = NULL WHERE VL_IDVALE_PK = ?",
+        [newPagadas, vale.VL_IDVALE_PK]
+      );
+    }
+
+    // 5. Cambiar estado de la nómina a PROCESANDO
+    await (connection as any).execute(
+      "UPDATE KS_NOMINAS SET NM_ESTADO = 'PROCESANDO', NM_FECHA_CIERRE = NULL WHERE NM_IDNOMINA_PK = ?",
+      [nominaId]
+    );
+
+    await connection.commit();
+    
+    // Revalidar según el tipo
+    if (NM_TIPO === 'TECNICO') revalidatePath("/dashboard/nomina");
+    else if (NM_TIPO === 'ADMINISTRADOR_PUNTO') revalidatePath("/dashboard/nomina-admin");
+
+    return { success: true, message: "Nómina desconfirmada correctamente. Ahora puede editarla o borrarla." };
+
+  } catch (error) {
+    if (connection) await connection.rollback();
+    console.error("Error al desconfirmar nómina:", error);
+    return { success: false, error: "Error al desconfirmar la nómina" };
+  } finally {
+    if (connection) connection.release();
+  }
+}
+
+/**
  * Obtener una nómina procesada para un rango de fechas
  */
 export async function getNominaByRange(startDate: Date, endDate: Date, type: string = 'TECNICO'): Promise<ApiResponse> {
   try {
+    const startStr = startDate.toISOString().split('T')[0];
+    const endStr = endDate.toISOString().split('T')[0];
+
     const [rows]: any = await db.query(
-      "SELECT * FROM KS_NOMINAS WHERE DATE(NM_FECHA_INICIO) = DATE(?) AND DATE(NM_FECHA_FIN) = DATE(?) AND NM_TIPO = ? LIMIT 1",
-      [startDate, endDate, type]
+      "SELECT * FROM KS_NOMINAS WHERE DATE(NM_FECHA_INICIO) = ? AND DATE(NM_FECHA_FIN) = ? AND NM_TIPO = ? LIMIT 1",
+      [startStr, endStr, type]
     );
 
     if (rows.length === 0) return { success: true, data: null };

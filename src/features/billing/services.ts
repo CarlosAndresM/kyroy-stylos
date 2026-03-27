@@ -121,7 +121,7 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
 
       const getMethodName = (id: number) => allMethods.find((m: any) => m.mp_idmetodo_pk === id)?.mp_nombre?.toUpperCase() || '';
 
-      const allMethodsAreValid = data.payments.every(p => { 
+      const allMethodsAreValid = data.payments.every(p => {
         const name = getMethodName(p.MP_IDMETODO_FK);
         return name !== ''
       });
@@ -259,13 +259,13 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
             `INSERT INTO ks_factura_productos (fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              product.FP_VALOR, 
-              product.FP_CANTIDAD || 1, 
-              product.FP_PORCENTAJE_APLICADO || 0, 
-              product.FP_COMISION_VALOR || 0, 
-              invoiceId, 
-              product.PR_IDPRODUCTO_FK, 
-              product.TR_IDTECNICO_FK, 
+              product.FP_VALOR,
+              product.FP_CANTIDAD || 1,
+              product.FP_PORCENTAJE_APLICADO || 0,
+              product.FP_COMISION_VALOR || 0,
+              invoiceId,
+              product.PR_IDPRODUCTO_FK,
+              product.TR_IDTECNICO_FK,
               serviceDetailId
             ]
           );
@@ -279,13 +279,13 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
           `INSERT INTO ks_factura_productos (fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            product.FP_VALOR, 
-            product.FP_CANTIDAD || 1, 
-            product.FP_PORCENTAJE_APLICADO || 0, 
-            product.FP_COMISION_VALOR || 0, 
-            invoiceId, 
-            product.PR_IDPRODUCTO_FK, 
-            product.TR_IDTECNICO_FK, 
+            product.FP_VALOR,
+            product.FP_CANTIDAD || 1,
+            product.FP_PORCENTAJE_APLICADO || 0,
+            product.FP_COMISION_VALOR || 0,
+            invoiceId,
+            product.PR_IDPRODUCTO_FK,
+            product.TR_IDTECNICO_FK,
             product.FD_IDDETALLE_FK || null
           ]
         );
@@ -480,12 +480,12 @@ export async function getInvoicesByFilter(filters: { sucursalId?: number, date?:
        JOIN ks_metodos_pago mp ON pf.mp_idmetodo_fk = mp.mp_idmetodo_pk 
        WHERE pf.fc_idfactura_fk = f.fc_idfactura_pk) as metodos_pago,
       (SELECT GROUP_CONCAT(DISTINCT t_all.tr_nombre SEPARATOR ', ')
-       FROM (
+       FROM ks_trabajadores t_all
+       WHERE t_all.tr_idtrabajador_pk IN (
          SELECT tr_idtecnico_fk FROM ks_factura_detalles WHERE fc_idfactura_fk = f.fc_idfactura_pk
          UNION
          SELECT tr_idtecnico_fk FROM ks_factura_productos WHERE fc_idfactura_fk = f.fc_idfactura_pk
-       ) as techs
-       JOIN ks_trabajadores t_all ON techs.tr_idtecnico_fk = t_all.tr_idtrabajador_pk) as tecnicos
+       )) as tecnicos
       FROM ks_facturas f 
       JOIN ks_sucursales s ON f.sc_idsucursal_fk = s.sc_idsucursal_pk
       LEFT JOIN ks_trabajadores t ON f.tr_idcliente_fk = t.tr_idtrabajador_pk

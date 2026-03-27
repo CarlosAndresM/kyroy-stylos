@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
 import { renderToBuffer } from '@react-pdf/renderer';
 import React from 'react';
-import { getNominaByRange } from '@/features/nomina/services';
+import { getNominaByRange, getNominaAudit } from '@/features/nomina/services';
 import { VolantePDF } from '@/components/nomina/volante-pdf';
 import path from 'path';
 import { PassThrough, Readable } from 'node:stream';
@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     const end = new Date(`${endStr}T12:00:00`);
 
     try {
+        // Enviar fechas como objetos Date pero el servicio ya las normaliza a string internamente
         const res = await getNominaByRange(start, end, type);
         if (!res.success || !res.data) {
             console.warn(`[ZIP-API] Nómina no encontrada para el rango especificado.`);
@@ -77,11 +78,18 @@ export async function GET(req: NextRequest) {
                         ...detail,
                         periodoRange: rangeLabel
                     };
-
                     try {
-                        // Generar PDF secuencialmente para evitar picos de memoria
+                        // 1. Obtener auditoría (detalle de servicios/productos) para este trabajador
+                        const auditRes = await getNominaAudit(detail.TR_IDTRABAJADOR_FK, start, end);
+                        const auditData = auditRes.success ? auditRes.data : [];
+
+                        // 2. Generar PDF secuencialmente para evitar picos de memoria
                         const pdfBuffer = await renderToBuffer(
-                            React.createElement(VolantePDF, { data: pdfData, logoUrl: logoData }) as any
+                            React.createElement(VolantePDF, { 
+                                data: pdfData, 
+                                logoUrl: logoData as any,
+                                auditData: auditData 
+                            }) as any
                         );
 
                         const branchFolder = detail.SC_NOMBRE ? detail.SC_NOMBRE.trim().toUpperCase() : 'GLOBAL';
