@@ -21,6 +21,7 @@ import { WorkerModal } from '@/app/dashboard/trabajadores/worker-modal'
 import { DeleteConfirmModal } from '@/app/dashboard/trabajadores/delete-confirm-modal'
 import { toast } from '@/lib/toast-helper'
 import { LoadingGate } from '@/components/ui/loading-gate'
+import { NumericFormat } from 'react-number-format'
 
 interface WorkerClientProps {
   initialWorkers: WorkerWithStats[]
@@ -229,7 +230,20 @@ export function WorkerClient({ initialWorkers, roles, sedes, currentRole, sucurs
                       <span className="text-xs font-black text-slate-900 dark:text-white">{worker.servicios_count || 0}</span>
                     </TableCell>
                     <TableCell className="py-2 px-4 text-center">
-                      <span className="text-xs font-black text-emerald-600">${(worker.total_vales || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}</span>
+                      <NumericFormat
+                        value={worker.total_vales || 0}
+                        displayType="text"
+                        thousandSeparator="."
+                        decimalSeparator=","
+                        prefix="$"
+                        decimalScale={0}
+                        fixedDecimalScale
+                        renderText={(value) => (
+                          <span className="text-xs font-black text-emerald-600">
+                            {value}
+                          </span>
+                        )}
+                      />
                     </TableCell>
                     <TableCell className="py-2 px-4 text-center">
                       <span className={cn(
