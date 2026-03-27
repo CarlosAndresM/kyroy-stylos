@@ -1007,7 +1007,10 @@ export function BillingModal({
                         .filter(method => {
                           const nameMatch = method.MP_NOMBRE?.toUpperCase();
                           if (clientType === 'CLIENTE') {
-                            return nameMatch !== 'VALE' && nameMatch !== 'SERVICIO DE TRABAJADOR';
+                            return nameMatch !== 'VALE' && nameMatch !== 'SERVICIO DE TRABAJADOR' && nameMatch !== 'SERVICIO TRABAJADOR';
+                          }
+                          if (clientType === 'TECNICO') {
+                            return nameMatch !== 'CREDITO';
                           }
                           return true;
                         })

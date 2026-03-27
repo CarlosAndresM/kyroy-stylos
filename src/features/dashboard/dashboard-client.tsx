@@ -997,39 +997,45 @@ export function DashboardClient() {
                                         <TableHeader className="bg-slate-50/30">
                                             <TableRow className="hover:bg-transparent border-b border-slate-100">
                                                 <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 w-[100px]">Fecha</TableHead>
+                                                <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Factura</TableHead>
                                                 <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Trabajador</TableHead>
                                                 <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400">Valor</TableHead>
-                                                <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 text-center">Estado</TableHead>
+                                                <TableHead className="px-4 py-3 text-[10px] uppercase font-bold text-slate-400 text-center">Cuotas</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {isLoading ? (
                                                 Array.from({ length: 3 }).map((_, i) => (
                                                     <TableRow key={`vales-skeleton-${i}`}>
-                                                        <TableCell colSpan={4} className="p-4">
+                                                        <TableCell colSpan={5} className="p-4">
                                                             <Skeleton className="h-8 w-full rounded-lg" />
                                                         </TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <>
-                                                    {(specificData?.vales || []).map((v: any) => (
+                                                    {(specificData?.serviciosReal || []).map((v: any) => (
                                                         <TableRow key={v.ST_IDSERVICIO_TRABAJADOR_PK} className="transition-colors border-b border-slate-50">
                                                             <TableCell className="px-4 py-3 text-[10px] font-medium text-slate-500 tabular-nums">
                                                                 {format(new Date(v.ST_FECHA), "dd/MM/yyyy", { locale: es })}
                                                             </TableCell>
-                                                            <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">{v.trabajador_nombre}</TableCell>
+                                                            <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 border-l border-slate-50 pl-6 uppercase">
+                                                                {v.FC_NUMERO_FACTURA ? `#${v.FC_NUMERO_FACTURA}` : 'INTERNO'}
+                                                            </TableCell>
+                                                            <TableCell className="px-4 py-3 text-[11px] font-bold text-slate-900 uppercase">
+                                                                {v.trabajador_nombre}
+                                                            </TableCell>
                                                             <TableCell className="px-4 py-3 text-[12px] font-black text-slate-900 tabular-nums">$ {(Number(v.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                             <TableCell className="px-4 py-3 text-center">
-                                                                <span className="px-2 py-0.5 text-[9px] font-bold uppercase border border-slate-200 bg-slate-50 text-slate-500 rounded-full">
-                                                                    {v.ST_ESTADO}
+                                                                <span className="px-2 py-0.5 text-[10px] font-black uppercase bg-slate-100 text-slate-600 rounded-lg border border-slate-200">
+                                                                    {v.ST_NUMERO_CUOTAS}
                                                                 </span>
                                                             </TableCell>
                                                         </TableRow>
                                                     ))}
-                                                    {(specificData?.vales || []).length === 0 && (
+                                                    {(specificData?.serviciosReal || []).length === 0 && (
                                                         <TableRow>
-                                                            <TableCell colSpan={4} className="text-center py-10 text-slate-400 font-medium italic text-xs">Sin vales registrados</TableCell>
+                                                            <TableCell colSpan={5} className="text-center py-10 text-slate-400 font-medium italic text-xs">Sin servicios de trabajador registrados</TableCell>
                                                         </TableRow>
                                                     )}
                                                 </>
