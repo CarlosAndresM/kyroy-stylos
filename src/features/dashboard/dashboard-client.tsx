@@ -1175,7 +1175,7 @@ export function DashboardClient() {
                                                                     {p.FC_FECHA ? format(new Date(p.FC_FECHA), 'dd/MM/yyyy') : '---'}
                                                                 </TableCell>
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">{p.cliente_display || 'GENERAL'}</TableCell>
-                                                                <TableCell className="text-xs font-black text-emerald-600 uppercase"> - </TableCell>
+                                                                <TableCell className="text-[11px] font-black text-emerald-600 uppercase italic max-w-[150px] truncate" title={p.tecnicos}>{p.tecnicos || '-'}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Método: {p.metodo}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
@@ -1192,7 +1192,7 @@ export function DashboardClient() {
                                                                 <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
-                                                                <TableCell className="text-xs font-black text-blue-600 uppercase"> - </TableCell>
+                                                                <TableCell className="text-[11px] font-black text-blue-600 uppercase italic max-w-[150px] truncate" title={ab.tecnicos}>{ab.tecnicos || '-'}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
@@ -1233,7 +1233,7 @@ export function DashboardClient() {
                                                     <TableCell className="font-bold text-sm py-4 uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                     <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                                    <TableCell className="text-xs font-black text-indigo-600 uppercase"> - </TableCell>
+                                                    <TableCell className="text-[11px] font-black text-indigo-600 uppercase italic max-w-[150px] truncate" title={ab.tecnicos}>{ab.tecnicos || '-'}</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 italic">Abono a crédito pendiente</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
@@ -1295,7 +1295,7 @@ export function DashboardClient() {
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">
                                                                     {s.trabajador_nombre} {s.FC_NUMERO_FACTURA ? `(Fact. ${s.FC_NUMERO_FACTURA})` : ''}
                                                                 </TableCell>
-                                                                <TableCell className="text-xs font-black text-slate-600 uppercase">{s.trabajador_nombre}</TableCell>
+                                                                <TableCell className="text-[11px] font-black text-[#FF7E5F] uppercase italic max-w-[150px] truncate" title={s.tecnicos}>{s.tecnicos || '-'}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno {s.FC_ESTADO === 'PENDIENTE' && <span className="text-amber-500 font-bold ml-1">(PENDIENTE)</span>}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>

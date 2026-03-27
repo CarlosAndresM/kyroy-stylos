@@ -369,7 +369,15 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
 
     // 5. Abonos detallados
     const [abonos]: any = await db.execute(
-      `SELECT ab.*, c.CR_VALOR_PENDIENTE as cr_valor_pendiente, f.FC_NUMERO_FACTURA, f.FC_IDFACTURA_PK, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display
+      `SELECT ab.*, c.CR_VALOR_PENDIENTE as cr_valor_pendiente, f.FC_NUMERO_FACTURA, f.FC_IDFACTURA_PK, 
+       COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display,
+       (SELECT GROUP_CONCAT(DISTINCT tech.TR_NOMBRE SEPARATOR ', ')
+        FROM KS_TRABAJADORES tech
+        WHERE tech.TR_IDTRABAJADOR_PK IN (
+          SELECT TR_IDTECNICO_FK FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+          UNION
+          SELECT TR_IDTECNICO_FK FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+        )) as tecnicos
        FROM KS_CREDITO_ABONOS ab
        JOIN KS_CREDITOS c ON ab.CR_IDCREDITO_FK = c.CR_IDCREDITO_PK
        JOIN KS_FACTURAS f ON c.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
@@ -397,7 +405,14 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
     // 7. Pagos por factura (para filtrar por método en el detalle modal)
     const [pagos]: any = await db.execute(
       `SELECT pf.FC_IDFACTURA_FK, pf.PF_VALOR, mp.MP_NOMBRE as metodo, 
-       f.FC_NUMERO_FACTURA, f.FC_FECHA, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display
+       f.FC_NUMERO_FACTURA, f.FC_FECHA, COALESCE(f.FC_CLIENTE_NOMBRE, t.TR_NOMBRE) as cliente_display,
+       (SELECT GROUP_CONCAT(DISTINCT tech.TR_NOMBRE SEPARATOR ', ')
+        FROM KS_TRABAJADORES tech
+        WHERE tech.TR_IDTRABAJADOR_PK IN (
+          SELECT TR_IDTECNICO_FK FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+          UNION
+          SELECT TR_IDTECNICO_FK FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+        )) as tecnicos
        FROM KS_PAGOS_FACTURA pf
        JOIN KS_METODOS_PAGO mp ON pf.MP_IDMETODO_FK = mp.MP_IDMETODO_PK
        JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
@@ -425,7 +440,14 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
 
     // 9. Servicios de Trabajador REALES (vouchers entre técnicos)
     const serviciosRealQuery = `
-      SELECT st.*, t.TR_NOMBRE as trabajador_nombre, f.FC_NUMERO_FACTURA, f.FC_FECHA, f.FC_ESTADO as FC_ESTADO
+      SELECT st.*, t.TR_NOMBRE as trabajador_nombre, f.FC_NUMERO_FACTURA, f.FC_FECHA, f.FC_ESTADO as FC_ESTADO,
+      (SELECT GROUP_CONCAT(DISTINCT tech.TR_NOMBRE SEPARATOR ', ')
+       FROM KS_TRABAJADORES tech
+       WHERE tech.TR_IDTRABAJADOR_PK IN (
+         SELECT TR_IDTECNICO_FK FROM KS_FACTURA_DETALLES WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+         UNION
+         SELECT TR_IDTECNICO_FK FROM KS_FACTURA_PRODUCTOS WHERE FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       )) as tecnicos
       FROM KS_SERVICIOS_TRABAJADOR st
       JOIN KS_TRABAJADORES t ON st.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK
       LEFT JOIN KS_FACTURAS f ON st.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
