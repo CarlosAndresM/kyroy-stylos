@@ -848,9 +848,10 @@ export function DashboardClient() {
                                         ) : (chartsData?.topTechs || []).length > 0 ? (
                                             <div className="divide-y divide-slate-100">
                                                 <div className="flex items-center justify-between px-4 py-2 bg-slate-50 text-[10px] font-bold uppercase text-slate-400 tracking-widest border-b border-slate-100">
-                                                    <div className="w-[45%] flex gap-4 pl-12">Técnico</div>
-                                                    <div className="w-[20%] text-center">Servicios</div>
-                                                    <div className="w-[35%] text-right pr-4">Total</div>
+                                                    <div className="w-[35%] flex gap-4 pl-12">Técnico</div>
+                                                    <div className="w-[15%] text-center">Servicios</div>
+                                                    <div className="w-[25%] text-right">Productos</div>
+                                                    <div className="w-[25%] text-right pr-4">A Pagar</div>
                                                 </div>
                                                 {(chartsData?.topTechs || []).map((tech: any, index: number) => (
                                                     <div
@@ -862,7 +863,7 @@ export function DashboardClient() {
                                                             setIsDetailModalOpen(true)
                                                         }}
                                                     >
-                                                        <div className="flex items-center gap-4 w-[45%]">
+                                                        <div className="flex items-center gap-4 w-[35%]">
                                                             <div className={cn(
                                                                 "size-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 shadow-sm transition-transform group-hover/tech:scale-110",
                                                                 index === 0 ? "bg-amber-100 text-amber-600 shadow-inner" :
@@ -876,12 +877,17 @@ export function DashboardClient() {
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <div className="w-[20%] text-center">
+                                                        <div className="w-[15%] text-center">
                                                             <span className="text-xs font-black text-slate-900 tabular-nums">{tech.count}</span>
                                                         </div>
-                                                        <div className="flex flex-col items-end gap-1 w-[35%]">
+                                                        <div className="w-[25%] text-right">
+                                                            <div className="text-[#00CED1] text-[11px] font-black">
+                                                                $ {(Number(tech.total_productos) || 0).toLocaleString('es-CO')}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1 w-[25%]">
                                                             <div className="text-[#FF7E5F] text-[11px] font-black">
-                                                                $ {(Number(tech.total) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
+                                                                $ {(Number(tech.total_pagar) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                                                             </div>
                                                         </div>
                                                     </div>

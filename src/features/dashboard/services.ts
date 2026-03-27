@@ -218,26 +218,52 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
 
 export async function getDashboardCharts(sucursalId: number, dateFrom: string, dateTo: string): Promise<ApiResponse> {
   try {
+    // 0. Get config for payroll calculation
+    const [configRows]: any = await db.execute(
+      "SELECT NC_PORCENTAJE_SERVICIO FROM KS_NOMINA_CONFIG WHERE NC_FECHA_INICIO <= ? ORDER BY NC_FECHA_INICIO DESC LIMIT 1",
+      [dateFrom]
+    );
+    const svcPercent = Number(configRows[0]?.NC_PORCENTAJE_SERVICIO || 50);
+
+    const chartsParams: any[] = [dateFrom, dateTo, dateFrom, dateTo];
     const params: any[] = [dateFrom, dateTo];
+    let sucursalChartFilter = "";
     let sucursalFilter = "";
 
     if (sucursalId !== -1) {
+      sucursalChartFilter = " AND t.SC_IDSUCURSAL_FK = ?";
       sucursalFilter = " AND f.SC_IDSUCURSAL_FK = ?";
+      chartsParams.push(sucursalId);
       params.push(sucursalId);
     }
 
-    // 1. Top Technicians by services value
+    // 1. Top Technicians by earnings (Services commission + Product commission)
     const [topTechs]: any = await db.execute(
-      `SELECT t.TR_NOMBRE as name, COUNT(fd.FD_IDDETALLE_PK) as count, SUM(fd.FD_VALOR) as total
+      `SELECT t.TR_NOMBRE as name, 
+              COUNT(DISTINCT srv.FD_IDDETALLE_PK) as count, 
+              SUM(COALESCE(srv.FD_VALOR, 0)) as total_servicios,
+              SUM(COALESCE(prd.FP_VALOR, 0)) as total_productos,
+              (SUM(COALESCE(srv.FD_VALOR, 0)) * (${svcPercent}/100) + SUM(COALESCE(prd.FP_COMISION_VALOR, 0))) as total_pagar
        FROM KS_TRABAJADORES t
-       JOIN KS_FACTURA_DETALLES fd ON t.TR_IDTRABAJADOR_PK = fd.TR_IDTECNICO_FK
-       JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+       LEFT JOIN (
+           SELECT fd.TR_IDTECNICO_FK, fd.FD_VALOR, fd.FD_IDDETALLE_PK
+           FROM KS_FACTURA_DETALLES fd
+           JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+           WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? AND f.FC_ESTADO = 'PAGADO'
+       ) srv ON t.TR_IDTRABAJADOR_PK = srv.TR_IDTECNICO_FK
+       LEFT JOIN (
+           SELECT fp.TR_IDTECNICO_FK, fp.FP_VALOR, fp.FP_COMISION_VALOR
+           FROM KS_FACTURA_PRODUCTOS fp
+           JOIN KS_FACTURAS f ON fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+           WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? AND f.FC_ESTADO = 'PAGADO'
+       ) prd ON t.TR_IDTRABAJADOR_PK = prd.TR_IDTECNICO_FK
        JOIN KS_ROLES r ON t.RL_IDROL_FK = r.RL_IDROL_PK
-       WHERE DATE(f.FC_FECHA) BETWEEN ? AND ? AND r.RL_NOMBRE = 'TECNICO' AND f.FC_ESTADO = 'PAGADO' ${sucursalFilter}
+       WHERE r.RL_NOMBRE = 'TECNICO' AND t.TR_ACTIVO = TRUE ${sucursalChartFilter}
        GROUP BY t.TR_IDTRABAJADOR_PK
-       ORDER BY total DESC
+       HAVING total_servicios > 0 OR total_productos > 0
+       ORDER BY total_pagar DESC
        LIMIT 10`,
-      params
+      chartsParams
     );
 
     // 2. Top Services
@@ -269,7 +295,13 @@ export async function getDashboardCharts(sucursalId: number, dateFrom: string, d
     return {
       success: true,
       data: {
-        topTechs: (topTechs || []).map((t: any) => ({ ...t, total: Number(t.total || 0), count: Number(t.count || 0) })),
+        topTechs: (topTechs || []).map((t: any) => ({ 
+          ...t, 
+          total_servicios: Number(t.total_servicios || 0), 
+          total_productos: Number(t.total_productos || 0),
+          total_pagar: Number(t.total_pagar || 0),
+          count: Number(t.count || 0) 
+        })),
         topServices: (topServices || []).map((s: any) => ({ ...s, count: Number(s.count || 0) })),
         topProducts: (topProducts || []).map((p: any) => ({ ...p, count: Number(p.count || 0) }))
       },
