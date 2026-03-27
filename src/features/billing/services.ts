@@ -48,12 +48,12 @@ export async function getInvoiceById(id: number): Promise<ApiResponse> {
 
     // Fetch details
     const [services]: any = await (db as any).execute(
-      "SELECT fd_iddetalle_pk, fd_valor, sv_idservicio_fk, tr_idtecnico_fk FROM ks_factura_detalles WHERE fc_idfactura_fk = ?",
+      "SELECT fd_iddetalle_pk, fd_valor, fd_cantidad, sv_idservicio_fk, tr_idtecnico_fk FROM ks_factura_detalles WHERE fc_idfactura_fk = ?",
       [id]
     );
 
     const [products]: any = await (db as any).execute(
-      "SELECT fp_idfactura_producto_pk, fp_valor, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk FROM ks_factura_productos WHERE fc_idfactura_fk = ?",
+      "SELECT fp_idfactura_producto_pk, fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk FROM ks_factura_productos WHERE fc_idfactura_fk = ?",
       [id]
     );
 
@@ -241,18 +241,27 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
 
     for (const service of (data.services || [])) {
       const [serviceResult]: any = await (connection as any).execute(
-        `INSERT INTO ks_factura_detalles (fd_valor, fc_idfactura_fk, sv_idservicio_fk, tr_idtecnico_fk) 
-         VALUES (?, ?, ?, ?)`,
-        [service.FD_VALOR, invoiceId, service.SV_IDSERVICIO_FK, service.TR_IDTECNICO_FK]
+        `INSERT INTO ks_factura_detalles (fd_valor, fd_cantidad, fc_idfactura_fk, sv_idservicio_fk, tr_idtecnico_fk) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [service.FD_VALOR, service.FD_CANTIDAD || 1, invoiceId, service.SV_IDSERVICIO_FK, service.TR_IDTECNICO_FK]
       );
       const serviceDetailId = serviceResult.insertId;
 
       if (service.products && service.products.length > 0) {
         for (const product of service.products) {
           await (connection as any).execute(
-            `INSERT INTO ks_factura_productos (fp_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
-             VALUES (?, ?, ?, ?, ?)`,
-            [product.FP_VALOR, invoiceId, product.PR_IDPRODUCTO_FK, product.TR_IDTECNICO_FK, serviceDetailId]
+            `INSERT INTO ks_factura_productos (fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              product.FP_VALOR, 
+              product.FP_CANTIDAD || 1, 
+              product.FP_PORCENTAJE_APLICADO || 0, 
+              product.FP_COMISION_VALOR || 0, 
+              invoiceId, 
+              product.PR_IDPRODUCTO_FK, 
+              product.TR_IDTECNICO_FK, 
+              serviceDetailId
+            ]
           );
         }
       }
@@ -261,9 +270,18 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
     if (data.products && data.products.length > 0) {
       for (const product of data.products) {
         await (connection as any).execute(
-          `INSERT INTO ks_factura_productos (fp_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [product.FP_VALOR, invoiceId, product.PR_IDPRODUCTO_FK, product.TR_IDTECNICO_FK, product.FD_IDDETALLE_FK || null]
+          `INSERT INTO ks_factura_productos (fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            product.FP_VALOR, 
+            product.FP_CANTIDAD || 1, 
+            product.FP_PORCENTAJE_APLICADO || 0, 
+            product.FP_COMISION_VALOR || 0, 
+            invoiceId, 
+            product.PR_IDPRODUCTO_FK, 
+            product.TR_IDTECNICO_FK, 
+            product.FD_IDDETALLE_FK || null
+          ]
         );
       }
     }
@@ -518,16 +536,27 @@ export async function addProductToInvoice(
   productId: number,
   technicianId: number,
   value: number,
+  quantity: number = 1,
   detailId?: number
 ): Promise<ApiResponse> {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
+    // 1. Obtener datos de comisión del producto
+    const [products]: any = await connection.execute(
+      "SELECT PR_APLICA_COMISION, PR_PORCENTAJE_COMISION FROM KS_PRODUCTOS WHERE PR_IDPRODUCTO_PK = ?",
+      [productId]
+    );
+    const product = products[0];
+    const appliesComm = !!product?.PR_APLICA_COMISION;
+    const commPercent = Number(product?.PR_PORCENTAJE_COMISION || 0);
+    const commValue = appliesComm ? (value * quantity * (commPercent / 100)) : 0;
+
     await connection.execute(
-      `INSERT INTO ks_factura_productos (fp_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [value, invoiceId, productId, technicianId, detailId || null]
+      `INSERT INTO ks_factura_productos (fp_valor, fp_cantidad, fp_porcentaje_aplicado, fp_comision_valor, fc_idfactura_fk, pr_idproducto_fk, tr_idtecnico_fk, fd_iddetalle_fk) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [value, quantity, commPercent, commValue, invoiceId, productId, technicianId, detailId || null]
     );
 
     await connection.commit();
@@ -547,30 +576,38 @@ export async function updateProductInInvoice(
   productId: number,
   technicianId: number,
   value: number,
+  quantity: number = 1,
   detailId?: number
 ): Promise<ApiResponse> {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // 1. Obtener valor anterior e ID de factura
+    // 1. Obtener datos de comisión del producto
+    const [products]: any = await connection.execute(
+      "SELECT PR_APLICA_COMISION, PR_PORCENTAJE_COMISION FROM KS_PRODUCTOS WHERE PR_IDPRODUCTO_PK = ?",
+      [productId]
+    );
+    const product = products[0];
+    const appliesComm = !!product?.PR_APLICA_COMISION;
+    const commPercent = Number(product?.PR_PORCENTAJE_COMISION || 0);
+    const commValue = appliesComm ? (value * quantity * (commPercent / 100)) : 0;
+
+    // 2. Obtener valor anterior e ID de factura
     const [oldRow]: any = await connection.execute(
       "SELECT fp_valor, fc_idfactura_fk FROM ks_factura_productos WHERE fp_idfactura_producto_pk = ?",
       [productInvoiceId]
     );
 
     if (oldRow.length === 0) throw new Error("Producto no encontrado en la factura");
-
-    const oldValue = Number(oldRow[0].fp_valor);
     const invoiceId = oldRow[0].fc_idfactura_fk;
-    const diff = value - oldValue;
 
-    // 2. Actualizar producto
+    // 3. Actualizar producto
     await connection.execute(
       `UPDATE ks_factura_productos 
-       SET pr_idproducto_fk = ?, tr_idtecnico_fk = ?, fp_valor = ?, fd_iddetalle_fk = ?
+       SET pr_idproducto_fk = ?, tr_idtecnico_fk = ?, fp_valor = ?, fp_cantidad = ?, fp_porcentaje_aplicado = ?, fp_comision_valor = ?, fd_iddetalle_fk = ?
        WHERE fp_idfactura_producto_pk = ?`,
-      [productId, technicianId, value, detailId || null, productInvoiceId]
+      [productId, technicianId, value, quantity, commPercent, commValue, detailId || null, productInvoiceId]
     );
 
     await connection.commit();

@@ -4,6 +4,7 @@ import React, { Suspense, lazy } from 'react';
 import { Button } from "@/components/ui/button";
 import { Printer, Download, Receipt } from "lucide-react";
 import { VolantePDF } from "./volante-pdf";
+import { cn } from "@/lib/utils";
 
 const PDFDownloadLink = lazy(() =>
   import("@react-pdf/renderer").then((mod) => ({ default: mod.PDFDownloadLink }))
@@ -18,7 +19,7 @@ const fmt = (n: any) => {
   }).format(val);
 };
 
-export function VolantePago({ data }: { data: any }) {
+export function VolantePago({ data, auditData = [] }: { data: any, auditData?: any[] }) {
   const [isClient, setIsClient] = React.useState(false);
   React.useEffect(() => { setIsClient(true); }, []);
 
@@ -46,7 +47,7 @@ export function VolantePago({ data }: { data: any }) {
         {isClient && (
           <Suspense fallback={<Button disabled size="sm" className="gap-2 rounded-xl bg-emerald-400"><Download className="h-4 w-4" /> Cargando...</Button>}>
             <PDFDownloadLink
-              document={<VolantePDF data={data} logoUrl="/LOGO.png" />}
+              document={<VolantePDF data={data} logoUrl="/LOGO.png" auditData={auditData} />}
               fileName={`Volante_${data.TR_NOMBRE}_${data.periodoRange.replace(/ /g, '_')}.pdf`}
             >
               {({ loading }) => (
@@ -152,11 +153,53 @@ export function VolantePago({ data }: { data: any }) {
           </div>
         </div>
 
+        {/* Detalle de Actividad (Nuevos campos) */}
+        {auditData.length > 0 && (
+          <div className="px-8 pb-8 space-y-4">
+            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 border-t pt-8">
+              <Receipt className="size-3" /> Detalle de Actividad
+            </h4>
+            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
+              <table className="w-full text-[10px]">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr className="text-slate-400">
+                    <th className="text-left font-bold px-3 py-2.5 uppercase tracking-tighter">Fecha</th>
+                    <th className="text-left font-bold px-3 py-2.5 uppercase tracking-tighter">Tipo</th>
+                    <th className="text-left font-bold px-3 py-2.5 uppercase tracking-tighter">Descripción</th>
+                    <th className="text-center font-bold px-2 py-2.5 uppercase tracking-tighter">Cant</th>
+                    <th className="text-right font-bold px-3 py-2.5 uppercase tracking-tighter">V. Unit</th>
+                    <th className="text-right font-bold px-3 py-2.5 uppercase tracking-tighter">Comisión</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {auditData.map((item, i) => (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-medium">{new Date(item.FC_FECHA).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}</td>
+                      <td className="px-3 py-2">
+                        <span className={cn(
+                          "px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider",
+                          item.PF_TIPO_ITEM === 'SERVICIO' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-blue-50 text-blue-600 border border-blue-100"
+                        )}>
+                          {item.PF_TIPO_ITEM}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 font-bold text-slate-700 truncate max-w-[150px]">{item.PF_DESCRIPCION}</td>
+                      <td className="px-2 py-2 text-center font-black text-slate-900 bg-slate-50/50">{item.PF_CANTIDAD}</td>
+                      <td className="px-3 py-2 text-right text-slate-500 font-medium">{fmt(item.PF_VALOR_UNITARIO)}</td>
+                      <td className="px-3 py-2 text-right font-black text-slate-900">{fmt(item.PF_COMISION_VALOR)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
         {/* Neto Final */}
-        <div className="mx-8 mb-8 p-6 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-xl">
-           <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Neto Pagado</span>
-           <span className="text-3xl font-black italic tracking-tighter">{fmt(Number(data.ND_TOTAL_NETO || 0))}</span>
-        </div>
+         <div className="mx-8 mb-8 p-6 bg-slate-900 text-white rounded-2xl flex justify-between items-center shadow-xl">
+            <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60">Neto Pagado</span>
+            <span className="text-3xl font-black italic tracking-tighter">{fmt(Number(data.ND_TOTAL_NETO || 0))}</span>
+         </div>
 
 
       </div>
@@ -165,10 +208,13 @@ export function VolantePago({ data }: { data: any }) {
 }
 
 function InfoRow({ label, value, bold }: { label: string, value: string, bold?: boolean }) {
-  return (
+   return (
     <div className="flex flex-col">
        <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest leading-none mb-1">{label}</span>
-       <span className={`${bold ? 'font-black text-slate-900' : 'font-bold text-slate-600'} text-xs uppercase tracking-tight`}>{value}</span>
+       <span className={cn(
+         "text-xs uppercase tracking-tight",
+         bold ? (label === 'Colaborador' ? 'font-black text-[#00CED1] [text-shadow:_-0.5px_-0.5px_0_#000,_0.5px_-0.5px_0_#000,_-0.5px_0.5px_0_#000,_0.5px_0.5px_0_#000]' : 'font-black text-slate-900') : 'font-bold text-slate-600'
+       )}>{value}</span>
     </div>
   );
 }

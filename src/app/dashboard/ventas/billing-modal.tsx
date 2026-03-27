@@ -133,7 +133,7 @@ export function BillingModal({
       FC_FECHA: new Date(),
       SC_IDSUCURSAL_FK: sessionUser?.branchId || 1,
       TR_IDCAJERO_FK: sessionUser?.id || 1,
-      services: [{ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, products: [] }],
+      services: [{ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, FD_CANTIDAD: 1, products: [] }],
       products: [],
       payments: [],
       FC_ESTADO: 'PENDIENTE',
@@ -239,6 +239,7 @@ export function BillingModal({
       return {
         ...s,
         tempId: s.tempId || uuidv4(),
+        FD_CANTIDAD: s.FD_CANTIDAD || 1,
         products: serviceProds
       }
     })
@@ -318,6 +319,7 @@ export function BillingModal({
       serviceId: product.FD_IDDETALLE_FK ? product.FD_IDDETALLE_FK.toString() : (watchedServices[sIdx].FD_IDDETALLE_PK?.toString() || watchedServices[sIdx].tempId),
       technicianId: product.TR_IDTECNICO_FK.toString(),
       value: Number(product.FP_VALOR),
+      quantity: Number(product.FP_CANTIDAD || 1),
       manualIndex: pIdx,
       sourceServiceIndex: sIdx
     })
@@ -397,7 +399,7 @@ export function BillingModal({
 
   // El total se calcula dinÃƒÂ¡micamente para la UI, ya no se sincroniza al estado del form para evitar bucles de renderizado
   const total = React.useMemo(() => {
-    const sTotal = (watchedServices || []).reduce((sum, s) => sum + (Number(s.FD_VALOR) || 0), 0)
+    const sTotal = (watchedServices || []).reduce((sum, s) => sum + ((Number(s.FD_VALOR) || 0) * (Number(s.FD_CANTIDAD) || 1)), 0)
     return sTotal
   }, [watchedServices])
 
@@ -898,7 +900,7 @@ export function BillingModal({
                       <PlusCircle className="size-3.5" /> Agregar producto
                     </Button>
                     <Button type="button" variant="outline" size="sm" disabled={isPaid}
-                      onClick={() => appendService({ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, products: [] })}
+                      onClick={() => appendService({ tempId: uuidv4(), SV_IDSERVICIO_FK: undefined as any, TR_IDTECNICO_FK: undefined as any, FD_VALOR: 0, FD_CANTIDAD: 1, products: [] })}
                       className="gap-2 text-xs">
                       <PlusCircle className="size-3.5" /> Agregar servicio
                     </Button>
@@ -910,10 +912,11 @@ export function BillingModal({
                     <table className="w-full text-sm">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[35%]">Servicio</th>
-                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[30%]">Tecnico</th>
+                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[30%]">Servicio</th>
+                          <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[25%]">Tecnico</th>
+                          <th className="text-center text-[11px] font-bold uppercase text-slate-500 tracking-wider px-2 py-3 w-[60px]">Cant</th>
                           <th className="text-left text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3">Productos</th>
-                          <th className="text-right text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[130px]">Valor</th>
+                          <th className="text-right text-[11px] font-bold uppercase text-slate-500 tracking-wider px-4 py-3 w-[130px]">V. Unit</th>
                           <th className="w-10 px-2 py-3"></th>
                         </tr>
                       </thead>
@@ -939,6 +942,23 @@ export function BillingModal({
                                     <ComboboxSearch options={technicianOptions} value={field.value} disabled={isPaid}
                                       onValueChange={(val) => field.onChange(val)}
                                       placeholder="Tecnico..." className="h-9 text-xs" />
+                                  </FormControl>
+                                  <FormMessage className="text-[10px]" />
+                                </FormItem>
+                              )} />
+                            </td>
+                            <td className="px-2 py-3">
+                              <FormField control={form.control} name={`services.${index}.FD_CANTIDAD`} render={({ field }) => (
+                                <FormItem className="space-y-0">
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      disabled={isPaid}
+                                      {...field}
+                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                      className="w-16 h-9 text-center text-xs font-bold border-slate-200 focus:border-[#FF7E5F]"
+                                    />
                                   </FormControl>
                                   <FormMessage className="text-[10px]" />
                                 </FormItem>

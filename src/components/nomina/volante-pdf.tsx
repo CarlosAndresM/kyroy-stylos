@@ -217,7 +217,30 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: '#F1F5F9',
     paddingTop: 15
-  }
+  },
+
+  // Audit Styles
+  auditHeader: {
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    flexDirection: 'row',
+    paddingVertical: 5,
+    paddingHorizontal: 8
+  },
+  auditRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#F1F5F9',
+    paddingVertical: 4,
+    paddingHorizontal: 8
+  },
+  colFecha: { width: 40, fontSize: 7, color: '#64748B' },
+  colTipo: { width: 50, fontSize: 7, fontWeight: 'bold' },
+  colDesc: { flex: 1, fontSize: 8, fontWeight: 'bold', color: '#334155' },
+  colCant: { width: 30, fontSize: 8, textAlign: 'center', fontWeight: 'bold' },
+  colVal: { width: 60, fontSize: 8, textAlign: 'right', color: '#64748B' },
+  colComm: { width: 60, fontSize: 8, textAlign: 'right', fontWeight: 'bold', color: '#10B981' }
 });
 
 const fmt = (n: any) => {
@@ -229,7 +252,7 @@ const fmt = (n: any) => {
   }).format(val);
 };
 
-export const VolantePDF = ({ data, logoUrl }: { data: any, logoUrl?: string }) => {
+export const VolantePDF = ({ data, logoUrl, auditData = [] }: { data: any, logoUrl?: string, auditData?: any[] }) => {
   const devengos = [
     { desc: 'Sueldo Base', val: Number(data.ND_BASE || 0) },
     { desc: 'Comisiones (SVC/PRD)', val: Number(data.ND_COMISIONES || 0) },
@@ -350,6 +373,35 @@ export const VolantePDF = ({ data, logoUrl }: { data: any, logoUrl?: string }) =
           <Text style={styles.netoLabel}>Neto Pagado</Text>
           <Text style={styles.netoValue}>{fmt(data.ND_TOTAL_NETO)}</Text>
         </View>
+
+        {/* Detalle de Actividad (Nuevos campos) */}
+        {auditData.length > 0 && (
+          <View style={[styles.section, { marginTop: 30 }]} wrap={false}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Detalle de Actividad</Text>
+            </View>
+            <View style={[styles.table, { borderWidth: 1, borderColor: '#F1F5F9', borderRadius: 8, overflow: 'hidden' }]}>
+              <View style={styles.auditHeader}>
+                <Text style={styles.colFecha}>Fecha</Text>
+                <Text style={styles.colTipo}>Tipo</Text>
+                <Text style={styles.colDesc}>Descripción</Text>
+                <Text style={styles.colCant}>Cant</Text>
+                <Text style={styles.colVal}>V. Unit</Text>
+                <Text style={styles.colComm}>Comisión</Text>
+              </View>
+              {auditData.map((item, i) => (
+                <View key={i} style={styles.auditRow}>
+                  <Text style={styles.colFecha}>{new Date(item.FC_FECHA).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}</Text>
+                  <Text style={[styles.colTipo, { color: item.PF_TIPO_ITEM === 'SERVICIO' ? '#059669' : '#2563EB' }]}>{item.PF_TIPO_ITEM}</Text>
+                  <Text style={styles.colDesc}>{item.PF_DESCRIPCION}</Text>
+                  <Text style={styles.colCant}>{item.PF_CANTIDAD}</Text>
+                  <Text style={styles.colVal}>{fmt(item.PF_VALOR_UNITARIO)}</Text>
+                  <Text style={styles.colComm}>{fmt(item.PF_COMISION_VALOR)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <Text style={styles.footer}>
           Este documento es un comprobante informativo de liquidación de nómina generada por el sistema kairos STYLOS.

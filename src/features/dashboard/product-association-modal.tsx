@@ -11,6 +11,7 @@ import {
     DialogFooter
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Loader2, Package2 } from 'lucide-react'
 import { NumericFormat } from 'react-number-format'
 import { ComboboxSearch } from '@/components/ui/combobox-search'
@@ -41,6 +42,7 @@ interface ProductAssociationModalProps {
         serviceId: string
         technicianId: string
         value: number
+        quantity?: number
         manualIndex?: number
     } | null
 }
@@ -62,6 +64,7 @@ export function ProductAssociationModal({
     const [selectedServiceId, setSelectedServiceId] = React.useState<string>('')
     const [technicianId, setTechnicianId] = React.useState<string>('')
     const [value, setValue] = React.useState<number>(0)
+    const [quantity, setQuantity] = React.useState<number>(1)
     const [isLoadingInvoice, setIsLoadingInvoice] = React.useState(false)
     const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -74,6 +77,7 @@ export function ProductAssociationModal({
                 setSelectedServiceId(editData.serviceId || '')
                 setTechnicianId(editData.technicianId || '')
                 setValue(editData.value)
+                setQuantity(editData.quantity || 1)
                 if (mode === 'db') {
                     fetchInvoiceDetails(editData.invoiceId || '', editData.serviceId)
                 } else {
@@ -85,6 +89,7 @@ export function ProductAssociationModal({
                 setSelectedServiceId('')
                 setTechnicianId('')
                 setValue(0)
+                setQuantity(1)
                 setInvoiceDetails(null)
                 if (initialInvoiceId && mode === 'db') {
                     fetchInvoiceDetails(initialInvoiceId || '')
@@ -134,11 +139,19 @@ export function ProductAssociationModal({
             return
         }
 
+        const product = catalogData.products.find(p => p.PR_IDPRODUCTO_PK.toString() === selectedProductId)
+        const appliesComm = !!product?.PR_APLICA_COMISION
+        const commPercent = Number(product?.PR_PORCENTAJE_COMISION || 0)
+        const commValue = appliesComm ? (value * quantity * (commPercent / 100)) : 0
+
         if (mode === 'manual') {
             onSuccess({
                 PR_IDPRODUCTO_FK: Number(selectedProductId),
                 TR_IDTECNICO_FK: Number(technicianId),
                 FP_VALOR: value,
+                FP_CANTIDAD: quantity,
+                FP_PORCENTAJE_APLICADO: commPercent,
+                FP_COMISION_VALOR: commValue,
                 FD_IDDETALLE_FK: selectedServiceId, // can be PK or tempId
                 manualIndex: editData?.manualIndex
             })
@@ -256,7 +269,7 @@ export function ProductAssociationModal({
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">VALOR:</label>
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">VALOR UNITARIO:</label>
                                     <NumericFormat
                                         value={value}
                                         onValueChange={(vals) => setValue(vals.floatValue || 0)}
@@ -266,6 +279,19 @@ export function ProductAssociationModal({
                                         className="w-full h-12 border border-slate-200 rounded-xl px-4 font-black text-sm outline-none bg-slate-50 focus:bg-white focus:border-[#FF7E5F] transition-all"
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">CANTIDAD:</label>
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        value={quantity}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(parseInt(e.target.value) || 1)}
+                                        className="w-full h-12 border border-slate-200 rounded-xl px-4 font-black text-sm outline-none bg-slate-50 focus:bg-white focus:border-[#FF7E5F] transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">TÉCNICO *:</label>
                                     <ComboboxSearch

@@ -2,26 +2,32 @@ import { z } from 'zod';
 
 // Detalle de servicio en la factura
 export const invoiceServiceSchema = z.object({
-  FD_IDDETALLE_PK: z.number().optional().nullable(), // PK real de la DB para edición
-  tempId: z.string().optional(), // Para vinculación en frontend antes de guardar
+  FD_IDDETALLE_PK: z.number().optional().nullable(),
+  tempId: z.string().optional(),
   SV_IDSERVICIO_FK: z.number({ required_error: 'Seleccione un servicio' }),
   TR_IDTECNICO_FK: z.number({ required_error: 'Seleccione un técnico' }),
   FD_VALOR: z.coerce.number().min(0, 'El valor no puede ser negativo'),
+  FD_CANTIDAD: z.coerce.number().min(1).default(1),
   products: z.array(z.object({
-    FP_IDFACTURA_PRODUCTO_PK: z.number().optional().nullable(), // PK real
+    FP_IDFACTURA_PRODUCTO_PK: z.number().optional().nullable(),
     PR_IDPRODUCTO_FK: z.number({ required_error: 'Seleccione un producto' }),
     TR_IDTECNICO_FK: z.number({ required_error: 'Seleccione un técnico' }),
     FP_VALOR: z.coerce.number().min(0, 'El valor no puede ser negativo'),
-    FD_IDDETALLE_FK: z.any().optional().nullable(), // FK al servicio (puede ser string tempId o number PK)
+    FP_CANTIDAD: z.coerce.number().min(1).default(1),
+    FP_PORCENTAJE_APLICADO: z.coerce.number().min(0).max(100).default(0),
+    FP_COMISION_VALOR: z.coerce.number().min(0).default(0),
+    FD_IDDETALLE_FK: z.any().optional().nullable(),
   })).optional().default([]),
 });
 
-// Detalle de producto en la factura (Venta directa o independiente)
 export const invoiceProductSchema = z.object({
   FP_IDFACTURA_PRODUCTO_PK: z.number().optional().nullable(),
   PR_IDPRODUCTO_FK: z.number({ required_error: 'Seleccione un producto' }),
   TR_IDTECNICO_FK: z.number({ required_error: 'Seleccione un técnico' }),
   FP_VALOR: z.coerce.number().min(0, 'El valor no puede ser negativo'),
+  FP_CANTIDAD: z.coerce.number().min(1).default(1),
+  FP_PORCENTAJE_APLICADO: z.coerce.number().min(0).max(100).default(0),
+  FP_COMISION_VALOR: z.coerce.number().min(0).default(0),
   FD_IDDETALLE_FK: z.any().optional().nullable(),
 });
 

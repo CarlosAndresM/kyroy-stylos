@@ -65,11 +65,11 @@ export default function NominaClient() {
   const [configs, setConfigs] = useState<any[]>([]);
   // States for Config Modal
   const [svcPercent, setSvcPercent] = useState("");
-  const [prdPercent, setPrdPercent] = useState("");
   const [configStartDate, setConfigStartDate] = useState("");
   const [showConfigForm, setShowConfigForm] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<number | null>(null);
   const [showVolante, setShowVolante] = useState<any>(null);
+  const [auditData, setAuditData] = useState<any[]>([]);
 
 
   useEffect(() => {
@@ -149,7 +149,6 @@ export default function NominaClient() {
 
     const payload = {
       NC_PORCENTAJE_SERVICIO: parseFloat(svcPercent),
-      NC_PORCENTAJE_PRODUCTO: parseFloat(prdPercent),
       NC_FECHA_INICIO: configDate
     };
 
@@ -163,7 +162,6 @@ export default function NominaClient() {
       setShowConfigForm(false);
       setEditingConfigId(null);
       setSvcPercent("");
-      setPrdPercent("");
       setConfigStartDate("");
     } else {
       toast.error(res.error || "Error al guardar");
@@ -173,7 +171,6 @@ export default function NominaClient() {
   const handleEditConfig = (cfg: any) => {
     setEditingConfigId(cfg.NC_IDCONFIG_PK);
     setSvcPercent(cfg.NC_PORCENTAJE_SERVICIO.toString());
-    setPrdPercent(cfg.NC_PORCENTAJE_PRODUCTO.toString());
     setConfigStartDate(format(new Date(cfg.NC_FECHA_INICIO), 'yyyy-MM-dd'));
     setShowConfigForm(true);
   };
@@ -302,8 +299,8 @@ export default function NominaClient() {
             <TableBody>
               {nominaData.length > 0 ? (
                 nominaData.map((item, idx) => (
-                  <TableRow key={idx} className="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                    <TableCell className="font-bold text-slate-900 text-xs px-6 uppercase tracking-tight">{item.TR_NOMBRE}</TableCell>
+                  <TableRow key={idx} className="hover:bg-slate-50 transition-colors border-b border-slate-100 group">
+                    <TableCell className="font-black text-[#00CED1] [text-shadow:_-0.5px_-0.5px_0_#000,_0.5px_-0.5px_0_#000,_-0.5px_0.5px_0_#000,_0.5px_0.5px_0_#000] text-xs px-6 uppercase tracking-tight">{item.TR_NOMBRE}</TableCell>
                     <TableCell className="text-right font-bold text-xs text-emerald-600">$ {item.ND_COMISIONES.toLocaleString('es-CO')}</TableCell>
                     <TableCell className="text-right font-medium text-xs text-red-600 tracking-tighter">
                       - $ {(item.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0).toLocaleString('es-CO')}
@@ -321,7 +318,11 @@ export default function NominaClient() {
                       <div className="flex justify-end gap-1">
 
                         <button
-                          onClick={() => setShowVolante(item)}
+                          onClick={async () => {
+                            const auditRes = await getNominaAudit(item.TR_IDTRABAJADOR_FK, startDate, endDate);
+                            if (auditRes.success) setAuditData(auditRes.data);
+                            setShowVolante(item);
+                          }}
                           title="Ver Volante de Pago"
                           className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-full transition-all"
                         >
@@ -434,8 +435,7 @@ export default function NominaClient() {
                   <TableHeader className="bg-slate-50 border-b border-slate-200 sticky top-0 z-20">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-slate-500">Vigencia Desde</TableHead>
-                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% COMISIÓN SVC</TableHead>
-                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% COMISIÓN PRD</TableHead>
+                      <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">% COMISIÓN SERVICIOS</TableHead>
                       <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-center text-slate-500">Estado</TableHead>
                       <TableHead className="text-[10px] font-bold uppercase tracking-wider h-10 px-4 text-right text-slate-500 pr-6">Acciones</TableHead>
                     </TableRow>
@@ -448,9 +448,6 @@ export default function NominaClient() {
                         </TableCell>
                         <TableCell className="py-4 px-4 text-[12px] font-black text-center text-slate-900">
                           {cfg.NC_PORCENTAJE_SERVICIO}%
-                        </TableCell>
-                        <TableCell className="py-4 px-4 text-[12px] font-black text-center text-slate-900">
-                          {cfg.NC_PORCENTAJE_PRODUCTO}%
                         </TableCell>
                         <TableCell className="py-4 px-4 text-center">
                           {idx === 0 ? (
@@ -512,26 +509,14 @@ export default function NominaClient() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Comisi&oacute;n SVC (%)</Label>
+                    <Label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Comisi&oacute;n Servicios (%)</Label>
                     <div className="relative">
                       <Input
                         type="number"
                         value={svcPercent}
                         onChange={(e) => setSvcPercent(e.target.value)}
-                        placeholder="0.00"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 font-black text-slate-300 text-xs">%</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Comisi&oacute;n PRD (%)</Label>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        value={prdPercent}
-                        onChange={(e) => setPrdPercent(e.target.value)}
                         placeholder="0.00"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 font-black text-slate-300 text-xs">%</span>
@@ -574,7 +559,10 @@ export default function NominaClient() {
 
           {showVolante && (
             <div className="p-8">
-              <VolantePago data={{ ...showVolante, periodoRange: currentRangeLabel }} />
+              <VolantePago 
+                data={{ ...showVolante, periodoRange: format(startDate, 'dd MMM', { locale: es }) + " - " + format(endDate, 'dd MMM yyyy', { locale: es }) }} 
+                auditData={auditData}
+              />
             </div>
           )}
         </DialogContent>

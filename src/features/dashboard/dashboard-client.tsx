@@ -640,8 +640,11 @@ export function DashboardClient() {
                                         <Card
                                             key={i}
                                             className={cn(
-                                                "border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900 transition-all hover:shadow-md cursor-pointer hover:ring-2 hover:ring-[#FF7E5F]/50",
-                                                stat.title === 'VENTAS' ? "col-span-2 lg:col-span-2" : ""
+                                                "border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group transition-all hover:shadow-md cursor-pointer",
+                                                stat.title === 'VENTAS' ? "col-span-2 lg:col-span-2 hover:ring-2 hover:ring-[#FF7E5F]/50 bg-white" : 
+                                                (stat.title === 'SERVICIO TRABAJADOR' || stat.title === 'VALES') 
+                                                    ? "bg-[#00CED1] border-black border-[0.5px] hover:ring-2 hover:ring-black" 
+                                                    : "bg-white dark:bg-slate-900 hover:ring-2 hover:ring-[#FF7E5F]/50"
                                             )}
                                             onClick={() => {
                                                 setDetailType(stat.title)
@@ -652,13 +655,14 @@ export function DashboardClient() {
                                             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
                                             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
                                                 <CardTitle className={cn(
-                                                    "font-bold text-slate-800 dark:text-slate-100 uppercase tracking-widest",
+                                                    "font-bold uppercase tracking-widest",
+                                                    (stat.title === 'SERVICIO TRABAJADOR' || stat.title === 'VALES') ? "text-slate-900" : "text-slate-800 dark:text-slate-100",
                                                     stat.title === 'VENTAS' ? "text-[13px]" : "text-[11px]"
                                                 )}>{stat.title}</CardTitle>
                                                 <div className="relative">
                                                     <div className={cn(
-                                                        "p-2.5 rounded-xl shadow-lg shadow-coral-500/10 bg-gradient-to-br",
-                                                        stat.color,
+                                                        "p-2.5 rounded-xl shadow-lg bg-gradient-to-br",
+                                                        (stat.title === 'SERVICIO TRABAJADOR' || stat.title === 'VALES') ? "from-slate-900 to-slate-800 shadow-black/20" : stat.color + " shadow-coral-500/10",
                                                         stat.title === 'VENTAS' ? "p-4" : ""
                                                     )}>
                                                         <stat.icon className={cn("text-white", stat.title === 'VENTAS' ? "size-6" : "size-4")} />
@@ -672,12 +676,16 @@ export function DashboardClient() {
                                             </CardHeader>
                                             <CardContent className="relative z-10">
                                                 <div className={cn(
-                                                    "font-black text-slate-900 dark:text-white leading-none tracking-tight",
+                                                    "font-black leading-none tracking-tight",
+                                                    (stat.title === 'SERVICIO TRABAJADOR' || stat.title === 'VALES') ? "text-slate-900" : "text-slate-900 dark:text-white",
                                                     stat.title === 'VENTAS' ? "text-5xl" : "text-2xl"
                                                 )}>
                                                     {stat.value}
                                                 </div>
-                                                <div className="text-[10px] font-medium text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
+                                                <div className={cn(
+                                                    "text-[10px] font-medium mt-2 uppercase italic leading-tight",
+                                                    (stat.title === 'SERVICIO TRABAJADOR' || stat.title === 'VALES') ? "text-slate-800/70" : "text-slate-400"
+                                                )}>{stat.sub}</div>
                                             </CardContent>
                                         </Card>
                                     ))}
@@ -709,7 +717,7 @@ export function DashboardClient() {
                                                     {(chartsData?.topTechs || []).map((tech: any, index: number) => (
                                                         <div
                                                             key={index}
-                                                            className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors cursor-pointer group/tech"
+                                                            className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors cursor-pointer group/tech border-l-4 border-transparent hover:border-[#FF7E5F]"
                                                             onClick={() => {
                                                                 setDetailType('Técnico')
                                                                 setDetailTitle(`Servicios de ${tech.name}`)
@@ -719,22 +727,20 @@ export function DashboardClient() {
                                                             <div className="flex items-center gap-4 w-[45%]">
                                                                 <div className={cn(
                                                                     "size-8 rounded-full flex items-center justify-center text-xs font-black shrink-0 shadow-sm transition-transform group-hover/tech:scale-110",
-                                                                    index === 0 ? "bg-amber-100 text-amber-600 border border-amber-200 shadow-inner" :
-                                                                        index === 1 ? "bg-slate-100 text-slate-600 border border-slate-200 shadow-inner" :
-                                                                            index === 2 ? "bg-orange-100 text-orange-600 border border-orange-200 shadow-inner" :
-                                                                                "bg-slate-50 text-slate-400 border border-slate-100"
+                                                                    index === 0 ? "bg-amber-100 text-amber-600 shadow-inner" :
+                                                                         "bg-slate-50 text-slate-400"
                                                                 )}>
                                                                     {index + 1}
                                                                 </div>
                                                                 <div className="flex flex-col truncate">
-                                                                    <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight group-hover/tech:text-[#FF7E5F] transition-colors truncate">{tech.name}</span>
+                                                                    <span className="text-[11px] font-black text-[#00CED1] [text-shadow:_-0.5px_-0.5px_0_#000,_0.5px_-0.5px_0_#000,_-0.5px_0.5px_0_#000,_0.5px_0.5px_0_#000] uppercase tracking-tight truncate">{tech.name}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="w-[20%] text-center">
-                                                                <span className="text-xs font-black text-slate-600 tabular-nums bg-slate-100 px-2 py-1 rounded-lg">{tech.count}</span>
+                                                                <span className="text-xs font-black text-slate-900 tabular-nums">{tech.count}</span>
                                                             </div>
                                                             <div className="flex flex-col items-end gap-1 w-[35%]">
-                                                                <div className="bg-[#FF7E5F]/10 text-[#FF7E5F] px-4 py-1.5 rounded-full text-[11px] font-black shadow-sm shadow-coral-500/5 group-hover/tech:bg-[#FF7E5F] group-hover/tech:text-white transition-all">
+                                                                <div className="text-[#FF7E5F] text-[11px] font-black">
                                                                     $ {(Number(tech.total) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                                                                 </div>
                                                             </div>
@@ -1173,7 +1179,10 @@ export function DashboardClient() {
                                                 <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Concepto / ID</TableHead>
                                                 <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Fecha</TableHead>
                                                 <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">{detailType === 'VALES' ? 'Nombre' : 'Cliente'}</TableHead>
-                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Detalle / Servicios / Productos</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Técnicos</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Detalle</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Servicios</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Productos</TableHead>
                                                 <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right">Total</TableHead>
                                                 <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right w-[60px]">Ver</TableHead>
                                             </TableRow>
@@ -1184,12 +1193,10 @@ export function DashboardClient() {
                                                     <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                     <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                    <TableCell className="text-xs font-medium text-slate-500 max-w-[600px]">
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="truncate" title={f.servicios}>{f.servicios || 'Servicios Varios'}</span>
-                                                            {f.productos && <span className="text-[10px] text-[#FF7E5F] truncate">{f.productos}</span>}
-                                                        </div>
-                                                    </TableCell>
+                                                    <TableCell className="text-[11px] font-black text-emerald-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
+                                                    <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || 'Servicios Varios'}</TableCell>
+                                                    <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
                                                     <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                     <TableCell className="text-right p-0">
                                                         <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1213,7 +1220,10 @@ export function DashboardClient() {
                                                                     {p.FC_FECHA ? format(new Date(p.FC_FECHA), 'dd/MM/yyyy') : '---'}
                                                                 </TableCell>
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">{p.cliente_display || 'GENERAL'}</TableCell>
+                                                                <TableCell className="text-xs font-black text-emerald-600 uppercase"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Método: {p.metodo}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-right font-black text-sm text-emerald-600">$ {(Number(p.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
                                                                     <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1227,7 +1237,10 @@ export function DashboardClient() {
                                                                 <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
+                                                                <TableCell className="text-xs font-black text-blue-600 uppercase"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-right font-black text-sm text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
                                                                     <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1247,7 +1260,10 @@ export function DashboardClient() {
                                                             <TableCell className="font-bold text-sm py-4 uppercase text-orange-600">Vale de Nómina/Adelanto</TableCell>
                                                             <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(v.VL_FECHA_CREACION), 'dd/MM/yyyy')}</TableCell>
                                                             <TableCell className="text-xs font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
+                                                            <TableCell className="text-xs font-black text-orange-600 uppercase"> - </TableCell>
                                                             <TableCell className="text-xs font-medium text-slate-500">{v.VL_OBSERVACIONES || 'Adelanto de efectivo'}</TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                             <TableCell className="text-right font-black text-sm text-orange-600">$ {(Number(v.VL_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
                                                             <TableCell className="text-right p-0">
                                                                 <span className="text-slate-200">-</span>
@@ -1262,7 +1278,10 @@ export function DashboardClient() {
                                                     <TableCell className="font-bold text-sm py-4 uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                     <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
+                                                    <TableCell className="text-xs font-black text-indigo-600 uppercase"> - </TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 italic">Abono a crédito pendiente</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                     <TableCell className="text-right font-black text-sm text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                     <TableCell className="text-right p-0">
                                                         <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1277,19 +1296,10 @@ export function DashboardClient() {
                                                     <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
                                                     <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                     <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                    <TableCell className="text-xs font-medium text-slate-500 max-w-[800px]">
-                                                        <div className="flex flex-col gap-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-black uppercase">{f.servicios_count || 0} SERV</span>
-                                                                <span className="truncate flex-1 font-bold text-slate-800 italic" title={f.servicios}>{f.servicios || '---'}</span>
-                                                            </div>
-                                                            {f.productos && (
-                                                                <div className="pl-[54px] truncate text-[10px] text-[#FF7E5F] font-bold">
-                                                                    + {f.productos}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
+                                                    <TableCell className="text-[11px] font-black text-amber-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
+                                                    <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || '---'}</TableCell>
+                                                    <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
                                                     <TableCell className="text-right font-black text-sm text-[#FF7E5F]">
                                                         <div className="flex flex-col items-end">
                                                             <span>$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</span>
@@ -1330,7 +1340,10 @@ export function DashboardClient() {
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">
                                                                     {s.trabajador_nombre} {s.FC_NUMERO_FACTURA ? `(Fact. ${s.FC_NUMERO_FACTURA})` : ''}
                                                                 </TableCell>
+                                                                <TableCell className="text-xs font-black text-slate-600 uppercase">{s.trabajador_nombre}</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno {s.FC_ESTADO === 'PENDIENTE' && <span className="text-amber-500 font-bold ml-1">(PENDIENTE)</span>}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-right font-black text-sm text-slate-900">$ {(Number(s.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
                                                                     {(s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK) ? (
@@ -1354,12 +1367,10 @@ export function DashboardClient() {
                                                                         <TableCell className="text-xs font-bold uppercase text-slate-700">
                                                                             {factura?.cliente_display || 'GENERAL'}
                                                                         </TableCell>
-                                                                        <TableCell className="text-xs font-medium text-slate-500 max-w-[600px]">
-                                                                            <div className="flex flex-col gap-1">
-                                                                                <span className="truncate" title={factura?.servicios}>{factura?.servicios || 'Servicios Varios'}</span>
-                                                                                {factura?.productos && <span className="text-[10px] text-[#FF7E5F] truncate">{factura.productos}</span>}
-                                                                            </div>
-                                                                        </TableCell>
+                                                                        <TableCell className="text-[11px] font-black text-blue-600 uppercase italic max-w-[150px] truncate" title={factura?.tecnicos}>{factura?.tecnicos || '-'}</TableCell>
+                                                                        <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={factura?.FC_OBSERVACIONES}>{factura?.FC_OBSERVACIONES || '-'}</TableCell>
+                                                                        <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={factura?.servicios}>{factura?.servicios || 'Servicios Varios'}</TableCell>
+                                                                        <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={factura?.productos}>{factura?.productos || '-'}</TableCell>
                                                                         <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                                         <TableCell className="text-right p-0">
                                                                             <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: pago.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1380,7 +1391,10 @@ export function DashboardClient() {
                                                         <TableCell className="font-bold text-sm py-4 uppercase">Factura {s.FC_NUMERO_FACTURA}</TableCell>
                                                         <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(s.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
                                                         <TableCell className="text-xs font-bold uppercase text-slate-700">{s.cliente_display || 'GENERAL'}</TableCell>
+                                                        <TableCell className="text-xs font-black text-[#FF7E5F] uppercase">{s.tecnico_nombre}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                         <TableCell className="text-xs font-medium text-slate-800 font-bold">{s.servicio_nombre}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                         <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                         <TableCell className="text-right p-0">
                                                             <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
@@ -1396,7 +1410,7 @@ export function DashboardClient() {
                                                 (detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).length === 0) ||
                                                 (detailType === 'SERVICIOS EN CURSO' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
                                                     <TableRow>
-                                                        <TableCell colSpan={6} className="py-20 text-center text-slate-300 font-bold italic text-sm uppercase tracking-widest">No se encontraron registros</TableCell>
+                                                        <TableCell colSpan={9} className="py-20 text-center text-slate-300 font-bold italic text-sm uppercase tracking-widest">No se encontraron registros</TableCell>
                                                     </TableRow>
                                                 )}
                                         </TableBody>

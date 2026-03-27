@@ -50,9 +50,9 @@ export async function saveNominaConfig(data: NominaConfigData): Promise<ApiRespo
     const validated = nominaConfigSchema.parse(data);
 
     await db.execute(
-      `INSERT INTO KS_NOMINA_CONFIG (NC_PORCENTAJE_SERVICIO, NC_PORCENTAJE_PRODUCTO, NC_FECHA_INICIO)
-       VALUES (?, ?, ?)`,
-      [validated.NC_PORCENTAJE_SERVICIO, validated.NC_PORCENTAJE_PRODUCTO, validated.NC_FECHA_INICIO]
+      `INSERT INTO KS_NOMINA_CONFIG (NC_PORCENTAJE_SERVICIO, NC_FECHA_INICIO)
+       VALUES (?, ?)`,
+      [validated.NC_PORCENTAJE_SERVICIO, validated.NC_FECHA_INICIO]
     );
 
     revalidatePath("/dashboard/nomina");
@@ -84,9 +84,9 @@ export async function updateNominaConfig(id: number, data: NominaConfigData): Pr
 
     await db.execute(
       `UPDATE KS_NOMINA_CONFIG 
-       SET NC_PORCENTAJE_SERVICIO = ?, NC_PORCENTAJE_PRODUCTO = ?, NC_FECHA_INICIO = ?
+       SET NC_PORCENTAJE_SERVICIO = ?, NC_FECHA_INICIO = ?
        WHERE NC_IDCONFIG_PK = ?`,
-      [validated.NC_PORCENTAJE_SERVICIO, validated.NC_PORCENTAJE_PRODUCTO, validated.NC_FECHA_INICIO, id]
+      [validated.NC_PORCENTAJE_SERVICIO, validated.NC_FECHA_INICIO, id]
     );
 
     revalidatePath("/dashboard/nomina");
@@ -157,16 +157,15 @@ export async function procesarNominaSemanal(data: { startDate: Date, endDate: Da
       const svcTotal = Number(services[0].total || 0);
       const svcComm = svcTotal * (config.NC_PORCENTAJE_SERVICIO / 100);
 
-      // 4.2. Calcular deducciones de productos
+      // 4.2. Calcular comisiones de productos (Persistidas en la factura)
       const [products]: any = await (connection as any).execute(
-        `SELECT SUM(fp.FP_VALOR) as total 
+        `SELECT SUM(fp.FP_COMISION_VALOR) as total 
          FROM KS_FACTURA_PRODUCTOS fp
          JOIN KS_FACTURAS f ON fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-         WHERE fp.TR_IDTECNICO_FK = ? AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?)`,
+         WHERE fp.TR_IDTECNICO_FK = ? AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?) AND f.FC_ESTADO = 'PAGADO'`,
         [worker.TR_IDTRABAJADOR_PK, data.startDate, data.endDate]
       );
-      const prdTotal = Number(products[0].total || 0);
-      const prdComm = prdTotal * (config.NC_PORCENTAJE_PRODUCTO / 100);
+      const prdComm = Number(products[0].total || 0);
 
       // 4.3. Obtener cuotas de servicios para este periodo
       const [vales]: any = await (connection as any).execute(
@@ -501,24 +500,60 @@ export async function getPayrollWorkers(role: string = 'TECNICO'): Promise<ApiRe
  */
 export async function getNominaAudit(workerId: number, startDate: Date, endDate: Date): Promise<ApiResponse> {
   try {
+    // 1. Obtener configuración de servicios para el cálculo (simplificado: usamos la actual o la que aplique al periodo)
+    const [configs]: any = await db.query(
+      "SELECT NC_PORCENTAJE_SERVICIO FROM KS_NOMINA_CONFIG WHERE NC_FECHA_INICIO <= ? ORDER BY NC_FECHA_INICIO DESC LIMIT 1",
+      [endDate]
+    );
+    const svcPercent = Number(configs[0]?.NC_PORCENTAJE_SERVICIO || 0);
+
+    // 2. Query UNION para servicios y productos
     const [rows]: any = await db.query(
-      `SELECT 
+      `
+      -- SERVICIOS
+      SELECT 
         f.FC_IDFACTURA_PK, 
         f.FC_FECHA, 
-        pf.PF_TIPO_ITEM, 
-        pf.PF_DESCRIPCION, 
-        pf.PF_TOTAL_ITEM, 
-        pf.PF_COMISION_VALOR
-       FROM KS_PAGOS_FACTURA pf
-       JOIN KS_FACTURAS f ON pf.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
-       WHERE pf.TR_IDTRABAJADOR_FK = ? 
-       AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?)
-       ORDER BY f.FC_FECHA DESC`,
-      [workerId, startDate, endDate]
+        'SERVICIO' as PF_TIPO_ITEM, 
+        s.SV_NOMBRE as PF_DESCRIPCION, 
+        fd.FD_CANTIDAD as PF_CANTIDAD,
+        fd.FD_VALOR as PF_VALOR_UNITARIO,
+        (fd.FD_VALOR * fd.FD_CANTIDAD) as PF_TOTAL_ITEM, 
+        ((fd.FD_VALOR * fd.FD_CANTIDAD) * (? / 100)) as PF_COMISION_VALOR
+      FROM KS_FACTURA_DETALLES fd
+      JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+      JOIN KS_SERVICIOS s ON fd.SV_IDSERVICIO_FK = s.SV_IDSERVICIO_PK
+      WHERE fd.TR_IDTECNICO_FK = ? 
+      AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?)
+      AND f.FC_ESTADO != 'CANCELADO'
+
+      UNION ALL
+
+      -- PRODUCTOS
+      SELECT 
+        f.FC_IDFACTURA_PK, 
+        f.FC_FECHA, 
+        'PRODUCTO' as PF_TIPO_ITEM, 
+        p.PR_NOMBRE as PF_DESCRIPCION, 
+        fp.FP_CANTIDAD as PF_CANTIDAD,
+        fp.FP_VALOR as PF_VALOR_UNITARIO,
+        (fp.FP_VALOR * fp.FP_CANTIDAD) as PF_TOTAL_ITEM, 
+        fp.FP_COMISION_VALOR as PF_COMISION_VALOR
+      FROM KS_FACTURA_PRODUCTOS fp
+      JOIN KS_FACTURAS f ON fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
+      JOIN KS_PRODUCTOS p ON fp.PR_IDPRODUCTO_FK = p.PR_IDPRODUCTO_PK
+      WHERE fp.TR_IDTECNICO_FK = ? 
+      AND DATE(f.FC_FECHA) BETWEEN DATE(?) AND DATE(?)
+      AND f.FC_ESTADO != 'CANCELADO'
+
+      ORDER BY FC_FECHA DESC`,
+      [svcPercent, workerId, startDate, endDate, workerId, startDate, endDate]
     );
 
     const mapped = (rows || []).map((r: any) => ({
       ...r,
+      PF_CANTIDAD: Number(r.PF_CANTIDAD || 0),
+      PF_VALOR_UNITARIO: Number(r.PF_VALOR_UNITARIO || 0),
       PF_TOTAL_ITEM: Number(r.PF_TOTAL_ITEM || 0),
       PF_COMISION_VALOR: Number(r.PF_COMISION_VALOR || 0)
     }));

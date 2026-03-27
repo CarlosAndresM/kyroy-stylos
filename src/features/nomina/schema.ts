@@ -3,7 +3,6 @@ import { z } from 'zod';
 export const nominaConfigSchema = z.object({
   NC_IDCONFIG_PK: z.number().optional(),
   NC_PORCENTAJE_SERVICIO: z.coerce.number().min(0).max(100),
-  NC_PORCENTAJE_PRODUCTO: z.coerce.number().min(0).max(100),
   NC_FECHA_INICIO: z.coerce.date({ required_error: 'La fecha de inicio es obligatoria' }),
 });
 

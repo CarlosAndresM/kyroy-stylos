@@ -54,7 +54,7 @@ interface TechnicianViewProps {
     dateTo: string
 }
 
-const COLORS = ['#FF7E5F', '#FEB47B', '#FFD200', '#F7971E', '#FFDF00'];
+const COLORS = ['#00CED1', '#00ADAD', '#2DD4BF', '#13C2C2', '#008B8B'];
 
 export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) {
     const [stats, setStats] = React.useState<any>(null)
@@ -145,20 +145,20 @@ export function TechnicianView({ user, dateFrom, dateTo }: TechnicianViewProps) 
                     <Card key={i} className="border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative group bg-white dark:bg-slate-900">
                         <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.color} opacity-[0.03] group-hover:opacity-[0.08] rounded-full -mr-12 -mt-12 transition-all duration-500 blur-xl group-hover:scale-150`} />
                         <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 relative z-10">
-                            <CardTitle className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.title}</CardTitle>
+                            <CardTitle className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{stat.title}</CardTitle>
                             <div className="relative">
-                                <div className={cn("p-2 rounded-xl bg-gradient-to-br", stat.color)}>
+                                <div className={cn("p-2 rounded-xl bg-gradient-to-br shadow-lg shadow-coral-500/10", stat.color)}>
                                     <stat.icon className="size-4 text-white" />
                                 </div>
                                 {stat.count > 0 && i !== 2 && (
-                                    <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black size-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+                                    <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black size-5 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm animate-in zoom-in-50 duration-300">
                                         {stat.count}
                                     </div>
                                 )}
                             </div>
                         </CardHeader>
                         <CardContent className="relative z-10">
-                            <div className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{stat.value}</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">{stat.value}</div>
                             <div className="text-[10px] font-medium text-slate-400 mt-2 uppercase italic leading-tight">{stat.sub}</div>
                         </CardContent>
                     </Card>
