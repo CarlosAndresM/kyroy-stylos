@@ -14,18 +14,18 @@ Font.register({
 });
 
 const styles = StyleSheet.create({
-  page: { 
-    padding: 40, 
-    fontSize: 10, 
-    fontFamily: 'Inter', 
+  page: {
+    padding: 40,
+    fontSize: 10,
+    fontFamily: 'Inter',
     color: '#334155', // slate-700
     backgroundColor: '#FFFFFF'
   },
-  
+
   // Header section
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 30,
     paddingBottom: 20,
@@ -43,15 +43,15 @@ const styles = StyleSheet.create({
     borderColor: '#F1F5F9',
     borderRadius: 8,
   },
-  logo: { 
-    width: 40, 
+  logo: {
+    width: 40,
     height: 40,
     objectFit: 'contain'
   },
-  companyName: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    textTransform: 'uppercase', 
+  companyName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
     color: '#0F172A', // slate-900
     letterSpacing: -0.5
   },
@@ -79,36 +79,36 @@ const styles = StyleSheet.create({
   },
 
   // Info Grid
-  infoGrid: { 
-    flexDirection: 'row', 
-    marginBottom: 30, 
+  infoGrid: {
+    flexDirection: 'row',
+    marginBottom: 30,
     gap: 40
   },
-  infoCol: { 
+  infoCol: {
     flex: 1,
     gap: 8
   },
-  infoRow: { 
+  infoRow: {
     flexDirection: 'column',
     gap: 2
   },
-  infoLabel: { 
-    fontSize: 7, 
-    color: '#94A3B8', 
+  infoLabel: {
+    fontSize: 7,
+    color: '#94A3B8',
     fontWeight: 'bold',
     textTransform: 'uppercase',
     letterSpacing: 0.5
   },
-  infoValue: { 
-    fontSize: 9, 
+  infoValue: {
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#1E293B', // slate-800
     textTransform: 'uppercase'
   },
 
   // Sections
-  section: { 
-    marginBottom: 25 
+  section: {
+    marginBottom: 25
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -116,19 +116,19 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 12
   },
-  sectionTitle: { 
-    fontSize: 8, 
-    fontWeight: 'bold', 
-    color: '#94A3B8', 
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#94A3B8',
     textTransform: 'uppercase',
     letterSpacing: 1.5
   },
 
   // Table
-  table: { 
+  table: {
     width: '100%',
   },
-  tableHeader: { 
+  tableHeader: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
@@ -141,78 +141,78 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     textTransform: 'uppercase'
   },
-  tableRow: { 
-    flexDirection: 'row', 
+  tableRow: {
+    flexDirection: 'row',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
     borderBottomColor: '#F8FAFC'
   },
-  cellDesc: { 
-    flex: 1, 
+  cellDesc: {
+    flex: 1,
     fontSize: 9,
     color: '#475569' // slate-600
   },
-  cellAmount: { 
-    width: 100, 
-    fontSize: 9, 
+  cellAmount: {
+    width: 100,
+    fontSize: 9,
     textAlign: 'right',
     fontWeight: 'bold',
     color: '#1E293B'
   },
 
   // Totals
-  subtotalRow: { 
-    flexDirection: 'row', 
-    marginTop: 10, 
+  subtotalRow: {
+    flexDirection: 'row',
+    marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1.5,
     borderTopColor: '#F1F5F9'
   },
-  subtotalLabel: { 
-    flex: 1, 
-    fontWeight: 'bold', 
+  subtotalLabel: {
+    flex: 1,
+    fontWeight: 'bold',
     fontSize: 8,
     color: '#94A3B8',
     textTransform: 'uppercase'
   },
-  subtotalAmount: { 
-    width: 100, 
-    fontWeight: 'bold', 
-    fontSize: 9, 
+  subtotalAmount: {
+    width: 100,
+    fontWeight: 'bold',
+    fontSize: 9,
     textAlign: 'right',
     color: '#1E293B'
   },
 
   // Neto Container (Dark like the web version)
-  netoContainer: { 
-    marginTop: 20, 
-    padding: 15, 
+  netoContainer: {
+    marginTop: 20,
+    padding: 15,
     backgroundColor: '#0F172A', // slate-900
     borderRadius: 12,
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
-  netoLabel: { 
-    fontSize: 9, 
+  netoLabel: {
+    fontSize: 9,
     fontWeight: 'bold',
     color: '#94A3B8',
     textTransform: 'uppercase',
     letterSpacing: 2
   },
-  netoValue: { 
-    fontSize: 18, 
+  netoValue: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF'
   },
 
-  footer: { 
-    position: 'absolute', 
-    bottom: 40, 
-    left: 40, 
-    right: 40, 
-    textAlign: 'center', 
-    fontSize: 7, 
+  footer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    fontSize: 7,
     color: '#94A3B8',
     borderTopWidth: 0.5,
     borderTopColor: '#F1F5F9',
@@ -245,30 +245,44 @@ const styles = StyleSheet.create({
 
 const fmt = (n: any) => {
   const val = Number(n) || 0;
-  return new Intl.NumberFormat('es-CO', { 
-    style: 'currency', 
-    currency: 'COP', 
-    maximumFractionDigits: 0 
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
   }).format(val);
 };
 
 export const VolantePDF = ({ data, logoUrl, auditData = [] }: { data: any, logoUrl?: string, auditData?: any[] }) => {
+  const finalSvc = auditData.filter(i => i.PF_TIPO_ITEM === 'SERVICIO');
+  const finalPrd = auditData.filter(i => i.PF_TIPO_ITEM === 'PRODUCTO');
+
+  const statsSvc = {
+    count: finalSvc.reduce((acc, curr) => acc + Number(curr.PF_CANTIDAD || 0), 0),
+    total: finalSvc.reduce((acc, curr) => acc + Number(curr.PF_COMISION_VALOR || 0), 0)
+  };
+
+  const statsPrd = {
+    count: finalPrd.reduce((acc, curr) => acc + Number(curr.PF_CANTIDAD || 0), 0),
+    total: finalPrd.reduce((acc, curr) => acc + Number(curr.PF_COMISION_VALOR || 0), 0)
+  };
+
   const devengos = [
     { desc: 'Sueldo Base', val: Number(data.ND_BASE || 0) },
-    { desc: 'Comisiones (SVC/PRD)', val: Number(data.ND_COMISIONES || 0) },
+    { desc: 'Comisiones Servicios', val: statsSvc.total, count: statsSvc.count },
+    { desc: 'Comisiones Productos', val: statsPrd.total, count: statsPrd.count },
     { desc: 'Bonificaciones / Otros', val: Number(data.ND_BONOS || 0) },
-  ].filter(i => i.val > 0);
+  ].filter(i => i.val > 0 || i.count > 0);
 
   const deducciones = [
     { desc: 'Servicio Trabajador (Cuota)', val: Number(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0) },
     { desc: 'Vales (Cuota)', val: Number(data.ND_DEDUCCIONES_VALES || 0) },
   ].filter(i => i.val > 0);
 
-  const totalDevengado = Number(data.ND_BASE || 0) + Number(data.ND_COMISIONES || 0) + Number(data.ND_BONOS || 0);
-  const totalDeducido = Number(data.ND_DEDUCCIONES_SERVICIOS_TRABAJADOR || 0) + Number(data.ND_DEDUCCIONES_VALES || 0);
+  const totalDevengado = devengos.reduce((acc, curr) => acc + curr.val, 0);
+  const totalDeducido = deducciones.reduce((acc, curr) => acc + curr.val, 0);
 
   return (
-    <Document>
+    <Document title={`Volante_${data.TR_NOMBRE}`}>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
@@ -282,10 +296,11 @@ export const VolantePDF = ({ data, logoUrl, auditData = [] }: { data: any, logoU
             </View>
             <View>
               <Text style={styles.companyName}>kairos STYLOS</Text>
+              <Text style={styles.companySub}>Sistema de Gestión de Nómina</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.voucherTitle}>Comprobante de Nómina</Text>
+            <Text style={styles.voucherTitle}>Comprobante</Text>
             <Text style={styles.voucherId}>VP-{data.ND_IDDETALLE_PK?.toString().padStart(5, '0')}</Text>
           </View>
         </View>
@@ -295,119 +310,149 @@ export const VolantePDF = ({ data, logoUrl, auditData = [] }: { data: any, logoU
           <View style={styles.infoCol}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Colaborador</Text>
-              <Text style={styles.infoValue}>{data.TR_NOMBRE}</Text>
+              <Text style={[styles.infoValue, { color: '#00CED1' }]}>{data.TR_NOMBRE}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Cargo</Text>
-              <Text style={styles.infoValue}>{data.RL_NOMBRE || 'Colaborador'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Sucursal</Text>
-              <Text style={styles.infoValue}>{data.SC_NOMBRE || 'Principal'}</Text>
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Cargo</Text>
+                <Text style={styles.infoValue}>{data.RL_NOMBRE || 'Colaborador'}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Sucursal</Text>
+                <Text style={styles.infoValue}>{data.SC_NOMBRE || 'Principal'}</Text>
+              </View>
             </View>
           </View>
           <View style={styles.infoCol}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Periodo</Text>
+              <Text style={styles.infoLabel}>Periodo Liquidado</Text>
               <Text style={styles.infoValue}>{data.periodoRange || '---'}</Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>ID Trabajador</Text>
-              <Text style={styles.infoValue}>#{data.TR_IDTRABAJADOR_FK}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Fecha Proceso</Text>
-              <Text style={styles.infoValue}>{new Date().toLocaleDateString('es-CO')}</Text>
+            <View style={{ flexDirection: 'row', gap: 20 }}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>ID</Text>
+                <Text style={styles.infoValue}>#{data.TR_IDTRABAJADOR_FK}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Emisión</Text>
+                <Text style={styles.infoValue}>{new Date().toLocaleDateString('es-CO')}</Text>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Devengados */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Devengado</Text>
-          </View>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={styles.cellDesc}>Descripción</Text>
-              <Text style={[styles.cellAmount, styles.headerText]}>Total</Text>
+        <View style={{ flexDirection: 'row', gap: 30 }}>
+          {/* Devengados */}
+          <View style={{ flex: 1 }}>
+            <View style={[styles.sectionHeader, { borderLeftWidth: 2, borderLeftColor: '#10B981', paddingLeft: 6 }]}>
+              <Text style={styles.sectionTitle}>Devengado (Ingresos)</Text>
             </View>
-            {devengos.map((item, i) => (
-              <View key={i} style={styles.tableRow}>
-                <Text style={styles.cellDesc}>{item.desc}</Text>
-                <Text style={styles.cellAmount}>{fmt(item.val)}</Text>
+            <View style={styles.table}>
+              {devengos.map((item: any, i) => (
+                <View key={i} style={styles.tableRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cellDesc}>{item.desc}</Text>
+                    {item.count > 0 && <Text style={{ fontSize: 6, color: '#94A3B8' }}>Cantidad: {item.count}</Text>}
+                  </View>
+                  <Text style={styles.cellAmount}>{fmt(item.val)}</Text>
+                </View>
+              ))}
+              <View style={styles.subtotalRow}>
+                <Text style={styles.subtotalLabel}>Total Devengado</Text>
+                <Text style={[styles.subtotalAmount, { color: '#10B981' }]}>{fmt(totalDevengado)}</Text>
               </View>
-            ))}
-            <View style={styles.subtotalRow}>
-              <Text style={styles.subtotalLabel}>Subtotal Devengado</Text>
-              <Text style={styles.subtotalAmount}>{fmt(totalDevengado)}</Text>
             </View>
           </View>
-        </View>
 
-        {/* Deducciones */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Deducido</Text>
-          </View>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={styles.cellDesc}>Descripción</Text>
-              <Text style={[styles.cellAmount, styles.headerText]}>Total</Text>
+          {/* Deducciones */}
+          <View style={{ flex: 1 }}>
+            <View style={[styles.sectionHeader, { borderLeftWidth: 2, borderLeftColor: '#EF4444', paddingLeft: 6 }]}>
+              <Text style={styles.sectionTitle}>Deducciones (Egresos)</Text>
             </View>
-            {deducciones.map((item, i) => (
-              <View key={i} style={styles.tableRow}>
-                <Text style={styles.cellDesc}>{item.desc}</Text>
-                <Text style={[styles.cellAmount, { color: '#DC2626' }]}>- {fmt(item.val)}</Text>
-              </View>
-            ))}
-            <View style={styles.subtotalRow}>
-              <Text style={styles.subtotalLabel}>Subtotal Deducciones</Text>
-              <Text style={[styles.subtotalAmount, { color: '#DC2626' }]}>- {fmt(totalDeducido)}</Text>
+            <View style={styles.table}>
+              {deducciones.length > 0 ? deducciones.map((item, i) => (
+                <View key={i} style={styles.tableRow}>
+                  <Text style={styles.cellDesc}>{item.desc}</Text>
+                  <Text style={[styles.cellAmount, { color: '#DC2626' }]}>- {fmt(item.val)}</Text>
+                </View>
+              )) : (
+                <Text style={{ fontSize: 8, color: '#94A3B8', fontStyle: 'italic', marginTop: 10, textAlign: 'center' }}>No hay deducciones</Text>
+              )}
+              {deducciones.length > 0 && (
+                <View style={styles.subtotalRow}>
+                  <Text style={styles.subtotalLabel}>Total Deducciones</Text>
+                  <Text style={[styles.subtotalAmount, { color: '#DC2626' }]}>- {fmt(totalDeducido)}</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
 
         {/* Neto Final */}
         <View style={styles.netoContainer}>
-          <Text style={styles.netoLabel}>Neto Pagado</Text>
+          <View>
+            <Text style={styles.netoLabel}>Neto a Recibir</Text>
+            <Text style={{ fontSize: 6, color: '#94A3B8', marginTop: 2 }}>Liquidación Semanal Confirmada</Text>
+          </View>
           <Text style={styles.netoValue}>{fmt(data.ND_TOTAL_NETO)}</Text>
         </View>
 
-        {/* Detalle de Actividad (Nuevos campos) */}
+        {/* Desglose de Actividad */}
         {auditData.length > 0 && (
-          <View style={[styles.section, { marginTop: 30 }]} wrap={false}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Detalle de Actividad</Text>
-            </View>
-            <View style={[styles.table, { borderWidth: 1, borderColor: '#F1F5F9', borderRadius: 8, overflow: 'hidden' }]}>
-              <View style={styles.auditHeader}>
-                <Text style={styles.colFecha}>Fecha</Text>
-                <Text style={styles.colTipo}>Tipo</Text>
-                <Text style={styles.colDesc}>Descripción</Text>
-                <Text style={styles.colCant}>Cant</Text>
-                <Text style={styles.colVal}>V. Unit</Text>
-                <Text style={styles.colComm}>Comisión</Text>
-              </View>
-              {auditData.map((item, i) => (
-                <View key={i} style={styles.auditRow}>
-                  <Text style={styles.colFecha}>{new Date(item.FC_FECHA).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}</Text>
-                  <Text style={[styles.colTipo, { color: item.PF_TIPO_ITEM === 'SERVICIO' ? '#059669' : '#2563EB' }]}>{item.PF_TIPO_ITEM}</Text>
-                  <Text style={styles.colDesc}>{item.PF_DESCRIPCION}</Text>
-                  <Text style={styles.colCant}>{item.PF_CANTIDAD}</Text>
-                  <Text style={styles.colVal}>{fmt(item.PF_VALOR_UNITARIO)}</Text>
-                  <Text style={styles.colComm}>{fmt(item.PF_COMISION_VALOR)}</Text>
+          <View style={{ marginTop: 20 }}>
+            <Text style={[styles.sectionTitle, { marginBottom: 10, borderTopWidth: 0.5, borderTopColor: '#F1F5F9', paddingTop: 10 }]}>Desglose Detallado de Actividad</Text>
+
+            {finalSvc.length > 0 && (
+              <View style={{ marginBottom: 15 }}>
+                <Text style={{ fontSize: 7, fontWeight: 'bold', color: '#059669', marginBottom: 5 }}>Servicios Realizados</Text>
+                <View style={{ borderWidth: 0.5, borderColor: '#F1F5F9', borderRadius: 4 }}>
+                  <View style={[styles.auditHeader, { backgroundColor: '#F8FAFC' }]}>
+                    <Text style={styles.colFecha}>Fecha</Text>
+                    <Text style={styles.colDesc}>Descripción</Text>
+                    <Text style={styles.colCant}>Cant</Text>
+                    <Text style={styles.colComm}>Comisión</Text>
+                  </View>
+                  {finalSvc.map((item, i) => (
+                    <View key={i} style={styles.auditRow}>
+                      <Text style={styles.colFecha}>{new Date(item.FC_FECHA).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}</Text>
+                      <Text style={styles.colDesc}>{item.PF_DESCRIPCION}</Text>
+                      <Text style={styles.colCant}>{item.PF_CANTIDAD}</Text>
+                      <Text style={styles.colComm}>{fmt(item.PF_COMISION_VALOR)}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              </View>
+            )}
+
+            {finalPrd.length > 0 && (
+              <View>
+                <Text style={{ fontSize: 7, fontWeight: 'bold', color: '#2563EB', marginBottom: 5 }}>Comisiones por Productos</Text>
+                <View style={{ borderWidth: 0.5, borderColor: '#F1F5F9', borderRadius: 4 }}>
+                  <View style={[styles.auditHeader, { backgroundColor: '#F8FAFC' }]}>
+                    <Text style={styles.colFecha}>Fecha</Text>
+                    <Text style={styles.colDesc}>Producto</Text>
+                    <Text style={styles.colCant}>Cant</Text>
+                    <Text style={styles.colComm}>Comisión</Text>
+                  </View>
+                  {finalPrd.map((item, i) => (
+                    <View key={i} style={styles.auditRow}>
+                      <Text style={styles.colFecha}>{new Date(item.FC_FECHA).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' })}</Text>
+                      <Text style={styles.colDesc}>{item.PF_DESCRIPCION}</Text>
+                      <Text style={styles.colCant}>{item.PF_CANTIDAD}</Text>
+                      <Text style={styles.colComm}>{fmt(item.PF_COMISION_VALOR)}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
 
         <Text style={styles.footer}>
-          Este documento es un comprobante informativo de liquidación de nómina generada por el sistema kairos STYLOS.
-          {new Date().getFullYear()}
+          Este documento es un comprobante informativo de liquidación de nómina. {new Date().getFullYear()} kairos STYLOS.
         </Text>
       </Page>
     </Document>
   );
 };
+
