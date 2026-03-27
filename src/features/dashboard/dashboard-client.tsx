@@ -1206,7 +1206,7 @@ export function DashboardClient() {
                                                     {(specificData?.adelantos || []).map((v: any) => (
                                                         <TableRow key={`val-nom-${v.VL_IDVALE_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
                                                             <TableCell className="font-bold text-xs uppercase text-orange-600">Vale de Nómina</TableCell>
-                                                            <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.VL_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                            <TableCell className="text-[10px] font-medium text-slate-500 tabular-nums">{format(new Date(v.VL_FECHA_CREACION), 'dd/MM/yyyy')}</TableCell>
                                                             <TableCell className="text-[10px] font-bold uppercase text-slate-700">{v.trabajador_nombre} ({v.VL_OBSERVACIONES})</TableCell>
                                                             <TableCell className="text-right font-black text-xs text-orange-600">$ {(Number(v.VL_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
                                                         </TableRow>

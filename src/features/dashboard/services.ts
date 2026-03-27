@@ -159,7 +159,7 @@ export async function getDashboardStats(sucursalId: number, dateFrom: string, da
       SELECT SUM(vl.VL_MONTO) as total, COUNT(*) as count
       FROM KS_VALES vl
       ${sucursalId !== -1 ? 'JOIN KS_TRABAJADORES t ON vl.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK' : ''}
-      WHERE DATE(vl.VL_FECHA) BETWEEN ? AND ? 
+      WHERE DATE(vl.VL_FECHA_CREACION) BETWEEN ? AND ? 
       AND vl.VL_ESTADO != 'ANULADO'
       ${sucursalId !== -1 ? 'AND t.SC_IDSUCURSAL_FK = ?' : ''}
     `;
@@ -414,10 +414,10 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
       SELECT v.*, t.TR_NOMBRE as trabajador_nombre
       FROM KS_VALES v
       ${sucursalId !== -1 ? 'JOIN KS_TRABAJADORES t ON v.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK' : 'LEFT JOIN KS_TRABAJADORES t ON v.TR_IDTRABAJADOR_FK = t.TR_IDTRABAJADOR_PK'}
-      WHERE DATE(v.VL_FECHA) BETWEEN ? AND ?
+      WHERE DATE(v.VL_FECHA_CREACION) BETWEEN ? AND ?
       AND v.VL_ESTADO != 'ANULADO'
       ${sucursalId !== -1 ? 'AND t.SC_IDSUCURSAL_FK = ?' : ''}
-      ORDER BY v.VL_FECHA DESC
+      ORDER BY v.VL_FECHA_CREACION DESC
     `;
     const valeParamsSpecific: any[] = [dateFrom, dateTo];
     if (sucursalId !== -1) valeParamsSpecific.push(sucursalId);
