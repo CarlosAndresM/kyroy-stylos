@@ -64,19 +64,23 @@ export async function getInvoiceById(id: number): Promise<ApiResponse> {
 
     // Check if it's a worker service (voucher)
     const [serviciosRegistrados]: any = await (db as any).execute(
-      "SELECT 1 FROM ks_servicios_trabajador WHERE fc_idfactura_fk = ?",
+      "SELECT st_numero_cuotas as VL_NUMERO_CUOTAS, st_fecha_inicio_cobro as VL_FECHA_INICIO_COBRO FROM ks_servicios_trabajador WHERE fc_idfactura_fk = ?",
       [id]
     );
+
+    const esServicioTrabajador = serviciosRegistrados.length > 0;
+    const infoServicio = esServicioTrabajador ? serviciosRegistrados[0] : {};
 
     return {
       success: true,
       data: {
         ...invoice,
+        ...infoServicio,
         FC_TOTAL: Number(invoice.fc_total || 0),
         services: (services || []).map((s: any) => ({ ...s, FD_VALOR: Number(s.fd_valor || 0) })),
         products: (products || []).map((p: any) => ({ ...p, FP_VALOR: Number(p.fp_valor || 0) })),
         payments: (payments || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.pf_valor || 0) })),
-        esServicioTrabajador: serviciosRegistrados.length > 0
+        esServicioTrabajador
       },
       error: null
     };
@@ -307,8 +311,8 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
       if (existingVale.length > 0) {
         const valeId = existingVale[0].st_idservicio_trabajador_pk;
         await (connection as any).execute(
-          "UPDATE ks_servicios_trabajador SET st_valor_total = ?, tr_idtrabajador_fk = ? WHERE st_idservicio_trabajador_pk = ?",
-          [valorTotalServicio, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, valeId]
+          "UPDATE ks_servicios_trabajador SET st_valor_total = ?, tr_idtrabajador_fk = ?, st_fecha = ? WHERE st_idservicio_trabajador_pk = ?",
+          [valorTotalServicio, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, data.FC_FECHA, valeId]
         );
       } else {
         const numCuotas = data.VL_NUMERO_CUOTAS || 1;
@@ -316,9 +320,9 @@ export async function saveInvoice(data: InvoiceFormData): Promise<ApiResponse> {
         const fechaInicio = data.VL_FECHA_INICIO_COBRO || data.FC_FECHA || new Date();
 
         const [vRes]: any = await (connection as any).execute(
-          `INSERT INTO ks_servicios_trabajador (st_valor_total, st_numero_cuotas, st_valor_cuota, st_estado, fc_idfactura_fk, tr_idtrabajador_fk, st_fecha_inicio_cobro)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [valorTotalServicio, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio]
+          `INSERT INTO ks_servicios_trabajador (st_valor_total, st_numero_cuotas, st_valor_cuota, st_estado, fc_idfactura_fk, tr_idtrabajador_fk, st_fecha_inicio_cobro, st_fecha)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [valorTotalServicio, numCuotas, valorCuota, 'PENDIENTE', invoiceId, data.TR_IDCLIENTE_FK || data.TR_IDCAJERO_FK, fechaInicio, data.FC_FECHA]
         );
         const vId = vRes.insertId;
         for (let i = 1; i <= numCuotas; i++) {

@@ -1199,43 +1199,46 @@ export function DashboardClient() {
                                                 </TableRow>
                                             ))}
 
-                                            {detailType === 'TOTAL EN CAJA' && (
-                                                <>
-                                                    {(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
-                                                        <TableRow key={`caja-f-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                            <TableCell className="font-bold text-sm py-4 uppercase">Venta: {f.FC_NUMERO_FACTURA}</TableCell>
-                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                            <TableCell className="text-xs font-medium text-slate-500 max-w-[600px]">
-                                                                <div className="flex flex-col gap-1">
-                                                                    <span className="truncate">{f.servicios || 'Servicios Varios'}</span>
-                                                                    {f.productos && <span className="text-[10px] text-emerald-600 truncate">{f.productos}</span>}
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell className="text-right font-black text-sm text-emerald-600">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                                            <TableCell className="text-right p-0">
-                                                                <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                    <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                </Button>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                    {(specificData?.abonos || []).map((ab: any) => (
-                                                        <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                            <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
-                                                            <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
-                                                            <TableCell className="text-right font-black text-sm text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                                            <TableCell className="text-right p-0">
-                                                                <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                    <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                </Button>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </>
-                                            )}
+                                            {detailType === 'TOTAL EN CAJA' && (() => {
+                                                const cajaMethods = ['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'TARJETA'];
+                                                const matchingPagos = (specificData?.pagos || []).filter((p: any) =>
+                                                    cajaMethods.includes(p.metodo?.toUpperCase())
+                                                );
+                                                return (
+                                                    <>
+                                                        {matchingPagos.map((p: any, idx: number) => (
+                                                            <TableRow key={`caja-p-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-sm py-4 uppercase">Pago: {p.FC_NUMERO_FACTURA || 'S/N'}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
+                                                                    {p.FC_FECHA ? format(new Date(p.FC_FECHA), 'dd/MM/yyyy') : '---'}
+                                                                </TableCell>
+                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{p.cliente_display || 'GENERAL'}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Método: {p.metodo}</TableCell>
+                                                                <TableCell className="text-right font-black text-sm text-emerald-600">$ {(Number(p.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                                <TableCell className="text-right p-0">
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                                        <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                        {(specificData?.abonos || []).map((ab: any) => (
+                                                            <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
+                                                                <TableCell className="text-right font-black text-sm text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                                <TableCell className="text-right p-0">
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                                        <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                                    </Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                    </>
+                                                )
+                                            })()}
 
                                             {detailType === 'VALES' && (
                                                 <>
@@ -1327,7 +1330,7 @@ export function DashboardClient() {
                                                                 <TableCell className="text-xs font-bold uppercase text-slate-700">
                                                                     {s.trabajador_nombre} {s.FC_NUMERO_FACTURA ? `(Fact. ${s.FC_NUMERO_FACTURA})` : ''}
                                                                 </TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno {s.FC_ESTADO === 'PENDIENTE' && <span className="text-amber-500 font-bold ml-1">(PENDIENTE)</span>}</TableCell>
                                                                 <TableCell className="text-right font-black text-sm text-slate-900">$ {(Number(s.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
                                                                     {(s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK) ? (

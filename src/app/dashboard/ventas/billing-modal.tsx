@@ -259,7 +259,7 @@ export function BillingModal({
       TR_IDCLIENTE_FK: inv.TR_IDCLIENTE_FK,
       esServicioTrabajador: inv.esServicioTrabajador,
       VL_NUMERO_CUOTAS: inv.VL_NUMERO_CUOTAS || 1,
-      VL_FECHA_INICIO_COBRO: inv.VL_FECHA_INICIO_COBRO ? new Date(inv.VL_FECHA_INICIO_COBRO) : null,
+      VL_FECHA_INICIO_COBRO: inv.VL_FECHA_INICIO_COBRO ? new Date(inv.VL_FECHA_INICIO_COBRO) : (inv.FC_FECHA ? new Date(inv.FC_FECHA) : new Date()),
       FC_CLIENTE_NOMBRE: inv.FC_CLIENTE_NOMBRE,
       FC_CLIENTE_TELEFONO: inv.FC_CLIENTE_TELEFONO,
       SC_IDSUCURSAL_FK: inv.SC_IDSUCURSAL_FK,
@@ -535,6 +535,19 @@ export function BillingModal({
       }
     }
   }, [form.watch("esServicioTrabajador"), clientType, total, paymentMethods, form])
+
+  // Auto-fill field values when esServicioTrabajador is enabled
+  React.useEffect(() => {
+    const isVale = form.watch("esServicioTrabajador")
+    if (isVale) {
+      if (!form.getValues("VL_FECHA_INICIO_COBRO")) {
+        form.setValue("VL_FECHA_INICIO_COBRO", form.getValues("FC_FECHA") || new Date())
+      }
+      if (!form.getValues("VL_NUMERO_CUOTAS")) {
+        form.setValue("VL_NUMERO_CUOTAS", 1)
+      }
+    }
+  }, [form.watch("esServicioTrabajador"), form])
 
   const onInvalid = (errors: any) => {
     console.error("Form Validation Errors (RAW):", JSON.stringify(errors, null, 2));
