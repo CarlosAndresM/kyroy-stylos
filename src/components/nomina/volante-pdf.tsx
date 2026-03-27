@@ -310,7 +310,7 @@ export const VolantePDF = ({ data, logoUrl, auditData = [] }: { data: any, logoU
           <View style={styles.infoCol}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Colaborador</Text>
-              <Text style={[styles.infoValue, { color: '#00CED1' }]}>{data.TR_NOMBRE}</Text>
+              <Text style={[styles.infoValue, { color: '#00CED1', letterSpacing: 1.5 }]}>{data.TR_NOMBRE}</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 20 }}>
               <View style={styles.infoRow}>

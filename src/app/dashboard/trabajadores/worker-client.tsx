@@ -205,7 +205,10 @@ export function WorkerClient({ initialWorkers, roles, sedes, currentRole, sucurs
                 {filteredWorkers.map((worker) => (
                   <TableRow key={worker.TR_IDTRABAJADOR_PK} className="hover:bg-slate-100/50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-800/50">
                     <TableCell className="py-2 px-4">
-                      <span className="font-black text-[#00CED1] text-xs uppercase tracking-tight">
+                      <span 
+                        className="font-black text-[#00CED1] text-xs uppercase tracking-tight"
+                        style={{ WebkitTextStroke: '0.4px black', letterSpacing: '0.1em' }}
+                      >
                         {worker.TR_NOMBRE}
                       </span>
                     </TableCell>

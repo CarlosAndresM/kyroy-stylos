@@ -758,7 +758,10 @@ export function DashboardClient() {
                                                                     </span>
                                                                 </TableCell>
                                                                 <TableCell className="px-4 py-4 max-w-[150px] truncate">
-                                                                    <span className="text-[10px] font-black text-[#00CED1] uppercase italic truncate">
+                                                                    <span 
+                                                                      className="text-[10px] font-black text-[#00CED1] uppercase italic truncate"
+                                                                      style={{ WebkitTextStroke: '0.4px black', letterSpacing: '0.1em' }}
+                                                                    >
                                                                         {f.tecnicos || '--'}
                                                                     </span>
                                                                 </TableCell>
@@ -871,7 +874,10 @@ export function DashboardClient() {
                                                                 {index + 1}
                                                             </div>
                                                             <div className="flex flex-col truncate">
-                                                                <span className="text-[11px] font-black text-[#00CED1] uppercase tracking-tight truncate">{tech.name}</span>
+                                                                <span 
+                                                                  className="text-[11px] font-black text-[#00CED1] uppercase tracking-tight truncate"
+                                                                  style={{ WebkitTextStroke: '0.4px black', letterSpacing: '0.1em' }}
+                                                                >{tech.name}</span>
                                                             </div>
                                                         </div>
                                                         <div className="w-[20%] text-center">

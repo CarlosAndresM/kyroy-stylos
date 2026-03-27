@@ -119,7 +119,8 @@ export function BillingClient({
         (inv.cliente_display || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (inv.FC_NUMERO_FACTURA || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (inv.sucursal_nombre || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (inv.servicios || "").toLowerCase().includes(searchTerm.toLowerCase());
+        (inv.servicios || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (inv.FC_CLIENTE_TELEFONO || "").toLowerCase().includes(searchTerm.toLowerCase());
 
       if (!searchMatch) return false;
 
@@ -127,10 +128,10 @@ export function BillingClient({
       for (const [col, values] of Object.entries(activeFilters)) {
         if (values.length === 0) continue;
 
-        if (col === 'servicios') {
-          // If invoice has ANY of the selected services
-          const invServices = (inv.servicios || "").split(", ").map((s: string) => s.trim().toUpperCase());
-          const hasMatch = values.some(val => invServices.includes(val.toUpperCase()));
+        if (col === 'servicios' || col === 'tecnicos') {
+          // If invoice has ANY of the selected services/technicians
+          const invItems = (inv[col] || "").split(", ").map((s: string) => s.trim().toUpperCase());
+          const hasMatch = values.some(val => invItems.includes(val.toUpperCase()));
           if (!hasMatch) return false;
         } else {
           const val = inv[col]?.toString();
@@ -299,7 +300,12 @@ export function BillingClient({
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Teléfono</span>
+                    <TableFilter
+                      label="TELÉFONO"
+                      options={getFilterOptions('FC_CLIENTE_TELEFONO')}
+                      selectedValues={activeFilters['FC_CLIENTE_TELEFONO'] || []}
+                      onFilterChange={(vals) => handleFilterChange('FC_CLIENTE_TELEFONO', vals)}
+                    />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4 text-center">
                     <TableFilter
@@ -327,7 +333,12 @@ export function BillingClient({
                     />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Técnicos</span>
+                    <TableFilter
+                      label="TÉCNICOS"
+                      options={technicians.map((t: any) => t.TR_NOMBRE || t.tr_nombre).filter(Boolean).sort()}
+                      selectedValues={activeFilters['tecnicos'] || []}
+                      onFilterChange={(vals) => handleFilterChange('tecnicos', vals)}
+                    />
                   </TableHead>
                   <TableHead className="h-10 py-0 px-4">
                     <span className="font-bold uppercase tracking-wide text-[10px] text-slate-500">Pago</span>
@@ -365,7 +376,10 @@ export function BillingClient({
                         </Badge>
                       </TableCell>
                       <TableCell className="py-2 px-4">
-                        <span className="text-[10px] font-medium text-slate-500 tabular-nums">
+                        <span 
+                          className="text-[10px] font-black text-slate-500 tabular-nums uppercase"
+                          style={{ WebkitTextStroke: '0.4px black', letterSpacing: '0.1em' }}
+                        >
                           {invoice.FC_CLIENTE_TELEFONO || '--'}
                         </span>
                       </TableCell>
@@ -395,7 +409,11 @@ export function BillingClient({
                         </div>
                       </TableCell>
                       <TableCell className="py-2 px-4">
-                        <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-tight block max-w-[120px] truncate" title={invoice.tecnicos}>
+                        <span 
+                          className="text-[10px] font-black text-indigo-500 uppercase tracking-tight block max-w-[120px] truncate" 
+                          style={{ WebkitTextStroke: '0.4px black', letterSpacing: '0.1em' }}
+                          title={invoice.tecnicos}
+                        >
                           {invoice.tecnicos || '--'}
                         </span>
                       </TableCell>
