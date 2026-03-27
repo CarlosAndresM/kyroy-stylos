@@ -94,10 +94,7 @@ export function DashboardClient() {
     const [selectedSede, setSelectedSede] = React.useState<number>(-1) // -1 for GLOBAL
     const [currentDate, setCurrentDate] = React.useState<Date>(new Date())
     const [viewMode, setViewMode] = React.useState<'GENERAL' | 'ESPECIFICO'>('ESPECIFICO')
-    const [periods, setPeriods] = React.useState<any[]>([])
-    const [periodPopoverOpen, setPeriodPopoverOpen] = React.useState(false)
-    const [selectedPeriod, setSelectedPeriod] = React.useState<string>('')
-    const [filterType, setFilterType] = React.useState<'DIA' | 'PERIODO' | 'RANGO'>('DIA')
+    const [filterType, setFilterType] = React.useState<'DIA' | 'RANGO'>('DIA')
     const [dateRange, setDateRange] = React.useState<{ from: Date; to: Date | undefined }>({
         from: startOfWeek(new Date(), { weekStartsOn: 0 }),
         to: endOfWeek(new Date(), { weekStartsOn: 0 })
@@ -156,13 +153,6 @@ export function DashboardClient() {
 
                 if (sedes) setSedes(sedes)
 
-                if (periods) {
-                    setPeriods(periods)
-                    if (periods.length > 0 && !selectedPeriod) {
-                        setSelectedPeriod(periods[0].NM_IDNOMINA_PK.toString())
-                    }
-                }
-
                 if (catalog) setCatalogData(catalog)
             }
         }
@@ -175,18 +165,7 @@ export function DashboardClient() {
             let from = format(currentDate, 'yyyy-MM-dd')
             let to = format(currentDate, 'yyyy-MM-dd')
 
-            if (filterType === 'PERIODO') {
-                if (selectedPeriod === '7dias') {
-                    from = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')
-                    to = format(endOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd')
-                } else {
-                    const period = periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod)
-                    if (period) {
-                        from = format(new Date(period.NM_FECHA_INICIO), 'yyyy-MM-dd')
-                        to = format(new Date(period.NM_FECHA_FIN), 'yyyy-MM-dd')
-                    }
-                }
-            } else if (filterType === 'RANGO') {
+            if (filterType === 'RANGO') {
                 from = format(dateRange.from, 'yyyy-MM-dd')
                 to = format(dateRange.to || dateRange.from, 'yyyy-MM-dd')
             }
@@ -203,7 +182,7 @@ export function DashboardClient() {
         } finally {
             setIsLoading(false)
         }
-    }, [selectedSede, currentDate, selectedPeriod, dateRange, filterType, viewMode, periods])
+    }, [selectedSede, currentDate, dateRange, filterType, viewMode])
 
     React.useEffect(() => {
         if (mounted) fetchData()
@@ -326,9 +305,7 @@ export function DashboardClient() {
                         ? format(currentDate, "EEEE, d 'de' MMMM", { locale: es })
                         : filterType === 'RANGO'
                             ? `${format(dateRange.from, "d 'de' MMMM", { locale: es })} - ${dateRange.to ? format(dateRange.to, "d 'de' MMMM", { locale: es }) : ''}`
-                            : periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod)
-                                ? `${format(new Date(periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod).NM_FECHA_INICIO), "d 'de' MMMM", { locale: es })} - ${format(new Date(periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod).NM_FECHA_FIN), "d 'de' MMMM", { locale: es })}`
-                                : "Resumen"
+                            : "Resumen"
                 }
                 actions={
                     <UserProfileDropdown userName={user?.username || 'Admin'} userRole={user?.role || 'ADMINISTRADOR'} />
@@ -384,17 +361,6 @@ export function DashboardClient() {
                             >
                                 POR DÍA
                             </button>
-                            {periods.length > 0 && (
-                                <button
-                                    onClick={() => setFilterType('PERIODO')}
-                                    className={cn(
-                                        "px-5 py-2 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg",
-                                        filterType === 'PERIODO' ? "bg-[#FF7E5F] text-white shadow-md shadow-coral-500/20" : "text-slate-500 hover:text-slate-700"
-                                    )}
-                                >
-                                    POR PERIODO
-                                </button>
-                            )}
                             <button
                                 onClick={() => setFilterType('RANGO')}
                                 className={cn(
@@ -461,22 +427,6 @@ export function DashboardClient() {
                                     <ChevronRight className="size-4" />
                                 </Button>
                             </div>
-                        ) : periods.length > 0 ? (
-                            <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl shadow-sm w-[280px] max-w-full overflow-hidden">
-                                <div className="px-3 text-[10px] font-bold text-slate-400 border-r border-slate-100 mr-2 shrink-0 uppercase tracking-wider">VER:</div>
-                                <div className="flex-1 min-w-0 pr-2">
-                                    <ComboboxSearch
-                                        options={periods.map(p => ({
-                                            label: `${format(new Date(p.NM_FECHA_INICIO), 'dd MMM', { locale: es }).toUpperCase()} - ${format(new Date(p.NM_FECHA_FIN), 'dd MMM', { locale: es }).toUpperCase()}`,
-                                            value: p.NM_IDNOMINA_PK.toString()
-                                        }))}
-                                        value={selectedPeriod}
-                                        onValueChange={(val) => val && setSelectedPeriod(val.toString())}
-                                        placeholder="BUSCAR..."
-                                        className="bg-transparent border-none shadow-none h-9 font-bold text-[11px] w-full px-0 hover:bg-transparent justify-start text-slate-700"
-                                    />
-                                </div>
-                            </div>
                         ) : filterType === 'RANGO' ? (
                             <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                                 <Button variant="ghost" size="icon" onClick={() => navigateWeeklyRange('prev')} className="h-9 w-9 rounded-none hover:bg-slate-50 text-slate-400">
@@ -535,18 +485,14 @@ export function DashboardClient() {
                                 ? format(currentDate, 'yyyy-MM-dd')
                                 : filterType === 'RANGO'
                                     ? format(dateRange.from, 'yyyy-MM-dd')
-                                    : (periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod)?.NM_FECHA_INICIO
-                                        ? format(new Date(periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod).NM_FECHA_INICIO), 'yyyy-MM-dd')
-                                        : format(currentDate, 'yyyy-MM-dd'))
+                                    : format(currentDate, 'yyyy-MM-dd')
                         }
                         dateTo={
                             filterType === 'DIA'
                                 ? format(currentDate, 'yyyy-MM-dd')
                                 : filterType === 'RANGO'
                                     ? format(dateRange.to || dateRange.from, 'yyyy-MM-dd')
-                                    : (periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod)?.NM_FECHA_FIN
-                                        ? format(new Date(periods.find(p => p.NM_IDNOMINA_PK.toString() === selectedPeriod).NM_FECHA_FIN), 'yyyy-MM-dd')
-                                        : format(currentDate, 'yyyy-MM-dd'))
+                                    : format(currentDate, 'yyyy-MM-dd')
                         }
                     />
                 ) : (
@@ -1164,132 +1110,91 @@ export function DashboardClient() {
                             </div>
                         )}
 
-                                    {/* Metric Detail Modal */}
-                                    <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-                                        <DialogContent className="max-w-[95vw] lg:max-w-[1400px] max-h-[95vh] overflow-hidden flex flex-col p-0 border-none bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl [&>button]:top-6 [&>button]:right-6 [&>button]:size-7 [&>button]:bg-white/50 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:shadow-sm [&>button]:border [&>button]:border-slate-200 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:hover:bg-white [&>button]:transition-all">
-                                            <DialogHeader className="p-6 pr-12 pb-4 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-[#FF7E5F]/10 rounded-xl">
-                                                        <BarChart3 className="size-5 text-[#FF7E5F]" />
-                                                    </div>
-                                                    <div>
-                                                        <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Detalle de {detailTitle}</DialogTitle>
-                                                        <DialogDescription className="text-xs font-medium text-slate-500 uppercase italic">Desglose detallado de la métrica seleccionada</DialogDescription>
-                                                    </div>
-                                                </div>
-                                            </DialogHeader>
+                        {/* Metric Detail Modal */}
+                        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+                            <DialogContent className="max-w-[95vw] lg:max-w-[1400px] max-h-[95vh] overflow-hidden flex flex-col p-0 border-none bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-2xl [&>button]:top-6 [&>button]:right-6 [&>button]:size-7 [&>button]:bg-white/50 [&>button]:backdrop-blur-sm [&>button]:rounded-full [&>button]:shadow-sm [&>button]:border [&>button]:border-slate-200 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:hover:bg-white [&>button]:transition-all">
+                                <DialogHeader className="p-6 pr-12 pb-4 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-[#FF7E5F]/10 rounded-xl">
+                                            <BarChart3 className="size-5 text-[#FF7E5F]" />
+                                        </div>
+                                        <div>
+                                            <DialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Detalle de {detailTitle}</DialogTitle>
+                                            <DialogDescription className="text-xs font-medium text-slate-500 uppercase italic">Desglose detallado de la métrica seleccionada</DialogDescription>
+                                        </div>
+                                    </div>
+                                </DialogHeader>
 
-                                            <div className="flex-1 overflow-auto p-6">
-                                                <Table>
-                                                    <TableHeader>
-                                                        <TableRow className="hover:bg-transparent border-b-2 border-slate-200 dark:border-slate-800 bg-slate-50/50">
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Concepto / ID</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Fecha</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">{detailType === 'VALES' ? 'Nombre' : 'Cliente'}</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Técnicos</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Detalle</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Servicios</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Productos</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right">Total</TableHead>
-                                                            <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right w-[60px]">Ver</TableHead>
-                                                        </TableRow>
-                                                    </TableHeader>
-                                                    <TableBody>
-                                                        {detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
-                                                            <TableRow key={`ventas-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                                <TableCell className="text-[11px] font-black text-emerald-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
-                                                                <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || 'Servicios Varios'}</TableCell>
-                                                                <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
-                                                                <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
+                                <div className="flex-1 overflow-auto p-6">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="hover:bg-transparent border-b-2 border-slate-200 dark:border-slate-800 bg-slate-50/50">
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Concepto / ID</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Fecha</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">{detailType === 'VALES' ? 'Nombre' : 'Cliente'}</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Técnicos</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Detalle</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Servicios</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4">Productos</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right">Total</TableHead>
+                                                <TableHead className="font-bold text-xs uppercase text-slate-500 py-4 text-right w-[60px]">Ver</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').map((f: any) => (
+                                                <TableRow key={`ventas-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                    <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                    <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                    <TableCell className="text-[11px] font-black text-emerald-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
+                                                    <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || 'Servicios Varios'}</TableCell>
+                                                    <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
+                                                    <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
+                                                    <TableCell className="text-right p-0">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                            <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+
+                                            {detailType === 'TOTAL EN CAJA' && (() => {
+                                                const cajaMethods = ['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'TARJETA'];
+                                                const matchingPagos = (specificData?.pagos || []).filter((p: any) =>
+                                                    cajaMethods.includes(p.metodo?.toUpperCase())
+                                                );
+                                                return (
+                                                    <>
+                                                        {matchingPagos.map((p: any, idx: number) => (
+                                                            <TableRow key={`caja-p-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-sm py-4 uppercase">Pago: {p.FC_NUMERO_FACTURA || 'S/N'}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
+                                                                    {p.FC_FECHA ? format(new Date(p.FC_FECHA), 'dd/MM/yyyy') : '---'}
+                                                                </TableCell>
+                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{p.cliente_display || 'GENERAL'}</TableCell>
+                                                                <TableCell className="text-xs font-black text-emerald-600 uppercase"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Método: {p.metodo}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-right font-black text-sm text-emerald-600">$ {(Number(p.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
-                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
                                                                         <Eye className="size-5 text-slate-400 hover:text-slate-900" />
                                                                     </Button>
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))}
-
-                                                        {detailType === 'TOTAL EN CAJA' && (() => {
-                                                            const cajaMethods = ['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'TARJETA'];
-                                                            const matchingPagos = (specificData?.pagos || []).filter((p: any) =>
-                                                                cajaMethods.includes(p.metodo?.toUpperCase())
-                                                            );
-                                                            return (
-                                                                <>
-                                                                    {matchingPagos.map((p: any, idx: number) => (
-                                                                        <TableRow key={`caja-p-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                            <TableCell className="font-bold text-sm py-4 uppercase">Pago: {p.FC_NUMERO_FACTURA || 'S/N'}</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
-                                                                                {p.FC_FECHA ? format(new Date(p.FC_FECHA), 'dd/MM/yyyy') : '---'}
-                                                                            </TableCell>
-                                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">{p.cliente_display || 'GENERAL'}</TableCell>
-                                                                            <TableCell className="text-xs font-black text-emerald-600 uppercase"> - </TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 italic">Método: {p.metodo}</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-right font-black text-sm text-emerald-600">$ {(Number(p.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                            <TableCell className="text-right p-0">
-                                                                                <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: p.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                                    <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                                </Button>
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))}
-                                                                    {(specificData?.abonos || []).map((ab: any) => (
-                                                                        <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                            <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
-                                                                            <TableCell className="text-xs font-black text-blue-600 uppercase"> - </TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-right font-black text-sm text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                            <TableCell className="text-right p-0">
-                                                                                <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                                    <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                                </Button>
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))}
-                                                                </>
-                                                            )
-                                                        })()}
-
-                                                        {detailType === 'VALES' && (
-                                                            <>
-                                                                {(specificData?.adelantos || []).map((v: any) => (
-                                                                    <TableRow key={`val-nom-${v.VL_IDVALE_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                        <TableCell className="font-bold text-sm py-4 uppercase text-orange-600">Vale de Nómina/Adelanto</TableCell>
-                                                                        <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(v.VL_FECHA_CREACION), 'dd/MM/yyyy')}</TableCell>
-                                                                        <TableCell className="text-xs font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
-                                                                        <TableCell className="text-xs font-black text-orange-600 uppercase"> - </TableCell>
-                                                                        <TableCell className="text-xs font-medium text-slate-500">{v.VL_OBSERVACIONES || 'Adelanto de efectivo'}</TableCell>
-                                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                        <TableCell className="text-right font-black text-sm text-orange-600">$ {(Number(v.VL_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                        <TableCell className="text-right p-0">
-                                                                            <span className="text-slate-200">-</span>
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                ))}
-                                                            </>
-                                                        )}
-
-                                                        {detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).map((ab: any) => (
-                                                            <TableRow key={`abono-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                <TableCell className="font-bold text-sm py-4 uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
+                                                        {(specificData?.abonos || []).map((ab: any) => (
+                                                            <TableRow key={`caja-ab-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-sm py-4 uppercase">Abono Deuda ({ab.FC_NUMERO_FACTURA})</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
-                                                                <TableCell className="text-xs font-black text-indigo-600 uppercase"> - </TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Abono a crédito pendiente</TableCell>
+                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display}</TableCell>
+                                                                <TableCell className="text-xs font-black text-blue-600 uppercase"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Pago de saldo pendiente</TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
                                                                 <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                <TableCell className="text-right font-black text-sm text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                                <TableCell className="text-right font-black text-sm text-blue-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
                                                                     <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
                                                                         <Eye className="size-5 text-slate-400 hover:text-slate-900" />
@@ -1297,216 +1202,257 @@ export function DashboardClient() {
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))}
+                                                    </>
+                                                )
+                                            })()}
 
-                                                        {detailType === 'SERVICIOS EN CURSO' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
-                                                            <TableRow key={`pendiente-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
-                                                                <TableCell className="text-[11px] font-black text-amber-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
-                                                                <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
-                                                                <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || '---'}</TableCell>
-                                                                <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
-                                                                <TableCell className="text-right font-black text-sm text-[#FF7E5F]">
-                                                                    <div className="flex flex-col items-end">
-                                                                        <span>$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</span>
-                                                                        {Number(f.productos_total) > 0 && (
-                                                                            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">(Prod: $ {(Number(f.productos_total) || 0).toLocaleString('es-CO')})</span>
-                                                                        )}
-                                                                    </div>
+                                            {detailType === 'VALES' && (
+                                                <>
+                                                    {(specificData?.adelantos || []).map((v: any) => (
+                                                        <TableRow key={`val-nom-${v.VL_IDVALE_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                            <TableCell className="font-bold text-sm py-4 uppercase text-orange-600">Vale de Nómina/Adelanto</TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(v.VL_FECHA_CREACION), 'dd/MM/yyyy')}</TableCell>
+                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">{v.trabajador_nombre}</TableCell>
+                                                            <TableCell className="text-xs font-black text-orange-600 uppercase"> - </TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-500">{v.VL_OBSERVACIONES || 'Adelanto de efectivo'}</TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                            <TableCell className="text-right font-black text-sm text-orange-600">$ {(Number(v.VL_MONTO) || 0).toLocaleString('es-CO')}</TableCell>
+                                                            <TableCell className="text-right p-0">
+                                                                <span className="text-slate-200">-</span>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </>
+                                            )}
+
+                                            {detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).map((ab: any) => (
+                                                <TableRow key={`abono-${ab.AB_IDABONO_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                    <TableCell className="font-bold text-sm py-4 uppercase">Abono {ab.AB_IDABONO_PK}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(ab.AB_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                    <TableCell className="text-xs font-bold uppercase text-slate-700">{ab.cliente_display} ({ab.FC_NUMERO_FACTURA})</TableCell>
+                                                    <TableCell className="text-xs font-black text-indigo-600 uppercase"> - </TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-500 italic">Abono a crédito pendiente</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                    <TableCell className="text-right font-black text-sm text-indigo-600">$ {(Number(ab.AB_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                    <TableCell className="text-right p-0">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: ab.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                            <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+
+                                            {detailType === 'SERVICIOS EN CURSO' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').map((f: any) => (
+                                                <TableRow key={`pendiente-${f.FC_IDFACTURA_PK}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                    <TableCell className="font-bold text-sm py-4">Factura {f.FC_NUMERO_FACTURA}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(f.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                    <TableCell className="text-xs font-bold uppercase text-slate-700">{f.cliente_display || 'GENERAL'}</TableCell>
+                                                    <TableCell className="text-[11px] font-black text-amber-600 uppercase italic max-w-[150px] truncate" title={f.tecnicos}>{f.tecnicos || 'SIN TÉCNICO'}</TableCell>
+                                                    <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={f.FC_OBSERVACIONES}>{f.FC_OBSERVACIONES || '-'}</TableCell>
+                                                    <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={f.servicios}>{f.servicios || '---'}</TableCell>
+                                                    <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={f.productos}>{f.productos || '-'}</TableCell>
+                                                    <TableCell className="text-right font-black text-sm text-[#FF7E5F]">
+                                                        <div className="flex flex-col items-end">
+                                                            <span>$ {(Number(f.FC_TOTAL) || 0).toLocaleString('es-CO')}</span>
+                                                            {Number(f.productos_total) > 0 && (
+                                                                <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">(Prod: $ {(Number(f.productos_total) || 0).toLocaleString('es-CO')})</span>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right p-0">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                            <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+
+                                            {['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'CREDITO', 'SERVICIO TRABAJADOR'].includes(detailType) && (() => {
+                                                const methodMap: Record<string, string[]> = {
+                                                    'EFECTIVO': ['EFECTIVO'],
+                                                    'TRANSFERENCIA': ['TRANSFERENCIA'],
+                                                    'DATAFONO': ['DATAFONO', 'TARJETA'],
+                                                    'CREDITO': ['CREDITO'],
+                                                    'SERVICIO TRABAJADOR': ['SERVICIO DE TRABAJADOR', 'SERVICIO TRABAJADOR'],
+                                                }
+                                                const dbMethods = methodMap[detailType] || [detailType.toUpperCase()]
+                                                const matchingPayments = (specificData?.pagos || []).filter(
+                                                    (p: any) => dbMethods.includes(p.metodo?.toUpperCase())
+                                                )
+
+                                                return (
+                                                    <>
+                                                        {detailType === 'SERVICIO TRABAJADOR' && (specificData?.serviciosReal || []).map((s: any, idx: number) => (
+                                                            <TableRow key={`st-real-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                <TableCell className="font-bold text-sm py-4 uppercase text-[#FF7E5F]">Voucher Servicio</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
+                                                                    {s.ST_FECHA ? format(new Date(s.ST_FECHA), 'dd/MM/yyyy') : '---'}
                                                                 </TableCell>
+                                                                <TableCell className="text-xs font-bold uppercase text-slate-700">
+                                                                    {s.trabajador_nombre} {s.FC_NUMERO_FACTURA ? `(Fact. ${s.FC_NUMERO_FACTURA})` : ''}
+                                                                </TableCell>
+                                                                <TableCell className="text-xs font-black text-slate-600 uppercase">{s.trabajador_nombre}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno {s.FC_ESTADO === 'PENDIENTE' && <span className="text-amber-500 font-bold ml-1">(PENDIENTE)</span>}</TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                                <TableCell className="text-right font-black text-sm text-slate-900">$ {(Number(s.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
                                                                 <TableCell className="text-right p-0">
-                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice(f, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                        <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                    </Button>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        ))}
-
-                                                        {['EFECTIVO', 'TRANSFERENCIA', 'DATAFONO', 'CREDITO', 'SERVICIO TRABAJADOR'].includes(detailType) && (() => {
-                                                            const methodMap: Record<string, string[]> = {
-                                                                'EFECTIVO': ['EFECTIVO'],
-                                                                'TRANSFERENCIA': ['TRANSFERENCIA'],
-                                                                'DATAFONO': ['DATAFONO', 'TARJETA'],
-                                                                'CREDITO': ['CREDITO'],
-                                                                'SERVICIO TRABAJADOR': ['SERVICIO DE TRABAJADOR', 'SERVICIO TRABAJADOR'],
-                                                            }
-                                                            const dbMethods = methodMap[detailType] || [detailType.toUpperCase()]
-                                                            const matchingPayments = (specificData?.pagos || []).filter(
-                                                                (p: any) => dbMethods.includes(p.metodo?.toUpperCase())
-                                                            )
-
-                                                            return (
-                                                                <>
-                                                                    {detailType === 'SERVICIO TRABAJADOR' && (specificData?.serviciosReal || []).map((s: any, idx: number) => (
-                                                                        <TableRow key={`st-real-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                            <TableCell className="font-bold text-sm py-4 uppercase text-[#FF7E5F]">Voucher Servicio</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
-                                                                                {s.ST_FECHA ? format(new Date(s.ST_FECHA), 'dd/MM/yyyy') : '---'}
-                                                                            </TableCell>
-                                                                            <TableCell className="text-xs font-bold uppercase text-slate-700">
-                                                                                {s.trabajador_nombre} {s.FC_NUMERO_FACTURA ? `(Fact. ${s.FC_NUMERO_FACTURA})` : ''}
-                                                                            </TableCell>
-                                                                            <TableCell className="text-xs font-black text-slate-600 uppercase">{s.trabajador_nombre}</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-500 italic">Deuda generada por servicio interno {s.FC_ESTADO === 'PENDIENTE' && <span className="text-amber-500 font-bold ml-1">(PENDIENTE)</span>}</TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                            <TableCell className="text-right font-black text-sm text-slate-900">$ {(Number(s.ST_VALOR_TOTAL) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                            <TableCell className="text-right p-0">
-                                                                                {(s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK) ? (
-                                                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                                        <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                                    </Button>
-                                                                                ) : <span className="text-slate-200">-</span>}
-                                                                            </TableCell>
-                                                                        </TableRow>
-                                                                    ))}
-                                                                    {matchingPayments
-                                                                        .filter((p: any) => detailType !== 'SERVICIO TRABAJADOR' || !(specificData?.serviciosReal || []).some((s: any) => s.FC_IDFACTURA_FK === p.FC_IDFACTURA_FK))
-                                                                        .map((pago: any, idx: number) => {
-                                                                            const factura = (specificData?.facturas || []).find((f: any) => f.FC_IDFACTURA_PK === pago.FC_IDFACTURA_FK)
-                                                                            return (
-                                                                                <TableRow key={`pago-m-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                                    <TableCell className="font-bold text-sm py-4">Factura {factura?.FC_NUMERO_FACTURA || pago.FC_IDFACTURA_FK}</TableCell>
-                                                                                    <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
-                                                                                        {factura ? format(new Date(factura.FC_FECHA), 'dd/MM/yyyy') : '---'}
-                                                                                    </TableCell>
-                                                                                    <TableCell className="text-xs font-bold uppercase text-slate-700">
-                                                                                        {factura?.cliente_display || 'GENERAL'}
-                                                                                    </TableCell>
-                                                                                    <TableCell className="text-[11px] font-black text-blue-600 uppercase italic max-w-[150px] truncate" title={factura?.tecnicos}>{factura?.tecnicos || '-'}</TableCell>
-                                                                                    <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={factura?.FC_OBSERVACIONES}>{factura?.FC_OBSERVACIONES || '-'}</TableCell>
-                                                                                    <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={factura?.servicios}>{factura?.servicios || 'Servicios Varios'}</TableCell>
-                                                                                    <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={factura?.productos}>{factura?.productos || '-'}</TableCell>
-                                                                                    <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                                    <TableCell className="text-right p-0">
-                                                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: pago.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
-                                                                                            <Eye className="size-5 text-slate-400 hover:text-slate-900" />
-                                                                                        </Button>
-                                                                                    </TableCell>
-                                                                                </TableRow>
-                                                                            )
-                                                                        })}
-                                                                </>
-                                                            )
-                                                        })()}
-
-                                                        {detailType === 'Técnico' && (specificData?.serviciosDetalle || [])
-                                                            .filter((s: any) => s.tecnico_nombre === detailTitle.replace('Servicios de ', ''))
-                                                            .map((s: any, idx: number) => (
-                                                                <TableRow key={`tech-d-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
-                                                                    <TableCell className="font-bold text-sm py-4 uppercase">Factura {s.FC_NUMERO_FACTURA}</TableCell>
-                                                                    <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(s.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
-                                                                    <TableCell className="text-xs font-bold uppercase text-slate-700">{s.cliente_display || 'GENERAL'}</TableCell>
-                                                                    <TableCell className="text-xs font-black text-[#FF7E5F] uppercase">{s.tecnico_nombre}</TableCell>
-                                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                    <TableCell className="text-xs font-medium text-slate-800 font-bold">{s.servicio_nombre}</TableCell>
-                                                                    <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
-                                                                    <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
-                                                                    <TableCell className="text-right p-0">
+                                                                    {(s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK) ? (
                                                                         <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
                                                                             <Eye className="size-5 text-slate-400 hover:text-slate-900" />
                                                                         </Button>
-                                                                    </TableCell>
-                                                                </TableRow>
-                                                            ))
-                                                        }
+                                                                    ) : <span className="text-slate-200">-</span>}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))}
+                                                        {matchingPayments
+                                                            .filter((p: any) => detailType !== 'SERVICIO TRABAJADOR' || !(specificData?.serviciosReal || []).some((s: any) => s.FC_IDFACTURA_FK === p.FC_IDFACTURA_FK))
+                                                            .map((pago: any, idx: number) => {
+                                                                const factura = (specificData?.facturas || []).find((f: any) => f.FC_IDFACTURA_PK === pago.FC_IDFACTURA_FK)
+                                                                return (
+                                                                    <TableRow key={`pago-m-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                                        <TableCell className="font-bold text-sm py-4">Factura {factura?.FC_NUMERO_FACTURA || pago.FC_IDFACTURA_FK}</TableCell>
+                                                                        <TableCell className="text-xs font-medium text-slate-500 tabular-nums">
+                                                                            {factura ? format(new Date(factura.FC_FECHA), 'dd/MM/yyyy') : '---'}
+                                                                        </TableCell>
+                                                                        <TableCell className="text-xs font-bold uppercase text-slate-700">
+                                                                            {factura?.cliente_display || 'GENERAL'}
+                                                                        </TableCell>
+                                                                        <TableCell className="text-[11px] font-black text-blue-600 uppercase italic max-w-[150px] truncate" title={factura?.tecnicos}>{factura?.tecnicos || '-'}</TableCell>
+                                                                        <TableCell className="text-xs font-medium text-slate-400 italic max-w-[200px] truncate" title={factura?.FC_OBSERVACIONES}>{factura?.FC_OBSERVACIONES || '-'}</TableCell>
+                                                                        <TableCell className="text-xs font-bold text-slate-700 max-w-[250px] truncate" title={factura?.servicios}>{factura?.servicios || 'Servicios Varios'}</TableCell>
+                                                                        <TableCell className="text-[11px] font-bold text-[#FF7E5F] max-w-[200px] truncate" title={factura?.productos}>{factura?.productos || '-'}</TableCell>
+                                                                        <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(pago.PF_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                                        <TableCell className="text-right p-0">
+                                                                            <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: pago.FC_IDFACTURA_FK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                                                <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                                            </Button>
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                )
+                                                            })}
+                                                    </>
+                                                )
+                                            })()}
 
-                                                        {((detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
-                                                            (detailType === 'TOTAL EN CAJA' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
-                                                            (detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).length === 0) ||
-                                                            (detailType === 'SERVICIOS EN CURSO' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
-                                                                <TableRow>
-                                                                    <TableCell colSpan={9} className="py-20 text-center text-slate-300 font-bold italic text-sm uppercase tracking-widest">No se encontraron registros</TableCell>
-                                                                </TableRow>
-                                                            )}
-                                                    </TableBody>
-                                                </Table>
-                                            </div>
+                                            {detailType === 'Técnico' && (specificData?.serviciosDetalle || [])
+                                                .filter((s: any) => s.tecnico_nombre === detailTitle.replace('Servicios de ', ''))
+                                                .map((s: any, idx: number) => (
+                                                    <TableRow key={`tech-d-${idx}`} className="border-b border-slate-100 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-950/50 transition-colors">
+                                                        <TableCell className="font-bold text-sm py-4 uppercase">Factura {s.FC_NUMERO_FACTURA}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-500 tabular-nums">{format(new Date(s.FC_FECHA), 'dd/MM/yyyy')}</TableCell>
+                                                        <TableCell className="text-xs font-bold uppercase text-slate-700">{s.cliente_display || 'GENERAL'}</TableCell>
+                                                        <TableCell className="text-xs font-black text-[#FF7E5F] uppercase">{s.tecnico_nombre}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-800 font-bold">{s.servicio_nombre}</TableCell>
+                                                        <TableCell className="text-xs font-medium text-slate-400 italic"> - </TableCell>
+                                                        <TableCell className="text-right font-black text-sm text-[#FF7E5F]">$ {(Number(s.FD_VALOR) || 0).toLocaleString('es-CO')}</TableCell>
+                                                        <TableCell className="text-right p-0">
+                                                            <Button variant="ghost" size="icon" onClick={() => handleOpenInvoice({ FC_IDFACTURA_PK: s.FC_IDFACTURA_FK || s.FC_IDFACTURA_PK }, true)} className="size-10 hover:bg-slate-100 rounded-lg">
+                                                                <Eye className="size-5 text-slate-400 hover:text-slate-900" />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            }
 
-                                            <DialogFooter className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shrink-0">
-                                                <Button onClick={() => setIsDetailModalOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-bold uppercase text-[10px] tracking-widest h-12 shadow-lg active:scale-95 transition-all">
-                                                    Cerrar Detalle
-                                                </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
+                                            {((detailType === 'VENTAS' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0) ||
+                                                (detailType === 'TOTAL EN CAJA' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PAGADO').length === 0 && (specificData?.abonos || []).length === 0) ||
+                                                (detailType === 'ABONO A DEUDAS' && (specificData?.abonos || []).length === 0) ||
+                                                (detailType === 'SERVICIOS EN CURSO' && (specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE').length === 0)) && (
+                                                    <TableRow>
+                                                        <TableCell colSpan={9} className="py-20 text-center text-slate-300 font-bold italic text-sm uppercase tracking-widest">No se encontraron registros</TableCell>
+                                                    </TableRow>
+                                                )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
 
-                                    <BillingModal
-                                        isOpen={isBillingModalOpen}
-                                        onClose={() => {
-                                            setIsBillingModalOpen(false)
-                                            fetchData() // Refresh data after closing
-                                        }}
-                                        technicians={catalogData.technicians}
-                                        services={catalogData.services}
-                                        products={catalogData.products}
-                                        paymentMethods={catalogData.paymentMethods}
-                                        sucursales={sedes}
-                                        sessionUser={user}
-                                        invoice={selectedInvoice}
-                                        isViewOnly={isViewOnly}
-                                    />
+                                <DialogFooter className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                    <Button onClick={() => setIsDetailModalOpen(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-bold uppercase text-[10px] tracking-widest h-12 shadow-lg active:scale-95 transition-all">
+                                        Cerrar Detalle
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
 
-                                    {/* Modal Autenticación Admin para Eliminar */}
-                                    {
-                                        isAdminDeleteAuthOpen && (
-                                            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
-                                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 w-full max-w-sm rounded-3xl shadow-2xl">
-                                                    <h3 className="text-sm font-black uppercase mb-4 tracking-tighter text-red-600 flex items-center gap-2">
-                                                        <Trash2 className="size-4" /> REQUERIDO ADMIN
-                                                    </h3>
-                                                    <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase italic">Para eliminar definitivamente una factura debe autorizar como administrador.</p>
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="CONTRASEÑA ADMINISTRADOR"
-                                                        value={adminPassword}
-                                                        onChange={(e) => setAdminPassword(e.target.value)}
-                                                        className="rounded-xl border-slate-200 focus:border-[#FF7E5F] mb-4 font-bold bg-slate-50 text-slate-900 h-12 transition-all"
-                                                        autoFocus
-                                                        autoComplete="new-password"
-                                                        onKeyDown={(e) => e.key === 'Enter' && confirmDeleteInvoice()}
-                                                    />
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            className="flex-1 rounded-xl border-slate-200 uppercase font-bold text-[10px] text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-12"
-                                                            onClick={() => {
-                                                                setIsAdminDeleteAuthOpen(false)
-                                                                setAdminPassword('')
-                                                                setInvoiceToDelete(null)
-                                                            }}
-                                                        >
-                                                            CANCELAR
-                                                        </Button>
-                                                        <Button
-                                                            className="flex-1 rounded-xl bg-red-600 text-white hover:bg-red-700 uppercase font-bold text-[10px] gap-2 shadow-lg shadow-red-500/20 h-12 border-none"
-                                                            onClick={confirmDeleteInvoice}
-                                                            disabled={isDeleting}
-                                                        >
-                                                            {isDeleting && <Loader2 className="size-3 animate-spin" />}
-                                                            CONFIRMAR
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    }
+                        <BillingModal
+                            isOpen={isBillingModalOpen}
+                            onClose={() => {
+                                setIsBillingModalOpen(false)
+                                fetchData() // Refresh data after closing
+                            }}
+                            technicians={catalogData.technicians}
+                            services={catalogData.services}
+                            products={catalogData.products}
+                            paymentMethods={catalogData.paymentMethods}
+                            sucursales={sedes}
+                            sessionUser={user}
+                            invoice={selectedInvoice}
+                            isViewOnly={isViewOnly}
+                        />
 
-                                    {/* MODAL PARA AGREGAR PRODUCTO A FACTURA EXISTENTE */}
-                                    <ProductAssociationModal
-                                        isOpen={isAddProductModalOpen}
-                                        onClose={() => setIsAddProductModalOpen(false)}
-                                        onSuccess={fetchData}
-                                        catalogData={catalogData}
-                                        pendingInvoices={(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE')}
-                                        initialInvoiceId={apInitialInvoiceId}
-                                        editData={apEditData}
-                                    />
+                        {/* Modal Autenticación Admin para Eliminar */}
+                        {
+                            isAdminDeleteAuthOpen && (
+                                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
+                                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 w-full max-w-sm rounded-3xl shadow-2xl">
+                                        <h3 className="text-sm font-black uppercase mb-4 tracking-tighter text-red-600 flex items-center gap-2">
+                                            <Trash2 className="size-4" /> REQUERIDO ADMIN
+                                        </h3>
+                                        <p className="text-[10px] text-slate-500 mb-4 font-bold uppercase italic">Para eliminar definitivamente una factura debe autorizar como administrador.</p>
+                                        <Input
+                                            type="password"
+                                            placeholder="CONTRASEÑA ADMINISTRADOR"
+                                            value={adminPassword}
+                                            onChange={(e) => setAdminPassword(e.target.value)}
+                                            className="rounded-xl border-slate-200 focus:border-[#FF7E5F] mb-4 font-bold bg-slate-50 text-slate-900 h-12 transition-all"
+                                            autoFocus
+                                            autoComplete="new-password"
+                                            onKeyDown={(e) => e.key === 'Enter' && confirmDeleteInvoice()}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="flex-1 rounded-xl border-slate-200 uppercase font-bold text-[10px] text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-12"
+                                                onClick={() => {
+                                                    setIsAdminDeleteAuthOpen(false)
+                                                    setAdminPassword('')
+                                                    setInvoiceToDelete(null)
+                                                }}
+                                            >
+                                                CANCELAR
+                                            </Button>
+                                            <Button
+                                                className="flex-1 rounded-xl bg-red-600 text-white hover:bg-red-700 uppercase font-bold text-[10px] gap-2 shadow-lg shadow-red-500/20 h-12 border-none"
+                                                onClick={confirmDeleteInvoice}
+                                                disabled={isDeleting}
+                                            >
+                                                {isDeleting && <Loader2 className="size-3 animate-spin" />}
+                                                CONFIRMAR
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }
 
-                                </>
+                        {/* MODAL PARA AGREGAR PRODUCTO A FACTURA EXISTENTE */}
+                        <ProductAssociationModal
+                            isOpen={isAddProductModalOpen}
+                            onClose={() => setIsAddProductModalOpen(false)}
+                            onSuccess={fetchData}
+                            catalogData={catalogData}
+                            pendingInvoices={(specificData?.facturas || []).filter((f: any) => f.FC_ESTADO === 'PENDIENTE')}
+                            initialInvoiceId={apInitialInvoiceId}
+                            editData={apEditData}
+                        />
+
+                    </>
                 )}
-                            </div>
-        </div >
-                )
+            </div>
+        </div>
+    )
 }

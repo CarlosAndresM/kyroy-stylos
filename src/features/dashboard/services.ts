@@ -281,22 +281,6 @@ export async function getDashboardCharts(sucursalId: number, dateFrom: string, d
   }
 }
 
-export async function getPayrollPeriods(): Promise<ApiResponse> {
-  try {
-    const [rows]: any = await db.execute(
-      `SELECT NM_IDNOMINA_PK, NM_FECHA_INICIO, NM_FECHA_FIN, NM_ESTADO 
-       FROM KS_NOMINAS 
-       WHERE NM_ESTADO = 'CONFIRMADA'
-       ORDER BY NM_FECHA_INICIO DESC 
-       LIMIT 24`
-    );
-    return { success: true, data: rows, error: null };
-  } catch (error) {
-    console.error("Error in getPayrollPeriods:", error);
-    return { success: false, data: [], error: "Error al obtener periodos de nómina" };
-  }
-}
-
 export async function getCurrentUserSession(): Promise<ApiResponse> {
   try {
     const cookieStore = await cookies();
@@ -463,8 +447,8 @@ export async function getDashboardSpecificData(sucursalId: number, dateFrom: str
         abonos: (abonos || []).map((a: any) => ({ ...a, AB_VALOR: Number(a.AB_VALOR || 0), cr_valor_pendiente: Number(a.cr_valor_pendiente || 0) })),
         pagos: (pagos || []).map((p: any) => ({ ...p, PF_VALOR: Number(p.PF_VALOR || 0) })),
         serviciosDetalle: (serviciosDetalle || []).map((s: any) => ({ ...s, FD_VALOR: Number(s.FD_VALOR || 0) })),
-        serviciosReal: (serviciosReal || []).map((s: any) => ({ 
-          ...s, 
+        serviciosReal: (serviciosReal || []).map((s: any) => ({
+          ...s,
           ST_VALOR_TOTAL: Number(s.ST_VALOR_TOTAL || 0),
           FC_IDFACTURA_FK: s.FC_IDFACTURA_FK || s.fc_idfactura_fk // Unify casing for frontend filter
         })),
@@ -484,20 +468,20 @@ export async function getTechnicianStats(workerId: number, dateFrom: string, dat
 
     // 1. Total Services Value (Commissions potential)
     const [servicesResult]: any = await db.execute(
-       `SELECT SUM(fd.FD_VALOR) as total, COUNT(*) as count
+      `SELECT SUM(fd.FD_VALOR) as total, COUNT(*) as count
         FROM KS_FACTURA_DETALLES fd
         JOIN KS_FACTURAS f ON fd.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
         WHERE fd.TR_IDTECNICO_FK = ? AND DATE(f.FC_FECHA) BETWEEN ? AND ? AND f.FC_ESTADO = 'PAGADO'`,
-       params
+      params
     );
 
     // 2. Total Products Value (Deductions potential)
     const [productsResult]: any = await db.execute(
-       `SELECT SUM(fp.FP_VALOR) as total, COUNT(*) as count
+      `SELECT SUM(fp.FP_VALOR) as total, COUNT(*) as count
         FROM KS_FACTURA_PRODUCTOS fp
         JOIN KS_FACTURAS f ON fp.FC_IDFACTURA_FK = f.FC_IDFACTURA_PK
         WHERE fp.TR_IDTECNICO_FK = ? AND DATE(f.FC_FECHA) BETWEEN ? AND ? AND f.FC_ESTADO = 'PAGADO'`,
-       params
+      params
     );
 
     // 3. Vales Pendientes (Servicios de Trabajador)
@@ -632,10 +616,9 @@ export async function getTechnicianPayrollHistory(workerId: number): Promise<Api
  */
 export async function getDashboardInitialData(): Promise<ApiResponse> {
   try {
-    const [userRes, sedesRes, periodsRes, workersRes, servicesRes, productsRes, paymentsRes] = await Promise.all([
+    const [userRes, sedesRes, workersRes, servicesRes, productsRes, paymentsRes] = await Promise.all([
       getCurrentUserSession(),
       getSedes(),
-      getPayrollPeriods(),
       getWorkers(),
       getServices(),
       getProducts(),
@@ -647,7 +630,6 @@ export async function getDashboardInitialData(): Promise<ApiResponse> {
       data: {
         user: userRes.success ? userRes.data : null,
         sedes: sedesRes.success ? sedesRes.data : [],
-        periods: periodsRes.success ? periodsRes.data : [],
         catalog: {
           technicians: workersRes.success ? workersRes.data : [],
           services: servicesRes.success ? servicesRes.data : [],
